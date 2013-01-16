@@ -14,10 +14,7 @@
 namespace p2pnet {
 namespace crypto {
 
-typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > secvector_t;
-
 typedef std::vector<Botan::byte> key_public_t;
-//typedef Botan::secure_vector<Botan::byte> key_private_t;
 typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > key_private_t;
 
 typedef struct {
@@ -25,9 +22,11 @@ typedef struct {
 	key_private_t key_private;
 } key_pair_t;
 
-//typedef Botan::secure_vector<Botan::byte> hash_t;
+//! Type for storing results of hash-functions
 typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > hash_t;
 
+//! Hamming distance of two hash_t
+unsigned short hashDistance(hash_t hash1, hash_t hash2);
 } /* namespace crypto */
 } /* namespace p2pnet */
 
