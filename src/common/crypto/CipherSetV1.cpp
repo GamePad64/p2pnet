@@ -15,7 +15,6 @@ CipherSetV1::~CipherSetV1() {}
 
 hash_t CipherSetV1::computeHash(const std::string& data) {
 	Botan::Keccak_1600 hasher(KECCAK_LENGTH);
-	secvector_t sec_hash;
 	return hasher.process(data);
 }
 
