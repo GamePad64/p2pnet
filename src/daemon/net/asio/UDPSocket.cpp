@@ -89,15 +89,6 @@ void UDPSocket::async_receive(MessageSocketListener* observer) {
 					data_received, boost::asio::placeholders::bytes_transferred));
 }
 
-void UDPSocket::async_continious_receive(MessageSocketListener* observer) {
-	char data_received[MAX_PACKET_LENGTH];
-	udp::endpoint endpoint;
-	m_socket.async_receive_from(
-			boost::asio::buffer(data_received, MAX_PACKET_LENGTH), endpoint,
-			boost::bind(&UDPSocket::receive_handler, this, observer,
-					data_received, boost::asio::placeholders::bytes_transferred));
-}
-
 void UDPSocket::async_send(std::string data, MessageSocketListener* observer) {
 	m_socket.async_send(
 			boost::asio::buffer(data),
