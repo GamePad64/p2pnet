@@ -23,31 +23,26 @@ const std::string LOCAL_V6 = "0::0";
 class UDPSocketDestination {
 public:
 	UDPSocketDestination();
+	UDPSocketDestination(std::string ip, unsigned short port);
 
 	std::string ip;
 	unsigned short port;
 
-	UDPSocketDestination(std::string ip, unsigned short port){
-		this->ip = ip;
-		this->port = port;
-	}
+	bool isIPv4();
+	bool isIPv6();
 
-	bool isIPv4() {
-		return boost::asio::ip::address::from_string(ip).is_v4();
-	}
-	bool isIPv6() {
-		return boost::asio::ip::address::from_string(ip).is_v6();
-	}
-	udp::endpoint toEndpoint() {
-		return udp::endpoint(address::from_string(ip), port);
-	}
-	void fromEndpoint(udp::endpoint endpoint) {
-		ip = endpoint.address().to_string();
-		port = endpoint.port();
-	}
+	// Asio Endpoint conversion
+	udp::endpoint toEndpoint();
+	void fromEndpoint(udp::endpoint endpoint);
+
+	// Protocol Buffers Serialization
+	std::string toString();
+	void fromString(const std::string& from);
+
+	UDPSocketDestination(const std::string& from);
 };
 
-class UDPSocket: public MessageSocket {
+class UDPSocket: public net::MessageSocket {
 public:
 	UDPSocket();
 	virtual ~UDPSocket();
@@ -58,20 +53,20 @@ public:
 	void close();
 
 	// Send/receive functions
-	virtual void async_receive(DataObserver* observer);
-	virtual void async_continious_receive(DataObserver* observer);
-	virtual void async_send(std::string data, DataObserver* observer);
+	virtual void async_receive(MessageSocketListener* observer);
+	virtual void async_continious_receive(MessageSocketListener* observer);
+	virtual void async_send(std::string data, MessageSocketListener* observer);
 
-	virtual void wait_receive(DataObserver* observer);
-	virtual void wait_send(std::string data, DataObserver* observer);
+	virtual void wait_receive(MessageSocketListener* observer);
+	virtual void wait_send(std::string data, MessageSocketListener* observer);
 
 	virtual packet_info_t here_receive();
 	virtual void here_send(std::string data);
 
 private:
-	void receive_handler(DataObserver* observer, char* buffer, size_t bytes_received);
-	void continious_receive_handler(DataObserver* observer, char* buffer, size_t bytes_received);
-	void send_handler(DataObserver* observer, size_t bytes_sent);
+	void receive_handler(MessageSocketListener* observer, char* buffer, size_t bytes_received);
+	void continious_receive_handler(MessageSocketListener* observer, char* buffer, size_t bytes_received);
+	void send_handler(MessageSocketListener* observer, size_t bytes_sent);
 
 	boost::asio::io_service& m_io_service;
 	udp::socket m_socket;

@@ -1,7 +1,7 @@
 /*
  * MessageSocket.cpp
  *
- *  Created on: 17.12.2012
+ *  Created on: 17.01.2013
  *      Author: gamepad
  */
 
@@ -11,13 +11,10 @@ namespace p2pnet {
 namespace net {
 
 MessageSocket::MessageSocket() {
-	// TODO Auto-generated constructor stub
-
 }
 
 MessageSocket::~MessageSocket() {
-	// TODO Auto-generated destructor stub
 }
 
-} /* namespace net */
-} /* namespace p2pnet */
+}
+}
