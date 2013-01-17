@@ -5,6 +5,7 @@
  *      Author: gamepad
  */
 
+#include "../../../../src/daemon/net/MessageSocket.h"
 #include "../../../../src/daemon/net/asio/UDPSocket.h"
 #include "../../../../src/daemon/net/asio/AsioIOService.h"
 #include "gtest/gtest.h"
@@ -17,15 +18,15 @@ unsigned int port_wait = 15475;
 unsigned int port_async = 15476;
 unsigned int port_here = 15477;
 
-class MockDataObserver : public DataObserver {
+class MockDataObserver : public net::MessageSocketListener {
 public:
 	std::string message_recv;
 	MockDataObserver(){};
 	virtual ~MockDataObserver(){};
-	void receivedMessage(packet_info_t packet){
+	virtual void receivedMessage(net::packet_info_t packet){
 		message_recv = packet.message;
 	}
-	void sentMessage(packet_info_t packet){
+	virtual void sentMessage(net::packet_info_t packet){
 	}
 };
 
