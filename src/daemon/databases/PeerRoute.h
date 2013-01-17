@@ -15,6 +15,9 @@
 namespace p2pnet {
 namespace net {
 
+/**
+ * PeerRoute is a class that stores all the ways to reach the destination.
+ */
 class PeerRoute {
 public:
 	PeerRoute();

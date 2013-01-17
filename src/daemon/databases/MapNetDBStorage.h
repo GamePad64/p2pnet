@@ -15,6 +15,13 @@
 namespace p2pnet {
 namespace databases {
 
+/**
+ * MapNetDBStorage is a storage for NetDB based on std::map. It has lots of disadvantages:
+ *  - It is SLOW.
+ *  - It consumes a large amount of memory
+ *  - It is stored only in RAM
+ * It will be replaced with SQLite database soon.
+ */
 class MapNetDBStorage {
 private:
 	std::forward_list<crypto::hash_t> m_hashes;
@@ -25,8 +32,13 @@ public:
 	MapNetDBStorage();
 	virtual ~MapNetDBStorage();
 
-	auto getHashIteratorBegin(){return m_hashes.begin();};
-	auto getHashIteratorEnd(){return m_hashes.end();};
+	//! All the hashes stored it NetDBStorage
+	auto getHashIteratorBegin() -> decltype(m_hashes)::iterator {
+		return m_hashes.begin();
+	};
+	auto getHashIteratorEnd() -> decltype(m_hashes)::iterator {
+		return m_hashes.end();
+	};
 
 	//! Public key database
 	bool hasPublicKeyOf(crypto::hash_t peer_id);
