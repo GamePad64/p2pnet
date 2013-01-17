@@ -54,7 +54,6 @@ public:
 
 	// Send/receive functions
 	virtual void async_receive(MessageSocketListener* observer);
-	virtual void async_continious_receive(MessageSocketListener* observer);
 	virtual void async_send(std::string data, MessageSocketListener* observer);
 
 	virtual void wait_receive(MessageSocketListener* observer);
@@ -65,7 +64,6 @@ public:
 
 private:
 	void receive_handler(MessageSocketListener* observer, char* buffer, size_t bytes_received);
-	void continious_receive_handler(MessageSocketListener* observer, char* buffer, size_t bytes_received);
 	void send_handler(MessageSocketListener* observer, size_t bytes_sent);
 
 	boost::asio::io_service& m_io_service;

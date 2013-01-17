@@ -35,7 +35,6 @@ public:
 	virtual ~MessageSocket();
 
 	virtual void async_receive(MessageSocketListener* observer) = 0;
-	virtual void async_continious_receive(MessageSocketListener* observer) = 0;
 	virtual void async_send(std::string data, MessageSocketListener* observer) = 0;
 
 	virtual void wait_receive(MessageSocketListener* observer) = 0;
