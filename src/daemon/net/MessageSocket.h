@@ -14,10 +14,12 @@ namespace p2pnet {
 namespace net {
 
 constexpr int MAX_PACKET_LENGTH = 32768;
+class UDPSocket;
 
-class MessageSocket;
 struct packet_info_t {
-	net::MessageSocket* socket_ptr;
+	UDPSocket* socket_ptr;
+	std::string destination;	//! Now it is UDPSocketDestination in serialized form. Further, it will be used for other types of destinations.
+
 	std::string message;
 };
 
@@ -27,21 +29,6 @@ public:
 	virtual ~MessageSocketListener(){};
 	virtual void receivedMessage(packet_info_t message) = 0;
 	virtual void sentMessage(packet_info_t message) = 0;
-};
-
-class MessageSocket {
-public:
-	MessageSocket();
-	virtual ~MessageSocket();
-
-	virtual void async_receive(MessageSocketListener* observer) = 0;
-	virtual void async_send(std::string data, MessageSocketListener* observer) = 0;
-
-	virtual void wait_receive(MessageSocketListener* observer) = 0;
-	virtual void wait_send(std::string data, MessageSocketListener* observer) = 0;
-
-	virtual packet_info_t here_receive() = 0;
-	virtual void here_send(std::string data) = 0;
 };
 
 } /* namespace net */

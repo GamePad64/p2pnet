@@ -21,56 +21,58 @@ const std::string LOCAL_V4 = "0.0.0.0";
 const std::string LOCAL_V6 = "0::0";
 
 class UDPSocketDestination {
+	udp::endpoint asio_endpoint;
 public:
-	UDPSocketDestination();
-	UDPSocketDestination(std::string ip, unsigned short port);
+	typedef unsigned short int port_t;
 
-	std::string ip;
-	unsigned short port;
+	UDPSocketDestination(){};
 
-	bool isIPv4();
-	bool isIPv6();
+	udp::endpoint& getEndpoint(){return this->asio_endpoint;};
+	void setEndpoint(const udp::endpoint& endpoint){this->asio_endpoint = endpoint;};
 
-	// Asio Endpoint conversion
-	udp::endpoint toEndpoint();
-	void fromEndpoint(udp::endpoint endpoint);
+	bool isIPv4(){return this->asio_endpoint.address().is_v4();};
+	bool isIPv6(){return this->asio_endpoint.address().is_v6();};
 
-	// Protocol Buffers Serialization
-	std::string toString();
-	void fromString(const std::string& from);
+	std::string getIP(){return this->asio_endpoint.address().to_string();};
+	void setIP(const std::string& ip){this->asio_endpoint.address(address::from_string(ip));};
+	port_t getPort(){return this->asio_endpoint.port();};
+	void setPort(port_t port){this->asio_endpoint.port(port);};
+	UDPSocketDestination(std::string ip, port_t port){this->setIP(ip);this->setPort(port);};
 
-	UDPSocketDestination(const std::string& from);
+	std::string toString();	//! Serialize to string using protobuf
+	void fromString(const std::string& from);	//! Parse from string using protobuf
+
+	UDPSocketDestination(const std::string& from){this->fromString(from);};	//! Constructor, which constructs endpoint from protobuf'ed string
 };
 
-class UDPSocket: public net::MessageSocket {
+class UDPSocket {
+	packet_info_t makePacket(std::string message, UDPSocketDestination dest, MessageSocketListener* observer);
+
 public:
 	UDPSocket();
 	virtual ~UDPSocket();
 
 	void bind(UDPSocketDestination destination);
-	void connect(UDPSocketDestination destination);
+	UDPSocketDestination getBound();
 
 	void close();
 
 	// Send/receive functions
-	virtual void async_receive(MessageSocketListener* observer);
-	virtual void async_send(std::string data, MessageSocketListener* observer);
+	virtual void async_receive_from(UDPSocketDestination &dest, MessageSocketListener* observer);
+	virtual void async_send_to(UDPSocketDestination &dest, std::string data, MessageSocketListener* observer);
 
-	virtual void wait_receive(MessageSocketListener* observer);
-	virtual void wait_send(std::string data, MessageSocketListener* observer);
+	virtual void wait_receive_from(UDPSocketDestination &dest, MessageSocketListener* observer);
+	virtual void wait_send_to(UDPSocketDestination &dest, std::string data, MessageSocketListener* observer);
 
-	virtual packet_info_t here_receive();
-	virtual void here_send(std::string data);
+	virtual packet_info_t here_receive_from(UDPSocketDestination &dest);
+	virtual void here_send_to(UDPSocketDestination &dest, std::string data);
 
 private:
-	void receive_handler(MessageSocketListener* observer, char* buffer, size_t bytes_received);
-	void send_handler(MessageSocketListener* observer, size_t bytes_sent);
+	void receive_handler(MessageSocketListener* observer, char* buffer, size_t bytes_received, UDPSocketDestination dest);
+	void send_handler(MessageSocketListener* observer, std::string buffer, size_t bytes_sent, UDPSocketDestination dest);
 
 	boost::asio::io_service& m_io_service;
 	udp::socket m_socket;
-
-	udp::endpoint m_bind_endpoint;
-	udp::endpoint m_connect_endpoint;
 };
 
 } /* namespace net */
