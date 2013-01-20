@@ -24,7 +24,7 @@ public:
 	virtual ~PeerRoute();
 
 	std::list<crypto::hash_t> dest_indir;
-	std::list<net::UDPSocketDestination> dest_udp;
+	std::list<UDPSocketDestination> dest_udp;
 
 	// Protocol Buffers serialization
 	std::string toString();
