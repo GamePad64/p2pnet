@@ -17,45 +17,29 @@ namespace p2pnet {
 namespace net {
 
 // UDPSocketDestination
-
-UDPSocketDestination::UDPSocketDestination(std::string ip, unsigned short port){
-	this->ip = ip;
-	this->port = port;
-}
-
-bool UDPSocketDestination::isIPv4() {
-	return boost::asio::ip::address::from_string(ip).is_v4();
-}
-bool UDPSocketDestination::isIPv6() {
-	return boost::asio::ip::address::from_string(ip).is_v6();
-}
-udp::endpoint UDPSocketDestination::toEndpoint() {
-	return udp::endpoint(address::from_string(ip), port);
-}
-void UDPSocketDestination::fromEndpoint(udp::endpoint endpoint) {
-	ip = endpoint.address().to_string();
-	port = endpoint.port();
-}
 std::string UDPSocketDestination::toString(){
 	UDPSocketDestination_s dest;
-	dest.set_ip(ip);
-	dest.set_port(port);
+	dest.set_ip(this->getIP());
+	dest.set_port(this->getPort());
 	return dest.SerializeAsString();
 }
 void UDPSocketDestination::fromString(const std::string& from){
 	UDPSocketDestination_s dest;
 	dest.ParseFromString(from);
-	ip = dest.ip();
-	port = dest.port();
-}
-
-UDPSocketDestination::UDPSocketDestination(const std::string& from){
-	ip = LOCAL_V4;
-	port = 0;
-	this->fromString(from);
+	this->setIP(dest.ip());
+	this->setPort(dest.port());
 }
 
 // UDPSocket
+packet_info_t UDPSocket::makePacket(std::string message,
+		UDPSocketDestination from, MessageSocketListener* observer) {
+	packet_info_t packet;
+	packet.destination = from.toString();
+	packet.message = message;
+	packet.socket_ptr = this;
+	return packet;
+}
+
 UDPSocket::UDPSocket() :
 		m_io_service(AsioIOService::getIOService()), m_socket(m_io_service) {
 }
@@ -65,15 +49,14 @@ UDPSocket::~UDPSocket() {
 }
 
 void UDPSocket::bind(UDPSocketDestination destination) {
-	m_bind_endpoint = destination.toEndpoint();
-	m_socket.open(m_bind_endpoint.protocol());
-	m_socket.bind(m_bind_endpoint);
+	m_socket.open(destination.getEndpoint().protocol());
+	m_socket.bind(destination.getEndpoint());
 }
 
-void UDPSocket::connect(UDPSocketDestination destination) {
-	m_connect_endpoint = destination.toEndpoint();
-	m_socket.open(m_connect_endpoint.protocol());
-	m_socket.connect(m_connect_endpoint);
+UDPSocketDestination UDPSocket::getBound(){
+	UDPSocketDestination dest;
+	dest.setEndpoint(m_socket.local_endpoint());
+	return dest;
 }
 
 void UDPSocket::close() {
@@ -81,36 +64,46 @@ void UDPSocket::close() {
 		m_socket.close();
 }
 
-void UDPSocket::async_receive(MessageSocketListener* observer) {
+void UDPSocket::async_receive_from(UDPSocketDestination &dest, MessageSocketListener* observer) {
+	if(!m_socket.is_open())
+		m_socket.open(dest.getEndpoint().protocol());
 	char data_received[MAX_PACKET_LENGTH];
-	m_socket.async_receive(
-			boost::asio::buffer(data_received, MAX_PACKET_LENGTH),
+	m_socket.async_receive_from(
+			boost::asio::buffer(data_received, MAX_PACKET_LENGTH), dest.getEndpoint(),
 			boost::bind(&UDPSocket::receive_handler, this, observer,
-					data_received, boost::asio::placeholders::bytes_transferred));
+					data_received, boost::asio::placeholders::bytes_transferred, dest));
 }
 
-void UDPSocket::async_send(std::string data, MessageSocketListener* observer) {
-	m_socket.async_send(
-			boost::asio::buffer(data),
-			boost::bind(&UDPSocket::send_handler, this, observer, boost::asio::placeholders::bytes_transferred));
+void UDPSocket::async_send_to(UDPSocketDestination &dest, std::string data, MessageSocketListener* observer) {
+	if(!m_socket.is_open())
+		m_socket.open(dest.getEndpoint().protocol());
+	m_socket.async_send_to(
+			boost::asio::buffer(data), dest.getEndpoint(),
+			boost::bind(&UDPSocket::send_handler, this, observer, data, boost::asio::placeholders::bytes_transferred, dest));
 }
 
-void UDPSocket::wait_receive(MessageSocketListener* observer) {
+void UDPSocket::wait_receive_from(UDPSocketDestination &dest, MessageSocketListener* observer) {
+	if(!m_socket.is_open())
+		m_socket.open(dest.getEndpoint().protocol());
 	char data_received[MAX_PACKET_LENGTH];
-	size_t bytes_received = m_socket.receive_from(boost::asio::buffer(data_received), m_connect_endpoint);
+	size_t bytes_received = m_socket.receive_from(boost::asio::buffer(data_received), dest.getEndpoint());
 
 	std::string received_string();
-	receive_handler(observer, data_received, bytes_received);
+	receive_handler(observer, data_received, bytes_received, dest);
 }
 
-void UDPSocket::wait_send(std::string data, MessageSocketListener* observer) {
-	size_t bytes_sent = m_socket.send_to(boost::asio::buffer(data), m_connect_endpoint);
-	send_handler(observer, bytes_sent);
+void UDPSocket::wait_send_to(UDPSocketDestination &dest, std::string data, MessageSocketListener* observer) {
+	if(!m_socket.is_open())
+		m_socket.open(dest.getEndpoint().protocol());
+	size_t bytes_sent = m_socket.send_to(boost::asio::buffer(data), dest.getEndpoint());
+	send_handler(observer, data, bytes_sent, dest);
 }
 
-packet_info_t UDPSocket::here_receive() {
+packet_info_t UDPSocket::here_receive_from(UDPSocketDestination &dest) {
+	if(!m_socket.is_open())
+		m_socket.open(dest.getEndpoint().protocol());
 	char data_received[MAX_PACKET_LENGTH];
-	size_t bytes_received = m_socket.receive_from(boost::asio::buffer(data_received, MAX_PACKET_LENGTH), m_connect_endpoint);
+	size_t bytes_received = m_socket.receive_from(boost::asio::buffer(data_received, MAX_PACKET_LENGTH), dest.getEndpoint());
 
 	packet_info_t packet_info;
 	packet_info.socket_ptr = this;
@@ -119,19 +112,19 @@ packet_info_t UDPSocket::here_receive() {
 	return packet_info;
 }
 
-void UDPSocket::here_send(std::string data) {
-	m_socket.send_to(boost::asio::buffer(data), m_connect_endpoint);
+void UDPSocket::here_send_to(UDPSocketDestination &dest, std::string data) {
+	if(!m_socket.is_open())
+		m_socket.open(dest.getEndpoint().protocol());
+	m_socket.send_to(boost::asio::buffer(data), dest.getEndpoint());
 }
 
-void UDPSocket::receive_handler(MessageSocketListener* observer, char* buffer, size_t bytes_received) {
-	packet_info_t message;
-	message.message = std::string(buffer, bytes_received);
-	message.socket_ptr = this;
-	observer->receivedMessage(message);
+
+void UDPSocket::receive_handler(MessageSocketListener* observer, char* buffer, size_t bytes_received, UDPSocketDestination dest) {
+	observer->receivedMessage(this->makePacket(std::string(buffer, bytes_received), dest, observer));
 }
 
-void UDPSocket::send_handler(MessageSocketListener* observer, size_t bytes_sent) {
-	//TODO: write this send_handler for UDPSocket
+void UDPSocket::send_handler(MessageSocketListener* observer, std::string buffer, size_t bytes_sent, UDPSocketDestination dest) {
+	observer->sentMessage(this->makePacket(buffer, dest, observer));
 }
 
 }
