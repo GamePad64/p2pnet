@@ -36,10 +36,10 @@ TEST(UDPSocket, Wait_Send_receive){
 	net::UDPSocket u_send;
 	net::UDPSocket u_receive;
 
+	net::UDPSocketDestination dest("127.0.0.1", port_wait);
 	u_receive.bind(net::UDPSocketDestination(net::LOCAL_V4, port_wait));
-	u_send.connect(net::UDPSocketDestination(net::LOCAL_V4, port_wait));
-	u_send.wait_send(message_orig, &mdo_wait);
-	u_receive.wait_receive(&mdo_wait);
+	u_send.wait_send_to(dest, message_orig, &mdo_wait);
+	u_receive.wait_receive_from(dest, &mdo_wait);
 
 	u_send.close();
 	u_receive.close();
@@ -53,12 +53,12 @@ TEST(UDPSocket, Async_Send_receive){
 	net::UDPSocket u_send;
 	net::UDPSocket u_receive;
 
+	net::UDPSocketDestination dest("127.0.0.1", port_async);
 	u_receive.bind(net::UDPSocketDestination(net::LOCAL_V4, port_async));
-	u_send.connect(net::UDPSocketDestination(net::LOCAL_V4, port_async));
-	u_send.async_send(message_orig, &mdo_async);
-	u_receive.async_receive(&mdo_async);
+	u_receive.async_receive_from(dest, &mdo_async);
+	u_send.async_send_to(dest, message_orig, &mdo_async);
 
-	net::AsioIOService::getIOService().poll();
+	net::AsioIOService::getIOService().run();
 
 	u_send.close();
 	u_receive.close();
@@ -70,11 +70,11 @@ TEST(UDPSocket, Here_Send_receive){
 	net::UDPSocket u_send;
 	net::UDPSocket u_receive;
 
-	u_receive.bind(net::UDPSocketDestination(net::LOCAL_V4, port_async));
-	u_send.connect(net::UDPSocketDestination(net::LOCAL_V4, port_async));
-	u_send.here_send(message_orig);
+	net::UDPSocketDestination dest("127.0.0.1", port_async);
+	u_receive.bind(dest);
+	u_send.here_send_to(dest, message_orig);
 
-	ASSERT_EQ(message_orig, u_receive.here_receive().message);
+	ASSERT_EQ(message_orig, u_receive.here_receive_from(dest).message);
 
 	u_send.close();
 	u_receive.close();

@@ -8,6 +8,7 @@
 #ifndef MESSAGEDISPATCHER_H_
 #define MESSAGEDISPATCHER_H_
 
+#include "CryptoHandler.h"
 #include "../net/MessageSocket.h"
 #include "../protobuf/protocol.pb.h"
 
@@ -15,6 +16,7 @@ namespace p2pnet {
 namespace messaging {
 
 class MessageDispatcher : public net::MessageSocketListener {
+	CryptoHandler crypto_proc;
 public:
 	MessageDispatcher();
 	virtual ~MessageDispatcher();
