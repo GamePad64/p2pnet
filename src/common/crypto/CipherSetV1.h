@@ -39,8 +39,8 @@ public:
 	virtual std::string privKeyToPEM(key_private_t key_private);
 	virtual std::string pubKeyToPEM(key_public_t key_public);
 
-	virtual key_private_t PEMToPrivKey(std::string key_pem);
-	virtual key_public_t PEMToPubKey(std::string key_pem);
+	//virtual key_private_t PEMToPrivKey(std::string key_pem);
+	//virtual key_public_t PEMToPubKey(std::string key_pem);
 
 	virtual std::string encodeToBase64(std::string data);
 	virtual std::string decodeFromBase64(std::string base64);

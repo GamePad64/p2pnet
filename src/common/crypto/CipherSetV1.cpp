@@ -60,11 +60,11 @@ std::string CipherSetV1::pubKeyToPEM(key_public_t key_public) {
 	return Botan::X509::PEM_encode(*key_public_botan);
 }
 
-key_private_t CipherSetV1::PEMToPrivKey(std::string key_pem) {
+/*key_private_t CipherSetV1::PEMToPrivKey(std::string key_pem) {
 }
 
 key_public_t CipherSetV1::PEMToPubKey(std::string key_pem) {
-}
+}*/
 
 std::string CipherSetV1::encodeToBase64(std::string data) {
 	Botan::Pipe pipe(new Botan::Base64_Encoder);

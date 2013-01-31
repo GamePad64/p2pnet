@@ -11,6 +11,10 @@
 *.lai
 *.la
 *.a
+
+# Compiled Protocol Buffers files
+*.pb.*
+
 /Test
 /Debug
 /Release

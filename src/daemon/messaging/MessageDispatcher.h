@@ -9,20 +9,20 @@
 #define MESSAGEDISPATCHER_H_
 
 #include "CryptoHandler.h"
-#include "../net/MessageSocket.h"
+#include "../net/TransportSocket.h"
 #include "../protobuf/protocol.pb.h"
 
 namespace p2pnet {
 namespace messaging {
 
-class MessageDispatcher : public net::MessageSocketListener {
+class MessageDispatcher : public net::TransportSocketListener {
 	CryptoHandler crypto_proc;
 public:
 	MessageDispatcher();
 	virtual ~MessageDispatcher();
 
-	virtual void receivedMessage(net::packet_info_t message);
-	virtual void sentMessage(net::packet_info_t message);
+	virtual void receivedMessage(net::message_bundle_t message_bundle);
+	virtual void sentMessage(net::message_bundle_t message_bundle);
 };
 
 } /* namespace messaging */
