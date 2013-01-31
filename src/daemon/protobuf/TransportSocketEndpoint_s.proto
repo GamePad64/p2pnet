@@ -1,0 +1,17 @@
+syntax = "proto2";
+package p2pnet.net;
+
+enum TransportSocketEndpoint_type {
+	UDP = 0;
+}
+
+message UDPTransportSocketEndpoint_s {
+	required TransportSocketEndpoint_type type = 1 [default = UDP];
+	required string ip = 2;
+	optional uint32 port = 3;
+}
+
+message PeerRoute_s {
+	repeated bytes dest_indir = 1;
+	repeated bytes dest_udp = 2;
+}

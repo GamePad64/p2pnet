@@ -11,9 +11,6 @@
 #include <boost/asio.hpp>
 
 namespace p2pnet {
-namespace net {
-
-//boost::asio::io_service single_io_service;
 
 class AsioIOService {
 public:
@@ -23,6 +20,5 @@ public:
 	}
 };
 
-} /* namespace net */
 } /* namespace p2pnet */
 #endif /* ASIOIOSERVICE_H_ */
