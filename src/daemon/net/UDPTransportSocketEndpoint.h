@@ -61,6 +61,7 @@ public:
 
 	virtual std::string toString();
 	virtual void fromString(std::string endpoint_s);
+	UDPTransportSocketEndpoint(std::string endpoint_s);
 };
 
 } /* namespace net */

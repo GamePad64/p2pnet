@@ -62,5 +62,9 @@ void UDPTransportSocketEndpoint::fromString(std::string endpoint_s) {
 	this->setPort(endpoint_pb.port());
 }
 
+UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string endpoint_s) {
+	this->fromString(endpoint_s);
+}
+
 } /* namespace net */
 } /* namespace p2pnet */
