@@ -24,7 +24,7 @@ public:
 	 */
 	virtual std::string toString() = 0;
 	/*!
-	 * This function restores state of TransportSocketEndpoint from Protocol Buffer representation.
+	 * This function restores state of TransportSocketEndpoint from Protocol Buffers representation.
 	 * @param endpoint_s std::string in binary form
 	 */
 	virtual void fromString(std::string endpoint_s) = 0;

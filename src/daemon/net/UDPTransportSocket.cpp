@@ -5,6 +5,7 @@
  *      Author: gamepad
  */
 
+#include "TransportSocketListener.h"
 #include "UDPTransportSocket.h"
 #include "../AsioIOService.h"
 #include <boost/bind.hpp>

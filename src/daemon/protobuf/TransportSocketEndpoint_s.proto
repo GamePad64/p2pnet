@@ -12,6 +12,6 @@ message UDPTransportSocketEndpoint_s {
 }
 
 message PeerRoute_s {
-	repeated bytes dest_indir = 1;
-	repeated bytes dest_udp = 2;
+	repeated bytes endpoint_relay = 1;
+	repeated bytes endpoint_udp = 2;
 }

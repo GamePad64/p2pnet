@@ -6,6 +6,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "../../../src/daemon/net/TransportSocketListener.h"
 #include "../../../src/daemon/net/UDPTransportSocketEndpoint.h"
 #include "../../../src/daemon/net/UDPTransportSocket.h"
 #include "../../../src/daemon/AsioIOService.h"

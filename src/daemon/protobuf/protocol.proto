@@ -1,13 +1,13 @@
 syntax = "proto2";
 package p2pnet.protocol;
 
-message Header {
+message p2pMessageHeader {
 	optional bytes src_id = 1;
 	optional bytes dest_id = 2;
 }
 
 message p2pMessage {
-	required Header message_header = 1;
+	required p2pMessageHeader message_header = 1;
 	enum MessageType {
 		DATA = 0;
 		ONION = 1;
@@ -18,6 +18,6 @@ message p2pMessage {
 	optional bytes message_s = 3;
 }
 
-message Message_Agreement {
+message p2pMessage_Agreement {
 	required bytes src_pubkey = 1;	// My own public key in BER format
 }
