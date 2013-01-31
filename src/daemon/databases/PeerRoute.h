@@ -9,11 +9,11 @@
 #define PEERROUTE_H_
 
 #include "../../common/crypto/CryptoTypes.h"
-#include "../net/asio/UDPSocket.h"
+#include "../UDPTransportSocketEndpoint.h"
 #include <list>
 
 namespace p2pnet {
-namespace net {
+namespace databases {
 
 /**
  * PeerRoute is a class that stores all the ways to reach the destination.
@@ -24,13 +24,13 @@ public:
 	virtual ~PeerRoute();
 
 	std::list<crypto::hash_t> dest_indir;
-	std::list<UDPSocketDestination> dest_udp;
+	std::list<net::UDPTransportSocketEndpoint> dest_udp;
 
 	// Protocol Buffers serialization
 	std::string toString();
 	void fromString(const std::string &from);
 };
 
-} /* namespace net */
+} /* namespace databases */
 } /* namespace p2pnet */
 #endif /* PEERROUTE_H_ */
