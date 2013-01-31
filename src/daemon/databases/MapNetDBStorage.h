@@ -33,10 +33,10 @@ public:
 	virtual ~MapNetDBStorage();
 
 	//! All the hashes stored it NetDBStorage
-	auto getHashIteratorBegin() -> decltype(m_hashes)::iterator {
+	auto begin() -> decltype(m_hashes)::iterator {
 		return m_hashes.begin();
 	};
-	auto getHashIteratorEnd() -> decltype(m_hashes)::iterator {
+	auto begin() -> decltype(m_hashes)::iterator {
 		return m_hashes.end();
 	};
 
