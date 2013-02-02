@@ -1,8 +1,15 @@
 /*
- * MapNetDB.cpp
+ * You may redistribute this program and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
  *
- *  Created on: 13.01.2013
- *      Author: gamepad
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "MapNetDBStorage.h"
@@ -27,10 +34,10 @@ void MapNetDBStorage::setPublicKeyOf(crypto::hash_t peer_id, crypto::key_public_
 bool MapNetDBStorage::hasRouteTo(crypto::hash_t peer_id){
 	return m_routemap.count(peer_id) != 0;
 }
-net::PeerRoute MapNetDBStorage::getRouteTo(crypto::hash_t peer_id){
+PeerRouteSet MapNetDBStorage::getRouteTo(crypto::hash_t peer_id){
 	return this->m_routemap[peer_id];
 }
-void MapNetDBStorage::setRouteOf(crypto::hash_t peer_id, net::PeerRoute& route){
+void MapNetDBStorage::setRouteOf(crypto::hash_t peer_id, PeerRouteSet& route){
 	this->m_routemap[peer_id] = route;
 }
 
