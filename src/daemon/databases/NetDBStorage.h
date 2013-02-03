@@ -15,14 +15,30 @@
 #ifndef NETDBSTORAGE_H_
 #define NETDBSTORAGE_H_
 
+#include "../../common/crypto/CryptoTypes.h"
+#include "PeerRouteSet.h"
+#include <list>
+
 namespace p2pnet {
 namespace databases {
 
 class NetDBStorage {
-	std::forward_list<crypto::hash_t> m_hashes;
 public:
 	NetDBStorage();
 	virtual ~NetDBStorage();
+
+	typedef std::list<crypto::hash_t> hashlist_t;
+	virtual hashlist_t getAllHashes() = 0;
+
+	// Public key database
+	virtual bool hasPublicKeyOf(crypto::hash_t peer_id) = 0;
+	virtual crypto::key_public_t getPublicKeyOf(crypto::hash_t peer_id) = 0;
+	virtual void setPublicKeyOf(crypto::hash_t peer_id, crypto::key_public_t key_public) = 0;
+
+	// Routing database
+	virtual bool hasRouteTo(crypto::hash_t peer_id) = 0;
+	virtual PeerRouteSet getRouteTo(crypto::hash_t peer_id) = 0;
+	virtual void setRouteOf(crypto::hash_t peer_id, PeerRouteSet& route) = 0;
 };
 
 } /* namespace databases */
