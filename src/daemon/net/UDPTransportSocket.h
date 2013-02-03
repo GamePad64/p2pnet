@@ -18,21 +18,24 @@
 #include "TransportSocket.h"
 #include "UDPTransportSocketEndpoint.h"
 #include <boost/asio.hpp>
+#include <memory>
 
 using namespace boost::asio;
 
 namespace p2pnet {
 namespace net {
 
-class UDPTransportSocket: public p2pnet::net::TransportSocket {
+class UDPTransportSocket : public p2pnet::net::TransportSocket {
 	const unsigned short IPv4_MTU = 512;
 	const unsigned short IPv6_MTU = 1024;
 
 	io_service& asio_io_service;
 	ip::udp::socket asio_socket;
 protected:
-	void receivedMessageHandler(TransportSocketListener* listener, char* buffer, size_t bytes_received, UDPTransportSocketEndpoint* endpoint, TransportSocketConnection connection);
-	void sentMessageHandler(TransportSocketListener* listener, char* buffer, size_t bytes_sent, UDPTransportSocketEndpoint* endpoint, TransportSocketConnection connection);
+	void receivedMessageHandler(const std::string& message, TransportSocketEndpoint::pointer endpoint);
+	void receivedMessageHandler(char* buffer, size_t bytes_received, TransportSocketEndpoint::pointer endpoint);
+	void sentMessageHandler(const std::string& message, TransportSocketEndpoint::pointer endpoint);
+	void sentMessageHandler(char* buffer, size_t bytes_sent, TransportSocketEndpoint::pointer endpoint);
 public:
 	UDPTransportSocket();
 	virtual ~UDPTransportSocket();
@@ -51,14 +54,20 @@ public:
 	void bindLocalIPv6(UDPTransportSocketEndpoint::port_t port);
 
 	//Inherited from TransportSocket
-	virtual void asyncReceiveFrom(TransportSocketEndpoint &endpoint, TransportSocketListener* listener, TransportSocketConnection connection = TransportSocketConnection(0, 0));
-	virtual void asyncSendTo(TransportSocketEndpoint &endpoint, const std::string data, TransportSocketListener* listener, TransportSocketConnection connection = TransportSocketConnection(0, 0));
+	using TransportSocket::asyncReceiveFrom;
+	virtual void asyncReceiveFrom(TransportSocketEndpoint::pointer endpoint);
+	using TransportSocket::asyncSendTo;
+	virtual void asyncSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data);
 
-	virtual void waitReceiveFrom(TransportSocketEndpoint &endpoint, TransportSocketListener* listener, TransportSocketConnection connection = TransportSocketConnection(0, 0));
-	virtual void waitSendTo(TransportSocketEndpoint &endpoint, const std::string data, TransportSocketListener* listener, TransportSocketConnection connection = TransportSocketConnection(0, 0));
+	using TransportSocket::waitReceiveFrom;
+	virtual void waitReceiveFrom(TransportSocketEndpoint::pointer endpoint);
+	using TransportSocket::waitSendTo;
+	virtual void waitSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data);
 
-	virtual MessageBundle hereReceiveFrom(TransportSocketEndpoint &endpoint, TransportSocketConnection connection = TransportSocketConnection(0, 0));
-	virtual void hereSendTo(TransportSocketEndpoint &endpoint, const std::string data);
+	using TransportSocket::hereReceiveFrom;
+	virtual MessageBundle hereReceiveFrom(TransportSocketEndpoint::pointer endpoint);
+	using TransportSocket::hereSendTo;
+	virtual void hereSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data);
 };
 
 } /* namespace net */

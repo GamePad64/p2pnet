@@ -37,14 +37,14 @@ bool UDPTransportSocketEndpoint::isIPv6(){
 	return this->asio_endpoint.address().is_v6();
 };
 
-std::string UDPTransportSocketEndpoint::getIP(){
+std::string UDPTransportSocketEndpoint::getIP() const {
 	return this->asio_endpoint.address().to_string();
 };
 void UDPTransportSocketEndpoint::setIP(const std::string& ip){
 	this->asio_endpoint.address(address::from_string(ip));
 };
 
-UDPTransportSocketEndpoint::port_t UDPTransportSocketEndpoint::getPort(){
+UDPTransportSocketEndpoint::port_t UDPTransportSocketEndpoint::getPort() const {
 	return this->asio_endpoint.port();
 };
 void UDPTransportSocketEndpoint::setPort(UDPTransportSocketEndpoint::port_t port){

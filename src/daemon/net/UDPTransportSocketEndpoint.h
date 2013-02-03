@@ -16,6 +16,7 @@
 #define UDPTRANSPORTSOCKETENDPOINT_H_
 
 #include "TransportSocketEndpoint.h"
+#include <memory>
 #include <boost/asio.hpp>
 
 namespace p2pnet {
@@ -34,6 +35,8 @@ public:
 	UDPTransportSocketEndpoint();
 	virtual ~UDPTransportSocketEndpoint();
 
+	typedef std::shared_ptr<UDPTransportSocketEndpoint> udp_pointer;
+
 	/*!
 	 * This function returns true if IP address is an IPv4 address.
 	 * @return bool
@@ -49,7 +52,7 @@ public:
 	 * This function returns IP address of the endpoint.
 	 * @return std::string in "255.255.255.255" format (if IPv4) or in hexadecimal IPv6 representation.
 	 */
-	std::string getIP();
+	std::string getIP() const;
 	/*!
 	 * This function sets IP address of the endpoint
 	 * @param ip IP address in IPv4 or IPv6 format.
@@ -57,7 +60,7 @@ public:
 	void setIP(const std::string& ip);
 
 	typedef unsigned short int port_t;
-	port_t getPort();
+	port_t getPort() const;
 	void setPort(port_t port);
 	/*!
 	 * This is a constructor of UDPTransportSocketEndpoint with setting IP and port.
@@ -65,6 +68,12 @@ public:
 	 * @param port Port ranging from 1 to 65535.
 	 */
 	UDPTransportSocketEndpoint(std::string ip, port_t port);
+
+	// Inherited from TransportSocketEndpoint
+	virtual TransportSocketEndpoint::pointer yieldCopyPtr() const {
+		TransportSocketEndpoint::pointer copy = std::make_shared<UDPTransportSocketEndpoint>(UDPTransportSocketEndpoint(*this));
+		return copy;
+	}
 
 	virtual std::string toString();
 	virtual void fromString(std::string endpoint_s);

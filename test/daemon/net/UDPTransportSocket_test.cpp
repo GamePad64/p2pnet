@@ -14,6 +14,7 @@
 
 #include "gtest/gtest.h"
 #include "../../../src/daemon/net/TransportSocketListener.h"
+#include "../../../src/daemon/net/TransportSocketEndpoint.h"
 #include "../../../src/daemon/net/UDPTransportSocketEndpoint.h"
 #include "../../../src/daemon/net/UDPTransportSocket.h"
 #include "../../../src/daemon/AsioIOService.h"
@@ -49,8 +50,9 @@ TEST(UDPTransportSocket, Wait_Send_receive){
 	net::UDPTransportSocketEndpoint endpoint("127.0.0.1", port_wait);
 	u_receive.bindLocalIPv4(port_wait);
 	u_send.openIPv4();
-	u_send.waitSendTo(endpoint, message_orig, &mdo_wait);
-	u_receive.waitReceiveFrom(endpoint, &mdo_wait);
+	u_send.waitSendTo(endpoint, message_orig);
+	u_receive.addListener(&mdo_wait);
+	u_receive.waitReceiveFrom(endpoint);
 
 	ASSERT_EQ(message_orig, mdo_wait.message_received);
 }
@@ -65,9 +67,10 @@ TEST(UDPTransportSocket, Async_Send_receive){
 
 	net::UDPTransportSocketEndpoint endpoint("127.0.0.1", port_async);
 	u_receive.bindLocalIPv4(port_async);
-	u_receive.asyncReceiveFrom(endpoint, &mdo_async);
+	u_receive.addListener(&mdo_async);
+	u_receive.asyncReceiveFrom(endpoint);
 	u_send.openIPv4();
-	u_send.asyncSendTo(endpoint, message_orig, &mdo_async);
+	u_send.asyncSendTo(endpoint, message_orig);
 
 	AsioIOService::getIOService().poll_one();
 	AsioIOService::getIOService().poll_one();

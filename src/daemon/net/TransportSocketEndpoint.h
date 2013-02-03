@@ -16,6 +16,7 @@
 #define TRANSPORTSOCKETENDPOINT_H_
 
 #include <string>
+#include <memory>
 
 namespace p2pnet {
 namespace net {
@@ -24,6 +25,10 @@ class TransportSocketEndpoint {
 public:
 	TransportSocketEndpoint();
 	virtual ~TransportSocketEndpoint();
+
+	typedef std::shared_ptr<TransportSocketEndpoint> pointer;
+
+	virtual TransportSocketEndpoint::pointer yieldCopyPtr() const = 0;
 
 	/*!
 	 * Returns Protocol Buffers representation of this TransportSocketEndpoint.

@@ -31,6 +31,12 @@ public:
 	void setRelayHash(const crypto::hash_t& relayHash);
 	RelayTransportSocketEndpoint(crypto::hash_t relay_hash);
 
+	// Inherited from TransportSocketEndpoint
+	virtual TransportSocketEndpoint::pointer yieldCopyPtr() const {
+		TransportSocketEndpoint::pointer copy = std::make_shared<RelayTransportSocketEndpoint>(RelayTransportSocketEndpoint(*this));
+		return copy;
+	}
+
 	virtual std::string toString();
 	virtual void fromString(std::string endpoint_s);
 	RelayTransportSocketEndpoint(std::string endpoint_s);

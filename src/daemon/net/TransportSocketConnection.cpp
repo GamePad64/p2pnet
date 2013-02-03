@@ -19,37 +19,32 @@
 namespace p2pnet {
 namespace net {
 
-TransportSocketConnection::TransportSocketConnection(
-		TransportSocket* socket, TransportSocketEndpoint* endpoint) : m_socket(socket), m_endpoint(endpoint) {}
+TransportSocketConnection::TransportSocketConnection(TransportSocket* socket, TransportSocketEndpoint::pointer endpoint) : m_socket(socket), m_endpoint_p(endpoint) {}
 
 TransportSocketConnection::~TransportSocketConnection() {}
 
-void TransportSocketConnection::asyncReceiveFrom(
-		TransportSocketListener* listener) {
-	m_socket->asyncReceiveFrom(*m_endpoint, listener, *this);
+void TransportSocketConnection::asyncReceiveFrom() {
+	m_socket->asyncReceiveFrom(m_endpoint_p);
 }
 
-void TransportSocketConnection::asyncSendTo(const std::string data,
-		TransportSocketListener* listener) {
-	m_socket->asyncSendTo(*m_endpoint, data, listener, *this);
+void TransportSocketConnection::asyncSendTo(const std::string& data) {
+	m_socket->asyncSendTo(m_endpoint_p, data);
 }
 
-void TransportSocketConnection::waitReceiveFrom(
-		TransportSocketListener* listener) {
-	m_socket->waitReceiveFrom(*m_endpoint, listener, *this);
+void TransportSocketConnection::waitReceiveFrom() {
+	m_socket->waitReceiveFrom(m_endpoint_p);
 }
 
-void TransportSocketConnection::waitSendTo(const std::string data,
-		TransportSocketListener* listener) {
-	m_socket->waitSendTo(*m_endpoint, data, listener, *this);
+void TransportSocketConnection::waitSendTo(const std::string& data) {
+	m_socket->waitSendTo(m_endpoint_p, data);
 }
 
 MessageBundle TransportSocketConnection::hereReceiveFrom() {
-	return m_socket->hereReceiveFrom(*m_endpoint, *this);
+	return m_socket->hereReceiveFrom(m_endpoint_p);
 }
 
-void TransportSocketConnection::hereSendTo(const std::string data) {
-	m_socket->hereSendTo(*m_endpoint, data);
+void TransportSocketConnection::hereSendTo(const std::string& data) {
+	m_socket->hereSendTo(m_endpoint_p, data);
 }
 
 } /* namespace net */
