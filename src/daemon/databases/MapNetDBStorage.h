@@ -31,33 +31,24 @@ namespace databases {
  * It will be replaced with SQLite database soon.
  */
 class MapNetDBStorage : public NetDBStorage {
+
 private:
 	std::map<crypto::hash_t, crypto::key_public_t> m_pubkeymap;
 	std::map<crypto::hash_t, PeerRouteSet> m_routemap;
+	hashlist_t m_hashes;
 
 public:
 	MapNetDBStorage();
 	virtual ~MapNetDBStorage();
 
-	/**
-	 * Begin iterating all hashes in DB.
-	 */
-	auto begin() -> decltype(m_hashes)::iterator {
-		return m_hashes.begin();
-	};
-	/**
-	 * End iterating all hashes in DB.
-	 */
-	auto end() -> decltype(m_hashes)::iterator {
-		return m_hashes.end();
-	};
+	hashlist_t getAllHashes(){return m_hashes;};
 
-	//! Public key database
+	// Public key database
 	bool hasPublicKeyOf(crypto::hash_t peer_id);
 	crypto::key_public_t getPublicKeyOf(crypto::hash_t peer_id);
 	void setPublicKeyOf(crypto::hash_t peer_id, crypto::key_public_t key_public);
 
-	//! Routing database
+	// Routing database
 	bool hasRouteTo(crypto::hash_t peer_id);
 	PeerRouteSet getRouteTo(crypto::hash_t peer_id);
 	void setRouteOf(crypto::hash_t peer_id, PeerRouteSet& route);
