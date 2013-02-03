@@ -21,18 +21,56 @@ namespace net {
 
 TransportSocket::~TransportSocket(){};
 
-MessageBundle TransportSocket::createMessageBundle(std::string message,
-		TransportSocketEndpoint &endpoint,
-		TransportSocketConnection connection) {
+MessageBundle TransportSocket::createMessageBundle(const std::string message,
+		TransportSocketEndpoint::pointer endpoint) {
 	MessageBundle bundle;
-	if (!connection.isNull()) {
-		bundle.socket_connection = connection;
-	} else {
-		TransportSocketConnection socket_connection(this, &endpoint);
-		bundle.socket_connection = socket_connection;
-	}
+	TransportSocketConnection socket_connection(this, endpoint);
+
+	bundle.socket_connection = socket_connection;
 	bundle.message = message;
+
 	return bundle;
+}
+
+void TransportSocket::updateOnReceive(MessageBundle bundle) {
+	for(auto &transportsocketlistener : m_listenerlist){
+		transportsocketlistener->receivedMessage(bundle);
+	}
+}
+
+void TransportSocket::updateOnSend(MessageBundle bundle) {
+	for(auto &transportsocketlistener : m_listenerlist){
+		transportsocketlistener->sentMessage(bundle);
+	}
+}
+
+void TransportSocket::asyncReceiveFrom(
+		const TransportSocketEndpoint& endpoint) {
+	this->asyncReceiveFrom(endpoint.yieldCopyPtr());
+}
+
+void TransportSocket::asyncSendTo(const TransportSocketEndpoint& endpoint,
+		const std::string& data) {
+	this->asyncSendTo(endpoint.yieldCopyPtr(), data);
+}
+
+void TransportSocket::waitReceiveFrom(const TransportSocketEndpoint& endpoint) {
+	this->waitReceiveFrom(endpoint.yieldCopyPtr());
+}
+
+void TransportSocket::waitSendTo(const TransportSocketEndpoint& endpoint,
+		const std::string& data) {
+	this->waitSendTo(endpoint.yieldCopyPtr(), data);
+}
+
+MessageBundle TransportSocket::hereReceiveFrom(
+		TransportSocketEndpoint& endpoint) {
+	return this->hereReceiveFrom(endpoint.yieldCopyPtr());
+}
+
+void TransportSocket::hereSendTo(TransportSocketEndpoint& endpoint,
+		const std::string& data) {
+	this->hereSendTo(endpoint.yieldCopyPtr(), data);
 }
 
 }

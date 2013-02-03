@@ -30,23 +30,21 @@ class MessageBundle;
  */
 class TransportSocketConnection {
 	TransportSocket* m_socket;
-	std::shared_ptr<TransportSocketEndpoint> m_endpoint;
+	TransportSocketEndpoint::pointer m_endpoint_p;
 public:
-	TransportSocketConnection(TransportSocket* socket, TransportSocketEndpoint* endpoint);
+	TransportSocketConnection(TransportSocket* socket, TransportSocketEndpoint::pointer endpoint);
 	virtual ~TransportSocketConnection();
 
-	std::shared_ptr<TransportSocketEndpoint> getEndpointPtr(){return m_endpoint;};
+	TransportSocketEndpoint::pointer getEndpointPtr(){return m_endpoint_p;};
 
-	void asyncReceiveFrom(TransportSocketListener* listener);
-	void asyncSendTo(const std::string data, TransportSocketListener* listener);
+	inline void asyncReceiveFrom();
+	inline void asyncSendTo(const std::string& data);
 
-	void waitReceiveFrom(TransportSocketListener* listener);
-	void waitSendTo(const std::string data, TransportSocketListener* listener);
+	inline void waitReceiveFrom();
+	inline void waitSendTo(const std::string& data);
 
-	MessageBundle hereReceiveFrom();
-	void hereSendTo(const std::string data);
-
-	bool isNull(){return (m_socket != 0) && (m_endpoint != 0);}
+	inline MessageBundle hereReceiveFrom();
+	inline void hereSendTo(const std::string& data);
 };
 
 } /* namespace net */

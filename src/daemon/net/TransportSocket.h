@@ -18,6 +18,8 @@
 #include "TransportSocketConnection.h"
 
 #include <string>
+#include <set>
+#include <memory>
 
 namespace p2pnet {
 namespace net {
@@ -29,20 +31,53 @@ class TransportSocket {
 protected:
 	size_t max_packet_length;
 
-	MessageBundle createMessageBundle(std::string message, TransportSocketEndpoint &endpoint, TransportSocketConnection connection);
+	/**
+	 * Creates MessageBundle for passing it to TransportSocketListeners.
+	 * @param message Message (probably, in serialized Protocol Buffers format)
+	 * @param endpoint
+	 * @return
+	 */
+	MessageBundle createMessageBundle(const std::string message, TransportSocketEndpoint::pointer endpoint);
 public:
 	virtual ~TransportSocket();
 
-	virtual void asyncReceiveFrom(TransportSocketEndpoint &endpoint, TransportSocketListener* listener, TransportSocketConnection connection = TransportSocketConnection(0, 0)) = 0;
-	virtual void asyncSendTo(TransportSocketEndpoint &endpoint, const std::string data, TransportSocketListener* listener, TransportSocketConnection connection = TransportSocketConnection(0, 0)) = 0;
+	virtual void asyncReceiveFrom(TransportSocketEndpoint::pointer endpoint_p) = 0;
+	void asyncReceiveFrom(const TransportSocketEndpoint& endpoint);
+	virtual void asyncSendTo(TransportSocketEndpoint::pointer endpoint_p, const std::string& data) = 0;
+	void asyncSendTo(const TransportSocketEndpoint& endpoint, const std::string& data);
 
-	virtual void waitReceiveFrom(TransportSocketEndpoint &endpoint, TransportSocketListener* listener, TransportSocketConnection connection = TransportSocketConnection(0, 0)) = 0;
-	virtual void waitSendTo(TransportSocketEndpoint &endpoint, const std::string data, TransportSocketListener* listener, TransportSocketConnection connection = TransportSocketConnection(0, 0)) = 0;
+	virtual void waitReceiveFrom(TransportSocketEndpoint::pointer endpoint_p) = 0;
+	void waitReceiveFrom(const TransportSocketEndpoint& endpoint);
+	virtual void waitSendTo(TransportSocketEndpoint::pointer endpoint_p, const std::string& data) = 0;
+	void waitSendTo(const TransportSocketEndpoint& endpoint, const std::string& data);
 
-	virtual MessageBundle hereReceiveFrom(TransportSocketEndpoint &endpoint, TransportSocketConnection connection = TransportSocketConnection(0, 0)) = 0;
-	virtual void hereSendTo(TransportSocketEndpoint &endpoint, const std::string data) = 0;
+	virtual MessageBundle hereReceiveFrom(TransportSocketEndpoint::pointer endpoint_p) = 0;
+	MessageBundle hereReceiveFrom(TransportSocketEndpoint& endpoint);
+	virtual void hereSendTo(TransportSocketEndpoint::pointer endpoint_p, const std::string& data) = 0;
+	void hereSendTo(TransportSocketEndpoint& endpoint, const std::string& data);
 
 	size_t getMaxPacketLength() const {return max_packet_length;};
+
+	// Classic GoF Observer pattern.
+private:
+	/**
+	 * Set of pointers to TransportSocketListener, like an array from GoF.
+	 * These will be updated of a message is sent or received on this socket.
+	 */
+	std::set<TransportSocketListener*> m_listenerlist;
+public:
+	/**
+	 * Adds listener to list to be updated on send/receive events.
+	 * @param listener Pointer to TransportSocketListener.
+	 */
+	void addListener(TransportSocketListener* listener){m_listenerlist.insert(listener);};
+	/**
+	 * Prevents listener from updating by this socket.
+	 * @param listener
+	 */
+	void removeListener(TransportSocketListener* listener){m_listenerlist.erase(listener);};
+	void updateOnReceive(MessageBundle bundle);
+	void updateOnSend(MessageBundle bundle);
 };
 
 } /* namespace net */
