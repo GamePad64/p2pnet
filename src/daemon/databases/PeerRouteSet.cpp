@@ -13,8 +13,6 @@
  */
 
 #include "PeerRouteSet.h"
-#include "../relay/RelayTransportSocketEndpoint.h"
-#include "../net/UDPTransportSocketEndpoint.h"
 #include "../protobuf/TransportSocketEndpoint_s.pb.h"
 
 namespace p2pnet {

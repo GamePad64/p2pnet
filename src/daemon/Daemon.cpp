@@ -23,4 +23,17 @@ void Daemon::run(){
 
 }
 
+void Daemon::initializeSockets() {
+	udpv4_socket.bindLocalIPv4(config.net_v4_udp_port);
+	udpv4_socket.addListener(&message_dispatcher);
+	udpv4_socket.
+
+	udpv6_socket.bindLocalIPv6(config.net_v6_udp_port);
+	udpv6_socket.addListener(&message_dispatcher);
+}
+
+void Daemon::runIOService() {
+	AsioIOService::getIOService().run();
+}
+
 } /* namespace p2pnet */
