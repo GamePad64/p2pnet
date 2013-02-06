@@ -38,26 +38,42 @@ public:
 	void saveToFile();
 
 	// Defaults
-	const unsigned short int _net_v4_udp_port = 2185;
-	const std::string _net_v4_udp_bind = "0.0.0.0";
-	const int _net_v4_lpd_timer = 10;
-	const std::string _net_v4_lpd_address = "239.192.152.144";
+	const bool _net_udp_v4_enable = true;
+	const unsigned short int _net_udp_v4_port = 2185;
+	const std::string _net_udp_v4_bind = "0.0.0.0";
+	const bool _net_udp_v4_lpd_enable = true;
+	const int _net_udp_v4_lpd_timer = 10;
+	const std::string _net_udp_v4_lpd_address = "239.192.152.144";
+	const unsigned short int _net_udp_v4_lpd_port = 28915;
+	const std::string _net_udp_v4_lpd_bind = "0.0.0.0";
 
-	const unsigned short int _net_v6_udp_port = 2185;
-	const std::string _net_v6_udp_bind = "0::0";
-	const int _net_v6_lpd_timer = 10;
-	const std::string _net_v6_lpd_address = "ff08::BD02";
+	const bool _net_udp_v6_enable = true;
+	const unsigned short int _net_udp_v6_port = 2185;
+	const std::string _net_udp_v6_bind = "0::0";
+	const bool _net_udp_v6_lpd_enable = true;
+	const int _net_udp_v6_lpd_timer = 10;
+	const std::string _net_udp_v6_lpd_address = "ff08::BD02";
+	const unsigned short int _net_udp_v6_lpd_port = 28915;
+	const std::string _net_udp_v6_lpd_bind = "0::0";
 
 	// Configurations
-	unsigned short int net_v4_udp_port;
-	std::string net_v4_udp_bind;
-	int net_v4_lpd_timer;
-	std::string net_v4_lpd_address;
+	bool net_udp_v4_enable;
+	unsigned short int net_udp_v4_port;
+	std::string net_udp_v4_bind;
+	bool net_udp_v4_lpd_enable;
+	int net_udp_v4_lpd_timer;
+	std::string net_udp_v4_lpd_address;
+	unsigned short int net_udp_v4_lpd_port;
+	std::string net_udp_v4_lpd_bind;
 
-	unsigned short int net_v6_udp_port;
-	std::string net_v6_udp_bind;
-	int net_v6_lpd_timer;
-	std::string net_v6_lpd_address;
+	bool net_udp_v6_enable;
+	unsigned short int net_udp_v6_port;
+	std::string net_udp_v6_bind;
+	bool net_udp_v6_enable;
+	int net_udp_v6_lpd_timer;
+	std::string net_udp_v6_lpd_address;
+	unsigned short int net_udp_v6_lpd_port;
+	std::string net_udp_v6_lpd_bind;
 };
 
 } /* namespace p2pnet */
