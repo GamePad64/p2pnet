@@ -16,7 +16,7 @@
 #define CONFIG_H_
 
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
+#include <map>
 
 namespace p2pnet {
 class Config {
@@ -33,47 +33,59 @@ public:
 	Config();
 	virtual ~Config();
 
-	/*void resetToDefaults();*/
+	/**
+	 * This is structure, that handles all the configurations.
+	 */
+	struct config_t {
+		bool net_udp_v4_enable;
+		unsigned short int net_udp_v4_port;
+		std::string net_udp_v4_bind;
+		bool net_udp_v4_lpd_enable;
+		int net_udp_v4_lpd_timer;
+		std::string net_udp_v4_lpd_address;
+		unsigned short int net_udp_v4_lpd_port;
+		std::string net_udp_v4_lpd_bind;
+
+		bool net_udp_v6_enable;
+		unsigned short int net_udp_v6_port;
+		std::string net_udp_v6_bind;
+		bool net_udp_v6_lpd_enable;
+		int net_udp_v6_lpd_timer;
+		std::string net_udp_v6_lpd_address;
+		unsigned short int net_udp_v6_lpd_port;
+		std::string net_udp_v6_lpd_bind;
+	};
+
+	config_t this_config;
+	config_t& getConfig(){
+		return this_config;
+	};
+
+	config_t getDefaults(){
+		config_t config;
+
+		config.net_udp_v4_enable = true;
+		config.net_udp_v4_port = 2185;
+		config.net_udp_v4_bind = "0.0.0.0";
+		config.net_udp_v4_lpd_enable = true;
+		config.net_udp_v4_lpd_timer = 10;
+		config.net_udp_v4_lpd_address = "239.192.152.144";
+		config.net_udp_v4_lpd_port = 28915;
+		config.net_udp_v4_lpd_bind = "0.0.0.0";
+
+		config.net_udp_v6_enable = true;
+		config.net_udp_v6_port = 2185;
+		config.net_udp_v6_bind = "0::0";
+		config.net_udp_v6_lpd_enable = true;
+		config.net_udp_v6_lpd_timer = 10;
+		config.net_udp_v6_lpd_address = "ff08::BD02";
+		config.net_udp_v6_lpd_port = 28915;
+		config.net_udp_v6_lpd_bind = "0::0";
+
+		return config;
+	};
 	void loadFromFile();
 	void saveToFile();
-
-	// Defaults
-	const bool _net_udp_v4_enable = true;
-	const unsigned short int _net_udp_v4_port = 2185;
-	const std::string _net_udp_v4_bind = "0.0.0.0";
-	const bool _net_udp_v4_lpd_enable = true;
-	const int _net_udp_v4_lpd_timer = 10;
-	const std::string _net_udp_v4_lpd_address = "239.192.152.144";
-	const unsigned short int _net_udp_v4_lpd_port = 28915;
-	const std::string _net_udp_v4_lpd_bind = "0.0.0.0";
-
-	const bool _net_udp_v6_enable = true;
-	const unsigned short int _net_udp_v6_port = 2185;
-	const std::string _net_udp_v6_bind = "0::0";
-	const bool _net_udp_v6_lpd_enable = true;
-	const int _net_udp_v6_lpd_timer = 10;
-	const std::string _net_udp_v6_lpd_address = "ff08::BD02";
-	const unsigned short int _net_udp_v6_lpd_port = 28915;
-	const std::string _net_udp_v6_lpd_bind = "0::0";
-
-	// Configurations
-	bool net_udp_v4_enable;
-	unsigned short int net_udp_v4_port;
-	std::string net_udp_v4_bind;
-	bool net_udp_v4_lpd_enable;
-	int net_udp_v4_lpd_timer;
-	std::string net_udp_v4_lpd_address;
-	unsigned short int net_udp_v4_lpd_port;
-	std::string net_udp_v4_lpd_bind;
-
-	bool net_udp_v6_enable;
-	unsigned short int net_udp_v6_port;
-	std::string net_udp_v6_bind;
-	bool net_udp_v6_enable;
-	int net_udp_v6_lpd_timer;
-	std::string net_udp_v6_lpd_address;
-	unsigned short int net_udp_v6_lpd_port;
-	std::string net_udp_v6_lpd_bind;
 };
 
 } /* namespace p2pnet */

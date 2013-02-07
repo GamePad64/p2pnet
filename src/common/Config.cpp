@@ -20,6 +20,11 @@
 #include <windows.h>
 #endif
 
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/info_parser.hpp>
+
 namespace p2pnet {
 
 Config::Config() {this->loadFromFile();}
@@ -62,35 +67,43 @@ const std::string Config::getConfigFilename(bool force) const {
 void Config::loadFromFile() {
 	read_xml(getConfigFilename(), pt);
 
-	net_udp_v4_port = pt.get("net.udp.v4.port", this->_net_udp_v4_port);
-	net_udp_v4_bind = pt.get("net.udp.v4.bind", this->_net_udp_v4_bind);
-	net_udp_v4_lpd_timer = pt.get("net.udp.v4.lpd.timer", this->_net_udp_v4_lpd_timer);
-	net_udp_v4_lpd_address = pt.get("net.udp.v4.lpd.address", this->_net_udp_v4_lpd_address);
-	net_udp_v4_lpd_port = pt.get("net.udp.v4.lpd.port", this->_net_udp_v4_lpd_port);
-	net_udp_v4_lpd_bind = pt.get("net.udp.v4.lpd.bind", this->_net_udp_v4_lpd_bind);
+	this_config.net_udp_v4_enable = pt.get("net.udp.v4.enable", this->getDefaults().net_udp_v4_enable);
+	this_config.net_udp_v4_port = pt.get("net.udp.v4.port", this->getDefaults().net_udp_v4_port);
+	this_config.net_udp_v4_bind = pt.get("net.udp.v4.bind", this->getDefaults().net_udp_v4_bind);
+	this_config.net_udp_v4_lpd_enable = pt.get("net.udp.v4.lpd.enable", this->getDefaults().net_udp_v4_lpd_enable);
+	this_config.net_udp_v4_lpd_timer = pt.get("net.udp.v4.lpd.timer", this->getDefaults().net_udp_v4_lpd_timer);
+	this_config.net_udp_v4_lpd_address = pt.get("net.udp.v4.lpd.address", this->getDefaults().net_udp_v4_lpd_address);
+	this_config.net_udp_v4_lpd_port = pt.get("net.udp.v4.lpd.port", this->getDefaults().net_udp_v4_lpd_port);
+	this_config.net_udp_v4_lpd_bind = pt.get("net.udp.v4.lpd.bind", this->getDefaults().net_udp_v4_lpd_bind);
 
-	net_udp_v6_port = pt.get("net.udp.v6.port", this->_net_udp_v6_port);
-	net_udp_v6_bind = pt.get("net.udp.v6.bind", this->_net_udp_v6_bind);
-	net_udp_v6_lpd_timer = pt.get("net.udp.v6.lpd.timer", this->_net_udp_v6_lpd_timer);
-	net_udp_v6_lpd_address = pt.get("net.udp.v6.lpd.address", this->_net_udp_v6_lpd_address);
-	net_udp_v6_lpd_port = pt.get("net.udp.v6.lpd.port", this->_net_udp_v6_lpd_port);
-	net_udp_v6_lpd_bind = pt.get("net.udp.v6.lpd.bind", this->_net_udp_v6_lpd_bind);
+	this_config.net_udp_v6_enable = pt.get("net.udp.v6.enable", this->getDefaults().net_udp_v6_enable);
+	this_config.net_udp_v6_port = pt.get("net.udp.v6.port", this->getDefaults().net_udp_v6_port);
+	this_config.net_udp_v6_bind = pt.get("net.udp.v6.bind", this->getDefaults().net_udp_v6_bind);
+	this_config.net_udp_v6_lpd_enable = pt.get("net.udp.v6.lpd.enable", this->getDefaults().net_udp_v6_lpd_enable);
+	this_config.net_udp_v6_lpd_timer = pt.get("net.udp.v6.lpd.timer", this->getDefaults().net_udp_v6_lpd_timer);
+	this_config.net_udp_v6_lpd_address = pt.get("net.udp.v6.lpd.address", this->getDefaults().net_udp_v6_lpd_address);
+	this_config.net_udp_v6_lpd_port = pt.get("net.udp.v6.lpd.port", this->getDefaults().net_udp_v6_lpd_port);
+	this_config.net_udp_v6_lpd_bind = pt.get("net.udp.v6.lpd.bind", this->getDefaults().net_udp_v6_lpd_bind);
 }
 
 void Config::saveToFile() {
-	pt.put("net.udp.v4.port", net_udp_v4_port);
-	pt.put("net.udp.v4.bind", net_udp_v4_bind);
-	pt.put("net.udp.v4.lpd.timer", net_udp_v4_lpd_timer);
-	pt.put("net.udp.v4.lpd.address", net_udp_v4_lpd_address);
-	pt.put("net.udp.v4.lpd_port", net_udp_v4_lpd_port);
-	pt.put("net.udp.v4.lpd_bind", net_udp_v4_lpd_bind);
+	pt.put("net.udp.v4.enable", this->getConfig().net_udp_v4_enable);
+	pt.put("net.udp.v4.port", this->getConfig().net_udp_v4_port);
+	pt.put("net.udp.v4.bind", this->getConfig().net_udp_v4_bind);
+	pt.put("net.udp.v4.lpd.enable", this->getConfig().net_udp_v4_lpd_enable);
+	pt.put("net.udp.v4.lpd.timer", this->getConfig().net_udp_v4_lpd_timer);
+	pt.put("net.udp.v4.lpd.address", this->getConfig().net_udp_v4_lpd_address);
+	pt.put("net.udp.v4.lpd.port", this->getConfig().net_udp_v4_lpd_port);
+	pt.put("net.udp.v4.lpd.bind", this->getConfig().net_udp_v4_lpd_bind);
 
-	pt.put("net.udp.v6.port", net_udp_v6_port);
-	pt.put("net.udp.v6.bind", net_udp_v6_bind);
-	pt.put("net.udp.v6.lpd.timer", net_udp_v6_lpd_timer);
-	pt.put("net.udp.v6.lpd.address", net_udp_v6_lpd_address);
-	pt.put("net.udp.v6.lpd_port", net_udp_v6_lpd_port);
-	pt.put("net.udp.v6.lpd_bind", net_udp_v6_lpd_bind);
+	pt.put("net.udp.v6.enable", this->getConfig().net_udp_v6_enable);
+	pt.put("net.udp.v6.port", this->getConfig().net_udp_v6_port);
+	pt.put("net.udp.v6.bind", this->getConfig().net_udp_v6_bind);
+	pt.put("net.udp.v6.lpd.enable", this->getConfig().net_udp_v6_lpd_enable);
+	pt.put("net.udp.v6.lpd.timer", this->getConfig().net_udp_v6_lpd_timer);
+	pt.put("net.udp.v6.lpd.address", this->getConfig().net_udp_v6_lpd_address);
+	pt.put("net.udp.v6.lpd.port", this->getConfig().net_udp_v6_lpd_port);
+	pt.put("net.udp.v6.lpd.bind", this->getConfig().net_udp_v6_lpd_bind);
 
 	write_xml(getConfigFilename(), pt);
 }
