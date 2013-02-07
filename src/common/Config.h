@@ -21,46 +21,25 @@
 namespace p2pnet {
 class Config {
 	boost::property_tree::ptree pt;
-	mutable std::string config_filename;
+	std::string config_filepath;
 
 	/**
 	 * Returns full path to configuration file.
 	 * @note Platform-dependent. Also, if superuser, it tries to save config system-wide.
 	 * @return
 	 */
-	const std::string getConfigFilename(bool force = false) const;
+	std::string setDefaultConfigFilepath();
 public:
 	Config();
+	Config(std::string config_filepath);
 	virtual ~Config();
 
-	/**
-	 * This is structure, that handles all the configurations.
-	 */
-	struct config_t {
-		bool net_udp_v4_enable;
-		unsigned short int net_udp_v4_port;
-		std::string net_udp_v4_bind;
-		bool net_udp_v4_lpd_enable;
-		int net_udp_v4_lpd_timer;
-		std::string net_udp_v4_lpd_address;
-		unsigned short int net_udp_v4_lpd_port;
-		std::string net_udp_v4_lpd_bind;
+	typedef boost::property_tree::ptree config_t;
 
-		bool net_udp_v6_enable;
-		unsigned short int net_udp_v6_port;
-		std::string net_udp_v6_bind;
-		bool net_udp_v6_lpd_enable;
-		int net_udp_v6_lpd_timer;
-		std::string net_udp_v6_lpd_address;
-		unsigned short int net_udp_v6_lpd_port;
-		std::string net_udp_v6_lpd_bind;
-	};
-
-	config_t this_config;
 	config_t& getConfig(){
-		return this_config;
+		return pt;
 	};
-
+/*
 	config_t getDefaults(){
 		config_t config;
 
@@ -84,6 +63,11 @@ public:
 
 		return config;
 	};
+*/
+	std::string getDefaultConfigFilepath() const;
+	void setConfigFilepath(std::string filepath);
+
+	void resetToDefaults();
 	void loadFromFile();
 	void saveToFile();
 };
