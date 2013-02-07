@@ -13,6 +13,7 @@
  */
 
 #include "Daemon.h"
+#include "net/UDPTransportSocketEndpoint.h"
 
 namespace p2pnet {
 
@@ -24,12 +25,21 @@ void Daemon::run(){
 }
 
 void Daemon::initializeSockets() {
-	udpv4_socket.bindLocalIPv4(config.net_v4_udp_port);
-	udpv4_socket.addListener(&message_dispatcher);
-	udpv4_socket.
+	if(config.getConfig().get("net.udp.v4.enable", true)){
+		udpv4_socket.bindLocalIPv4( static_cast<unsigned short int>(config.getConfig().get("net.udp.v4.port", 2185)) );
+		udpv4_socket.addListener(&message_dispatcher);
 
-	udpv6_socket.bindLocalIPv6(config.net_v6_udp_port);
-	udpv6_socket.addListener(&message_dispatcher);
+		net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.udp.v4.bind", "0.0.0.0"), config.getConfig().get("net.udp.v4.port", 2185));
+		udpv4_socket.asyncReceiveFrom(endpoint);
+	}
+
+	if(config.getConfig().get("net.udp.v6.enable", true)){
+		udpv6_socket.bindLocalIPv6( static_cast<unsigned short int>(config.getConfig().get("net.udp.v6.port", 2185)) );
+		udpv6_socket.addListener(&message_dispatcher);
+
+		net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.udp.v6.bind", "0::0"), config.getConfig().get("net.udp.v6.port", 2185));
+		udpv6_socket.asyncReceiveFrom(endpoint);
+	}
 }
 
 void Daemon::runIOService() {
