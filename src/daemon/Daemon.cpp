@@ -21,29 +21,34 @@ Daemon::Daemon() {}
 Daemon::~Daemon() {}
 
 void Daemon::run(){
-
+	this->initializeSockets();
+	AsioIOService::getIOService().run();
 }
 
 void Daemon::initializeSockets() {
 	if(config.getConfig().get("net.udp.v4.enable", true)){
-		udpv4_socket.bindLocalIPv4( static_cast<unsigned short int>(config.getConfig().get("net.udp.v4.port", 2185)) );
-		udpv4_socket.addListener(&message_dispatcher);
+		try {
+			udpv4_socket.bindLocalIPv4( static_cast<unsigned short int>(config.getConfig().get("net.udp.v4.port", 2185)) );
+			udpv4_socket.addListener(&message_dispatcher);
 
-		net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.udp.v4.bind", "0.0.0.0"), config.getConfig().get("net.udp.v4.port", 2185));
-		udpv4_socket.asyncReceiveFrom(endpoint);
+			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.udp.v4.bind", "0.0.0.0"), config.getConfig().get("net.udp.v4.port", 2185));
+			udpv4_socket.asyncReceiveFrom(endpoint);
+		} catch(boost::system::system_error& e) {
+			std::clog << "[Daemon] Unable to initialize IPv4 UDP socket. Exception caught: " << e.what() << std::endl;
+		}
 	}
 
 	if(config.getConfig().get("net.udp.v6.enable", true)){
-		udpv6_socket.bindLocalIPv6( static_cast<unsigned short int>(config.getConfig().get("net.udp.v6.port", 2185)) );
-		udpv6_socket.addListener(&message_dispatcher);
+		try {
+			udpv6_socket.bindLocalIPv6( static_cast<unsigned short int>(config.getConfig().get("net.udp.v6.port", 2185)) );
+			udpv6_socket.addListener(&message_dispatcher);
 
-		net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.udp.v6.bind", "0::0"), config.getConfig().get("net.udp.v6.port", 2185));
-		udpv6_socket.asyncReceiveFrom(endpoint);
+			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.udp.v6.bind", "0::0"), config.getConfig().get("net.udp.v6.port", 2185));
+			udpv6_socket.asyncReceiveFrom(endpoint);
+		} catch(boost::system::system_error& e) {
+			std::clog << "[Daemon] Unable to initialize IPv6 UDP socket. Exception caught: " << e.what() << std::endl;
+		}
 	}
-}
-
-void Daemon::runIOService() {
-	AsioIOService::getIOService().run();
 }
 
 } /* namespace p2pnet */

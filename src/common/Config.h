@@ -28,7 +28,7 @@ class Config {
 	 * @note Platform-dependent. Also, if superuser, it tries to save config system-wide.
 	 * @return
 	 */
-	std::string setDefaultConfigFilepath();
+	void setDefaultConfigFilepath();
 public:
 	Config();
 	Config(std::string config_filepath);
@@ -64,7 +64,7 @@ public:
 		return config;
 	};
 */
-	std::string getDefaultConfigFilepath() const;
+	std::string getDefaultConfigFilepath();
 	void setConfigFilepath(std::string filepath);
 
 	void resetToDefaults();
