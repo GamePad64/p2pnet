@@ -35,7 +35,6 @@ public:
 
 	void run();
 	void initializeSockets();
-	void runIOService();
 };
 
 } /* namespace p2pnet */

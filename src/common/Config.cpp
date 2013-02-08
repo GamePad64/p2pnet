@@ -28,16 +28,18 @@
 namespace p2pnet {
 
 Config::Config() {
-	setDefaultConfigFilepath();
+	this->setDefaultConfigFilepath();
 	this->loadFromFile();
 }
-Config::Config(std::string config_filepath) {
 
+Config::Config(std::string config_filepath) {
+	this->setConfigFilepath(config_filepath);
+	this->loadFromFile();
 }
 
 Config::~Config() {this->saveToFile();}
 
-std::string Config::getDefaultConfigFilepath() const {
+std::string Config::getDefaultConfigFilepath() {
 	// Setting up paths on multiple platforms
 
 	// First, check P2PNET_CONFIG environment variable
@@ -65,6 +67,10 @@ std::string Config::getDefaultConfigFilepath() const {
 	config_filepath = filepath+"p2pnet.xml";
 
 	return config_filepath;
+}
+
+void Config::setDefaultConfigFilepath() {
+	this->setConfigFilepath(this->getDefaultConfigFilepath());
 }
 
 void Config::setConfigFilepath(std::string filepath){

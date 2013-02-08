@@ -75,8 +75,9 @@ void UDPTransportSocket::bindLocalIPv4(
 
 void UDPTransportSocket::bindLocalIPv6(
 		UDPTransportSocketEndpoint::port_t port) {
-	ip::udp::endpoint local_ipv6(ip::address_v4::from_string("0::0"), port);
+	ip::udp::endpoint local_ipv6(ip::address_v6::from_string("0::0"), port);
 	asio_socket.open(local_ipv6.protocol());
+	asio_socket.set_option(boost::asio::ip::v6_only(true));
 	asio_socket.bind(local_ipv6);
 
 	max_packet_length = IPv6_MTU;
