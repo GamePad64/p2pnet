@@ -29,8 +29,8 @@ class UDPTransportSocket : public p2pnet::net::TransportSocket {
 	const unsigned short IPv4_MTU = 512;
 	const unsigned short IPv6_MTU = 1024;
 
-	io_service& asio_io_service;
-	ip::udp::socket asio_socket;
+	io_service& m_io_service;
+	ip::udp::socket m_socket;
 protected:
 	void receivedMessageHandler(const std::string& message, TransportSocketEndpoint::pointer endpoint);
 	void receivedMessageHandler(char* buffer, size_t bytes_received, TransportSocketEndpoint::pointer endpoint);
