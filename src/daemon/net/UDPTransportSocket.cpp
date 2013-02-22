@@ -22,12 +22,11 @@ namespace p2pnet {
 namespace net {
 
 UDPTransportSocket::UDPTransportSocket() :
-		asio_io_service(AsioIOService::getIOService()), asio_socket(
-				asio_io_service) {}
+		m_io_service(AsioIOService::getIOService()), m_socket(m_io_service) {}
 
 UDPTransportSocket::~UDPTransportSocket() {
-	if (asio_socket.is_open())
-		asio_socket.close();
+	if (m_socket.is_open())
+		m_socket.close();
 }
 
 void UDPTransportSocket::receivedMessageHandler(const std::string& message,
@@ -55,20 +54,20 @@ void UDPTransportSocket::sentMessageHandler(char* buffer, size_t bytes_sent,
 }
 
 void UDPTransportSocket::openIPv4() {
-	asio_socket.open(ip::udp::endpoint::protocol_type::v4());
+	m_socket.open(ip::udp::endpoint::protocol_type::v4());
 	max_packet_length = IPv4_MTU;
 }
 
 void UDPTransportSocket::openIPv6() {
-	asio_socket.open(ip::udp::endpoint::protocol_type::v6());
+	m_socket.open(ip::udp::endpoint::protocol_type::v6());
 	max_packet_length = IPv6_MTU;
 }
 
 void UDPTransportSocket::bindLocalIPv4(
 		UDPTransportSocketEndpoint::port_t port) {
 	ip::udp::endpoint local_ipv4(ip::address_v4::from_string("0.0.0.0"), port);
-	asio_socket.open(local_ipv4.protocol());
-	asio_socket.bind(local_ipv4);
+	m_socket.open(local_ipv4.protocol());
+	m_socket.bind(local_ipv4);
 
 	max_packet_length = IPv4_MTU;
 }
@@ -76,9 +75,9 @@ void UDPTransportSocket::bindLocalIPv4(
 void UDPTransportSocket::bindLocalIPv6(
 		UDPTransportSocketEndpoint::port_t port) {
 	ip::udp::endpoint local_ipv6(ip::address_v6::from_string("0::0"), port);
-	asio_socket.open(local_ipv6.protocol());
-	asio_socket.set_option(boost::asio::ip::v6_only(true));
-	asio_socket.bind(local_ipv6);
+	m_socket.open(local_ipv6.protocol());
+	m_socket.set_option(boost::asio::ip::v6_only(true));
+	m_socket.bind(local_ipv6);
 
 	max_packet_length = IPv6_MTU;
 }
@@ -88,7 +87,7 @@ void UDPTransportSocket::asyncReceiveFrom(TransportSocketEndpoint::pointer endpo
 	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
 
 	char* data_received = new char[getMaxPacketLength()];
-	asio_socket.async_receive_from(
+	m_socket.async_receive_from(
 			boost::asio::buffer(data_received, getMaxPacketLength()),
 			udp_endpoint->getEndpoint(),
 			boost::bind(&UDPTransportSocket::receivedMessageHandler, this, data_received,
@@ -99,7 +98,7 @@ void UDPTransportSocket::asyncSendTo(TransportSocketEndpoint::pointer endpoint,	
 	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
 
 	char* data_sent = new char[getMaxPacketLength()];
-	asio_socket.async_send_to(boost::asio::buffer(data), udp_endpoint->getEndpoint(),
+	m_socket.async_send_to(boost::asio::buffer(data), udp_endpoint->getEndpoint(),
 			boost::bind(&UDPTransportSocket::sentMessageHandler, this, data_sent, boost::asio::placeholders::bytes_transferred, udp_endpoint));
 }
 
@@ -107,7 +106,7 @@ void UDPTransportSocket::waitReceiveFrom(TransportSocketEndpoint::pointer endpoi
 	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
 
 	char* data_received = new char[getMaxPacketLength()];
-	size_t bytes_received = asio_socket.receive_from(
+	size_t bytes_received = m_socket.receive_from(
 			boost::asio::buffer(data_received, getMaxPacketLength()),
 			udp_endpoint->getEndpoint());
 
@@ -117,7 +116,7 @@ void UDPTransportSocket::waitReceiveFrom(TransportSocketEndpoint::pointer endpoi
 void UDPTransportSocket::waitSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data) {
 	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
 
-	/*size_t bytes_sent = */asio_socket.send_to(boost::asio::buffer(data), udp_endpoint->getEndpoint());
+	/*size_t bytes_sent = */m_socket.send_to(boost::asio::buffer(data), udp_endpoint->getEndpoint());
 
 	sentMessageHandler(data, udp_endpoint);
 }
@@ -126,7 +125,7 @@ MessageBundle UDPTransportSocket::hereReceiveFrom(TransportSocketEndpoint::point
 	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
 
 	char* data_received = new char[getMaxPacketLength()];
-	size_t bytes_received = asio_socket.receive_from(boost::asio::buffer(data_received, getMaxPacketLength()), udp_endpoint->getEndpoint());
+	size_t bytes_received = m_socket.receive_from(boost::asio::buffer(data_received, getMaxPacketLength()), udp_endpoint->getEndpoint());
 
 	MessageBundle bundle = this->createMessageBundle(std::string(data_received, bytes_received), udp_endpoint);
 
@@ -136,7 +135,7 @@ MessageBundle UDPTransportSocket::hereReceiveFrom(TransportSocketEndpoint::point
 
 void UDPTransportSocket::hereSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data) {
 	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
-	asio_socket.send_to(boost::asio::buffer(data), udp_endpoint->getEndpoint());
+	m_socket.send_to(boost::asio::buffer(data), udp_endpoint->getEndpoint());
 }
 
 } /* namespace net */
