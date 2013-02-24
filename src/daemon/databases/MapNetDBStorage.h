@@ -18,6 +18,7 @@
 #include "PeerRouteSet.h"
 #include <map>
 #include <forward_list>
+#include <cpp-btree/safe_btree_map.h>
 #include "NetDBStorage.h"
 
 namespace p2pnet {
@@ -29,12 +30,15 @@ namespace databases {
  *  - It consumes a large amount of memory
  *  - It is stored only in RAM
  * It will be replaced with SQLite database soon.
+ *
+ * This map version consists of two maps.
  */
+template < typename pubkeymap_t, typename routemap_t >
 class MapNetDBStorage : public NetDBStorage {
 
 private:
-	std::map<crypto::hash_t, crypto::key_public_t> m_pubkeymap;
-	std::map<crypto::hash_t, PeerRouteSet> m_routemap;
+	pubkeymap_t m_pubkeymap;
+	routemap_t m_routemap;
 	hashlist_t m_hashes;
 
 public:
@@ -54,6 +58,10 @@ public:
 	void setRouteOf(crypto::hash_t peer_id, PeerRouteSet& route);
 };
 
+typedef MapNetDBStorage< std::map<crypto::hash_t, crypto::key_public_t>, std::map<crypto::hash_t, PeerRouteSet> > StdMapNetDBStorage;
+typedef MapNetDBStorage< btree::safe_btree_map<crypto::hash_t, crypto::key_public_t>, btree::safe_btree_map<crypto::hash_t, PeerRouteSet> > BMapNetDBStorage;
+
 } /* namespace databases */
 } /* namespace p2pnet */
+
 #endif /* MAPNETDBSTORAGE_H_ */
