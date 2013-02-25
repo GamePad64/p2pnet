@@ -12,34 +12,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAEMON_H_
-#define DAEMON_H_
+#ifndef UDPLPDV4_H_
+#define UDPLPDV4_H_
 
-#include "AsioIOService.h"
-#include "net/UDPTransportSocket.h"
-#include "messaging/TransportSocketMessageDispatcher.h"
-#include "../common/Config.h"
-#include "net/lpd/UDPLPD.h"
+#include "UDPLPD.h"
+#include <string>
 
 namespace p2pnet {
+namespace net {
+namespace lpd {
 
-class Daemon {
-	Config config;
-
-	net::UDPTransportSocket udpv4_socket;
-	net::UDPTransportSocket udpv6_socket;
-
-	net::lpd::UDPLPD* udpv4_lpd;
-
-	messaging::TransportSocketMessageDispatcher message_dispatcher;
+class UDPLPDv4: public p2pnet::net::lpd::UDPLPD {
+	const unsigned int m_default_timer_seconds = 10;
+	std::string m_default_bind_address = "0.0.0.0";
+	std::string m_default_target_address = "239.192.152.147";
+	unsigned short m_default_target_port = 28920;
 public:
-	Daemon();
-	virtual ~Daemon();
+	UDPLPDv4(Config& config);
+	virtual ~UDPLPDv4();
 
-	void run();
-	void initializeSockets();
-	void runLPD();
+	virtual void readConfig();
+	virtual void initSocket();
 };
 
+} /* namespace lpd */
+} /* namespace net */
 } /* namespace p2pnet */
-#endif /* DAEMON_H_ */
+#endif /* UDPLPDV4_H_ */

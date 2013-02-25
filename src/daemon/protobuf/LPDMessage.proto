@@ -12,34 +12,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAEMON_H_
-#define DAEMON_H_
+syntax = "proto2";
+package p2pnet.net.lpd;
 
-#include "AsioIOService.h"
-#include "net/UDPTransportSocket.h"
-#include "messaging/TransportSocketMessageDispatcher.h"
-#include "../common/Config.h"
-#include "net/lpd/UDPLPD.h"
-
-namespace p2pnet {
-
-class Daemon {
-	Config config;
-
-	net::UDPTransportSocket udpv4_socket;
-	net::UDPTransportSocket udpv6_socket;
-
-	net::lpd::UDPLPD* udpv4_lpd;
-
-	messaging::TransportSocketMessageDispatcher message_dispatcher;
-public:
-	Daemon();
-	virtual ~Daemon();
-
-	void run();
-	void initializeSockets();
-	void runLPD();
-};
-
-} /* namespace p2pnet */
-#endif /* DAEMON_H_ */
+message UDPLPDMessage {
+	required uint32 port = 1;
+	optional uint32 version_major = 2;
+	optional uint32 version_minor = 3;
+	optional uint32 version_bugfix = 4;
+}
