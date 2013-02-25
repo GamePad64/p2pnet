@@ -1,48 +1,41 @@
-P2PNet Distributed Overlay Networking Library
-=============================================
+P2PNet Distributed Services
+===========================
 
 What is P2PNet?
 ---------------
-P2PNet is computer network layer that allows to transfer messages between multiple computers over the network. It is designed to be modular, so you can communicate not only using network, but using any interface you want.
-
-This library is only called a *library*. In fact it is a *framework*, that consists of two parts: **library** and **daemon**.
-
-**Daemon** starts with system and provides all peer-2-peer communications, cryptography and database management.
-
-**Library** is used to link it with your application and provides API.
-
-They are connected via Unix sockets on Unix-like systems and TCP sockets on Windows systems.
+**P2PNet** is an infrastructure for building peer-2-peer services. This infrastructure connects multiple computers into one *mesh network*, which is built on modern secure encryption algorithms and is independent of central authorities.
 
 Features
 --------
-+ Find peers in your local network using UDP multicasts (Local Peer Discovery).
-+ Protect data, transferred over the network using strong modern cryptographic algorithms.
-+ Create connections to peers, that 
 
-Dependencies
-------------
+- Searching for devices in your local network. It is called *Local Peer Discovery* in Bittorrent. It works using UDP multicasts.
+    
+    IPv4 multicast address: 239.192.152.144:28915.  
+    IPv6 multicast address: [ff08::BD02]:28915.
+
+- *Distributed Hash Table* is used for NetDB storage in distributed network. We use Kademlia DHT.
+- *Onion (garlic) routing*. It is a technology often used to protect client and server privacy. Server and client build heavily encrypted tunnels so client cannot find out server's IP and vice versa. This technology is used in Tor and I2P.
+- *Group management*. You can create groups of computers that can see each over, share particular services with each other and send encrypted data to each other and to the whole group. The group is controlled by an administrator. The most similar protocol is *JXTA*, Java p2p protocol.
+
+Technology overview
+-------------------
+
+P2PNet consists of two components:
+
+- **p2pnetd**, the core of P2PNet. It implements peer-2-peer network protocol and encryption.
+
+- **libp2pnet**, the library, which is used to connect to **p2pnetd**. It provides C++ API, which can be used to develop your p2p apps.
+
+Building and dependencies
+-------------------------
 This library is written in *C++11*, so you need a modern compiler to build it. Also you need:
 
-#### [Boost](http://boost.org) 1.52.0
-All networking stuff is provided by Boost::Asio.
-#### [Protocol Buffers](http://code.google.com/p/protobuf/)  2.5.0
-For protocol implementation. All data serialization is implemented using Protocol Buffers.
-#### [Botan](http://botan.randombit.net/) 1.11.0
-#### [Google C++ Testing Framework](http://code.google.com/p/googletest/) 1.6.0
-
-Each library is in development version with stable API.
-
-# IT is not ready yet 
-
-* IP address for IPv4: 239.192.152.144:28915
-* IP address for IPv6: [ff08::BD02]:28915
-
-#### Maybe, in future (In a galaxy far, far away...)
-+ Bonjour Discovery
-Only for Macs, only by special demand. Also, I don't have a Mac ;).
-Bonjour is a Zeroconf system for discovering computers in the local network.
-+ Avahi Discovery
-Probably, only for Linux, not sure.
-Avahi is free&open implementation of Zeroconf.
-+ DBus/Binder RPC interface.
-DBus is a classic RPC system on Linux, Binder is sort of modern, forked from Android.
+#### [Boost C++ Libraries](http://boost.org)
+A great set of various C++ libraries.
+#### [Protocol Buffers](http://code.google.com/p/protobuf/)
+Protocol buffers is a solution for variable-length data serialization. We use it for P2PNet protocol implementation.
+#### [Botan](http://botan.randombit.net/)
+Botan is a great cryptographic framework written in C++11.
+#### [Google C++ Testing Framework](http://code.google.com/p/googletest/)
+#### [Google C++ B-tree](https://code.google.com/p/cpp-btree/)
+C++ B-tree is a template library that implements ordered in-memory containers based on a B-tree data structure.
