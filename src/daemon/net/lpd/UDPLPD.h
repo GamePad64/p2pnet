@@ -1,0 +1,69 @@
+/*
+ * You may redistribute this program and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef UDPLPD_H_
+#define UDPLPD_H_
+
+#include "GenericLPD.h"
+#include "../../../common/Config.h"
+#include "../../protobuf/LPDMessage.pb.h"
+#include <boost/asio.hpp>
+
+using namespace boost::asio;
+
+namespace p2pnet {
+namespace net {
+namespace lpd {
+
+class UDPLPD: public p2pnet::net::lpd::GenericLPD {
+	void waitBeforeSend();
+	UDPLPDMessage generateMessage();
+
+protected:
+	Config& m_config;
+
+	io_service& m_io_service;
+	/**
+	 * This timer is used between sending two messages. Default is to wait 10 seconds.
+	 */
+	deadline_timer m_timer;
+	unsigned int m_timer_seconds = 0;
+
+	ip::udp::socket m_socket;
+
+	ip::address m_target_address;
+	unsigned short m_target_port = 0;
+
+	ip::address m_bind_address;
+
+	/**
+	 * Message, that we are going to send is stored here.
+	 */
+	std::string udp_message;
+public:
+	UDPLPD(Config& config);
+	virtual ~UDPLPD();
+
+	void run();
+
+	virtual void readConfig() = 0;
+	virtual void initSocket() = 0;
+
+	void startSend();
+};
+
+} /* namespace lpd */
+} /* namespace net */
+} /* namespace p2pnet */
+#endif /* UDPLPD_H_ */

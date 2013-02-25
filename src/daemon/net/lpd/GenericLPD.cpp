@@ -12,34 +12,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAEMON_H_
-#define DAEMON_H_
-
-#include "AsioIOService.h"
-#include "net/UDPTransportSocket.h"
-#include "messaging/TransportSocketMessageDispatcher.h"
-#include "../common/Config.h"
-#include "net/lpd/UDPLPD.h"
+#include "GenericLPD.h"
 
 namespace p2pnet {
+namespace net {
+namespace lpd {
 
-class Daemon {
-	Config config;
+GenericLPD::GenericLPD() {
+	// TODO Auto-generated constructor stub
 
-	net::UDPTransportSocket udpv4_socket;
-	net::UDPTransportSocket udpv6_socket;
+}
 
-	net::lpd::UDPLPD* udpv4_lpd;
+GenericLPD::~GenericLPD() {
+	// TODO Auto-generated destructor stub
+}
 
-	messaging::TransportSocketMessageDispatcher message_dispatcher;
-public:
-	Daemon();
-	virtual ~Daemon();
-
-	void run();
-	void initializeSockets();
-	void runLPD();
-};
-
+} /* namespace lpd */
+} /* namespace net */
 } /* namespace p2pnet */
-#endif /* DAEMON_H_ */

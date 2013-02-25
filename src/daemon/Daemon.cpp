@@ -14,41 +14,51 @@
 
 #include "Daemon.h"
 #include "net/UDPTransportSocketEndpoint.h"
+#include "net/lpd/UDPLPDv4.h"
 
 namespace p2pnet {
 
-Daemon::Daemon() {}
-Daemon::~Daemon() {}
+Daemon::Daemon() {
+	udpv4_lpd = new net::lpd::UDPLPDv4(config);
+}
+Daemon::~Daemon() {
+	delete udpv4_lpd;
+}
 
 void Daemon::run(){
 	this->initializeSockets();
+	this->runLPD();
 	AsioIOService::getIOService().run();
 }
 
 void Daemon::initializeSockets() {
-	if(config.getConfig().get("net.udp.v4.enable", true)){
+	if(config.getConfig().get("net.sockets.udpv4.enable", true)){
 		try {
-			udpv4_socket.bindLocalIPv4( static_cast<unsigned short int>(config.getConfig().get("net.udp.v4.port", 2185)) );
+			udpv4_socket.bindLocalIPv4( static_cast<unsigned short int>(config.getConfig().get("net.sockets.udpv4.port", 2185)) );
 			udpv4_socket.addListener(&message_dispatcher);
 
-			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.udp.v4.bind", "0.0.0.0"), config.getConfig().get("net.udp.v4.port", 2185));
+			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv4.bind", "0.0.0.0"), config.getConfig().get("net.sockets.udpv4.port", 2185));
 			udpv4_socket.asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv4 UDP socket. Exception caught: " << e.what() << std::endl;
 		}
 	}
 
-	if(config.getConfig().get("net.udp.v6.enable", true)){
+	if(config.getConfig().get("net.sockets.udpv6.enable", true)){
 		try {
-			udpv6_socket.bindLocalIPv6( static_cast<unsigned short int>(config.getConfig().get("net.udp.v6.port", 2185)) );
+			udpv6_socket.bindLocalIPv6( static_cast<unsigned short int>(config.getConfig().get("net.sockets.udpv6.port", 2185)) );
 			udpv6_socket.addListener(&message_dispatcher);
 
-			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.udp.v6.bind", "0::0"), config.getConfig().get("net.udp.v6.port", 2185));
+			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), config.getConfig().get("net.sockets.udpv6.port", 2185));
 			udpv6_socket.asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv6 UDP socket. Exception caught: " << e.what() << std::endl;
 		}
 	}
+}
+void Daemon::runLPD() {
+//	udpv4_lpd.startReceive();
+	udpv4_lpd->startSend();
 }
 
 } /* namespace p2pnet */
