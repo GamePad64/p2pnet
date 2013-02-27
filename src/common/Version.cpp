@@ -17,7 +17,11 @@
 
 namespace p2pnet {
 
-Version::Version() {}
+Version::Version() {
+	this->major_version = 0;
+	this->minor_version = 0;
+	this->bugfix_version = 0;
+}
 Version::Version(unsigned short major_version, unsigned short minor_version, unsigned short bugfix_version) {
 	this->major_version = major_version;
 	this->minor_version = minor_version;
@@ -30,9 +34,7 @@ Version::Version(unsigned short major_version, unsigned short minor_version, uns
 	this->variant_version = variant_version;
 }
 
-Version::~Version() {
-	// TODO Auto-generated destructor stub
-}
+Version::~Version() {}
 
 void Version::fromString(std::string version_s) {
 	char temp_ch;
@@ -51,7 +53,7 @@ std::string Version::toString() {
 }
 
 Version::Version(std::string version_s){
-	this->fromString(version_s);
+	fromString(version_s);
 }
 
 bool Version::operator==(Version& lhs) {
