@@ -15,7 +15,7 @@
 #ifndef MESSAGESOCKET_H_
 #define MESSAGESOCKET_H_
 
-#include "TransportSocketConnection.h"
+#include "TransportSocketLink.h"
 
 #include <string>
 #include <set>

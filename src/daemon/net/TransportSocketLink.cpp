@@ -14,36 +14,36 @@
 
 #include "TransportSocket.h"
 #include "TransportSocketListener.h"
-#include "TransportSocketConnection.h"
+#include "TransportSocketLink.h"
 
 namespace p2pnet {
 namespace net {
 
-TransportSocketConnection::TransportSocketConnection(TransportSocket* socket, TransportSocketEndpoint::pointer endpoint) : m_socket(socket), m_endpoint_p(endpoint) {}
+TransportSocketLink::TransportSocketLink(TransportSocket* socket, TransportSocketEndpoint::pointer endpoint) : m_socket(socket), m_endpoint_p(endpoint) {}
 
-TransportSocketConnection::~TransportSocketConnection() {}
+TransportSocketLink::~TransportSocketLink() {}
 
-void TransportSocketConnection::asyncReceiveFrom() {
+void TransportSocketLink::asyncReceiveFrom() {
 	m_socket->asyncReceiveFrom(m_endpoint_p);
 }
 
-void TransportSocketConnection::asyncSendTo(const std::string& data) {
+void TransportSocketLink::asyncSendTo(const std::string& data) {
 	m_socket->asyncSendTo(m_endpoint_p, data);
 }
 
-void TransportSocketConnection::waitReceiveFrom() {
+void TransportSocketLink::waitReceiveFrom() {
 	m_socket->waitReceiveFrom(m_endpoint_p);
 }
 
-void TransportSocketConnection::waitSendTo(const std::string& data) {
+void TransportSocketLink::waitSendTo(const std::string& data) {
 	m_socket->waitSendTo(m_endpoint_p, data);
 }
 
-MessageBundle TransportSocketConnection::hereReceiveFrom() {
+MessageBundle TransportSocketLink::hereReceiveFrom() {
 	return m_socket->hereReceiveFrom(m_endpoint_p);
 }
 
-void TransportSocketConnection::hereSendTo(const std::string& data) {
+void TransportSocketLink::hereSendTo(const std::string& data) {
 	m_socket->hereSendTo(m_endpoint_p, data);
 }
 
