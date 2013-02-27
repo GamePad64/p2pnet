@@ -23,8 +23,8 @@ namespace net {
 
 class TransportSocketEndpoint {
 public:
-	TransportSocketEndpoint();
-	virtual ~TransportSocketEndpoint();
+	TransportSocketEndpoint(){};
+	virtual ~TransportSocketEndpoint(){};
 
 	typedef std::shared_ptr<TransportSocketEndpoint> pointer;
 

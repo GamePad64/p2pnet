@@ -12,8 +12,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TRANSPORTSOCKETCONNECTION_H_
-#define TRANSPORTSOCKETCONNECTION_H_
+#ifndef TRANSPORTSOCKETLINK_H_
+#define TRANSPORTSOCKETLINK_H_
 
 #include "TransportSocketEndpoint.h"
 #include <memory>
@@ -28,12 +28,12 @@ class MessageBundle;
 /*!
  * A class that wraps TransportSocket with a defined endpoint. It is a class that makes sending packets over different sockets more generic.
  */
-class TransportSocketConnection {
+class TransportSocketLink {
 	TransportSocket* m_socket;
 	TransportSocketEndpoint::pointer m_endpoint_p;
 public:
-	TransportSocketConnection(TransportSocket* socket, TransportSocketEndpoint::pointer endpoint);
-	virtual ~TransportSocketConnection();
+	TransportSocketLink(TransportSocket* socket, TransportSocketEndpoint::pointer endpoint);
+	virtual ~TransportSocketLink();
 
 	TransportSocketEndpoint::pointer getEndpointPtr(){return m_endpoint_p;};
 

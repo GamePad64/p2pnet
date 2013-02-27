@@ -24,9 +24,9 @@ TransportSocket::~TransportSocket(){};
 MessageBundle TransportSocket::createMessageBundle(const std::string message,
 		TransportSocketEndpoint::pointer endpoint) {
 	MessageBundle bundle;
-	TransportSocketConnection socket_connection(this, endpoint);
+	TransportSocketLink socket_connection(this, endpoint);
 
-	bundle.socket_connection = socket_connection;
+	bundle.socket_link = socket_connection;
 	bundle.message = message;
 
 	return bundle;

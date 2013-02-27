@@ -15,7 +15,7 @@
 #ifndef TRANSPORTSOCKETLISTENER_H_
 #define TRANSPORTSOCKETLISTENER_H_
 
-#include "TransportSocketConnection.h"
+#include "TransportSocketLink.h"
 #include <memory>
 #include <string>
 
@@ -24,8 +24,8 @@ namespace net {
 
 class MessageBundle {
 public:
-	MessageBundle() : socket_connection(0, 0){};
-	TransportSocketConnection socket_connection;
+	MessageBundle() : socket_link(0, 0){};
+	TransportSocketLink socket_link;
 
 	std::string message;
 };
