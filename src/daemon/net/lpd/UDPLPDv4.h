@@ -25,8 +25,8 @@ namespace lpd {
 class UDPLPDv4: public p2pnet::net::lpd::UDPLPD {
 	const unsigned int m_default_timer_seconds = 10;
 	std::string m_default_bind_address = "0.0.0.0";
-	std::string m_default_target_address = "239.192.152.147";
-	unsigned short m_default_target_port = 28920;
+	std::string m_default_target_address = "239.192.152.144";
+	unsigned short m_default_target_port = 28915;
 public:
 	UDPLPDv4(Config& config);
 	virtual ~UDPLPDv4();
