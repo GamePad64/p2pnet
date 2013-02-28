@@ -28,6 +28,7 @@ namespace lpd {
 
 class UDPLPD: public p2pnet::net::lpd::GenericLPD {
 	void waitBeforeSend();
+	void processReceived(size_t bytes, std::shared_ptr<ip::udp::endpoint> endpoint, char* recv_buffer);
 	UDPLPDMessage generateMessage();
 
 protected:
@@ -60,7 +61,11 @@ public:
 	virtual void readConfig() = 0;
 	virtual void initSocket() = 0;
 
+	void send();
+	void receive();
+
 	void startSend();
+	void startReceive();
 };
 
 } /* namespace lpd */

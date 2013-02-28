@@ -13,6 +13,7 @@
  */
 
 #include "UDPLPDv4.h"
+#include "../UDPTransportSocketEndpoint.h"
 
 namespace p2pnet {
 namespace net {
@@ -38,6 +39,9 @@ void UDPLPDv4::initSocket() {
 
 	m_socket.set_option(ip::multicast::join_group(m_target_address));
 	m_socket.set_option(ip::multicast::enable_loopback(false));
+	m_socket.set_option(ip::udp::socket::reuse_address(true));
+
+	m_socket.bind(ip::udp::endpoint(m_bind_address, m_target_port));
 }
 
 } /* namespace lpd */
