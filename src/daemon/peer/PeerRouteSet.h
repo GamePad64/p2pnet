@@ -21,7 +21,7 @@
 #include <forward_list>
 
 namespace p2pnet {
-namespace databases {
+namespace peer {
 
 /**
  * PeerRouteSet is a class that stores all the ways to reach the destination.
@@ -42,5 +42,5 @@ public:
 };
 
 } /* namespace databases */
-} /* namespace p2pnet */
+} /* namespace peer */
 #endif /* PEERROUTESET_H_ */

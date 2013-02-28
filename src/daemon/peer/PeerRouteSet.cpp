@@ -16,7 +16,7 @@
 #include "../protobuf/TransportSocketEndpoint_s.pb.h"
 
 namespace p2pnet {
-namespace databases {
+namespace peer {
 
 PeerRouteSet::PeerRouteSet() {}
 PeerRouteSet::~PeerRouteSet() {}
@@ -44,5 +44,5 @@ void PeerRouteSet::fromString(const std::string &from) {
 	}
 }
 
-} /* namespace databases */
+} /* namespace peer */
 } /* namespace p2pnet */

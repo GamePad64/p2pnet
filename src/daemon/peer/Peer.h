@@ -12,29 +12,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NETDBSTORAGE_H_
-#define NETDBSTORAGE_H_
+#ifndef PEER_H_
+#define PEER_H_
 
-#include "../../common/crypto/CryptoTypes.h"
-#include "../peer/Peer.h"
-#include <list>
+#include "PeerRouteSet.h"
+#include "../net/TransportSocketLink.h"
+#include <string>
 
 namespace p2pnet {
-namespace databases {
+namespace peer {
 
-class NetDBStorage {
+class Peer {
 public:
-	NetDBStorage();
-	virtual ~NetDBStorage();
+	Peer();
+	virtual ~Peer();
 
-	typedef std::list<crypto::hash_t> hashlist_t;
-	virtual hashlist_t getAllHashes() = 0;
+	PeerRouteSet m_routeset;
+	PeerRouteSet& getPeerRouteSet(){return m_routeset;};
 
-	// Public key database
-	virtual bool hasPeer(crypto::hash_t peer_id) = 0;
-	virtual peer::Peer& getPeer(crypto::hash_t peer_id) = 0;
+	net::TransportSocketLink m_link;
+	net::TransportSocketLink& getLink();
+
+	//void fromString(std::string peer_s);
+	//std::string toString();
 };
 
-} /* namespace databases */
+} /* namespace peer */
 } /* namespace p2pnet */
-#endif /* NETDBSTORAGE_H_ */
+#endif /* PEER_H_ */

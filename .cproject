@@ -62,7 +62,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/daemon/net/asio|test|test/daemon|src/daemon/extensions|src/daemon/connections|src/common/databases" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/daemon/extensions|test/daemon|src/daemon/net/asio|src/daemon/connections|src/common/databases|test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -117,7 +117,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/daemon/net/asio|test|src/daemon/extensions|src/daemon/connections" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/daemon/net/asio|src/daemon/connections|src/daemon/extensions|test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -184,7 +184,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/daemon/databases/LocalDistNetDB.h|src/daemon/databases/LocalDistNetDB.cpp|src/daemon/databases/DistNetDB.h|src/daemon/databases/DistNetDB.cpp|src/daemon/net/asio|src/daemon/main.cpp|src/daemon/extensions|src/daemon/connections|src/common/databases" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/daemon/databases/LocalDistNetDB.cpp|src/daemon/databases/DistNetDB.h|src/daemon/databases/LocalDistNetDB.h|src/daemon/main.cpp|src/daemon/databases/DistNetDB.cpp|src/daemon/extensions|src/daemon/connections|src/common/databases|src/daemon/net/asio" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

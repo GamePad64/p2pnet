@@ -17,37 +17,19 @@
 namespace p2pnet {
 namespace databases {
 
-template<typename pubkeymap_t, typename routemap_t>
-MapNetDBStorage<pubkeymap_t, routemap_t>::MapNetDBStorage() {}
-template<typename pubkeymap_t, typename routemap_t>
-MapNetDBStorage<pubkeymap_t, routemap_t>::~MapNetDBStorage() {}
+template<typename peermap_t>
+MapNetDBStorage<peermap_t>::MapNetDBStorage() {}
+template<typename peermap_t>
+MapNetDBStorage<peermap_t>::~MapNetDBStorage() {}
 
-template<typename pubkeymap_t, typename routemap_t>
-bool MapNetDBStorage<pubkeymap_t, routemap_t>::hasPublicKeyOf(crypto::hash_t peer_id){
-	return m_pubkeymap.count(peer_id) != 0;
-}
-
-template<typename pubkeymap_t, typename routemap_t>
-crypto::key_public_t MapNetDBStorage<pubkeymap_t, routemap_t>::getPublicKeyOf(crypto::hash_t peer_id){
-	return this->m_pubkeymap[peer_id];
-}
-template<typename pubkeymap_t, typename routemap_t>
-void MapNetDBStorage<pubkeymap_t, routemap_t>::setPublicKeyOf(crypto::hash_t peer_id, crypto::key_public_t key_public){
-	this->m_pubkeymap[peer_id] = key_public;
-	this->m_hashes.push_front(peer_id);
+template<typename peermap_t>
+bool MapNetDBStorage<peermap_t>::hasPeer(crypto::hash_t peer_id){
+	return m_peermap.count(peer_id) != 0;
 }
 
-template<typename pubkeymap_t, typename routemap_t>
-bool MapNetDBStorage<pubkeymap_t, routemap_t>::hasRouteTo(crypto::hash_t peer_id){
-	return m_routemap.count(peer_id) != 0;
-}
-template<typename pubkeymap_t, typename routemap_t>
-PeerRouteSet MapNetDBStorage<pubkeymap_t, routemap_t>::getRouteTo(crypto::hash_t peer_id){
-	return this->m_routemap[peer_id];
-}
-template<typename pubkeymap_t, typename routemap_t>
-void MapNetDBStorage<pubkeymap_t, routemap_t>::setRouteOf(crypto::hash_t peer_id, PeerRouteSet& route){
-	this->m_routemap[peer_id] = route;
+template<typename peermap_t>
+Peer& MapNetDBStorage<peermap_t>::getPeer(crypto::hash_t peer_id){
+	return this->m_peermap[peer_id];
 }
 
 } /* namespace databases */
