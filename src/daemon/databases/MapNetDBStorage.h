@@ -33,12 +33,11 @@ namespace databases {
  *
  * This map version consists of two maps.
  */
-template < typename pubkeymap_t, typename routemap_t >
+template < typename peermap_t >
 class MapNetDBStorage : public NetDBStorage {
 
 private:
-	pubkeymap_t m_pubkeymap;
-	routemap_t m_routemap;
+	peermap_t m_peermap;
 	hashlist_t m_hashes;
 
 public:
@@ -47,19 +46,13 @@ public:
 
 	hashlist_t getAllHashes(){return m_hashes;};
 
-	// Public key database
-	bool hasPublicKeyOf(crypto::hash_t peer_id);
-	crypto::key_public_t getPublicKeyOf(crypto::hash_t peer_id);
-	void setPublicKeyOf(crypto::hash_t peer_id, crypto::key_public_t key_public);
-
 	// Routing database
-	bool hasRouteTo(crypto::hash_t peer_id);
-	PeerRouteSet getRouteTo(crypto::hash_t peer_id);
-	void setRouteOf(crypto::hash_t peer_id, PeerRouteSet& route);
+	bool hasPeer(crypto::hash_t peer_id);
+	peer::Peer& getPeer(crypto::hash_t peer_id);
 };
 
-typedef MapNetDBStorage< std::map<crypto::hash_t, crypto::key_public_t>, std::map<crypto::hash_t, PeerRouteSet> > StdMapNetDBStorage;
-typedef MapNetDBStorage< btree::safe_btree_map<crypto::hash_t, crypto::key_public_t>, btree::safe_btree_map<crypto::hash_t, PeerRouteSet> > BMapNetDBStorage;
+typedef MapNetDBStorage< std::map<crypto::hash_t, peer::Peer> > StdMapNetDBStorage;
+typedef MapNetDBStorage< btree::safe_btree_map<crypto::hash_t, peer::Peer> > BMapNetDBStorage;
 
 } /* namespace databases */
 } /* namespace p2pnet */

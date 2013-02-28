@@ -12,29 +12,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NETDBSTORAGE_H_
-#define NETDBSTORAGE_H_
-
-#include "../../common/crypto/CryptoTypes.h"
-#include "../peer/Peer.h"
-#include <list>
+#include "Peer.h"
 
 namespace p2pnet {
-namespace databases {
+namespace peer {
 
-class NetDBStorage {
-public:
-	NetDBStorage();
-	virtual ~NetDBStorage();
+Peer::Peer() {
+	// TODO Auto-generated constructor stub
 
-	typedef std::list<crypto::hash_t> hashlist_t;
-	virtual hashlist_t getAllHashes() = 0;
+}
 
-	// Public key database
-	virtual bool hasPeer(crypto::hash_t peer_id) = 0;
-	virtual peer::Peer& getPeer(crypto::hash_t peer_id) = 0;
-};
+Peer::~Peer() {
+	// TODO Auto-generated destructor stub
+}
 
-} /* namespace databases */
+} /* namespace peer */
 } /* namespace p2pnet */
-#endif /* NETDBSTORAGE_H_ */
