@@ -22,7 +22,7 @@ namespace p2pnet {
 namespace databases {
 
 class PersonalKeyStorage {
-	crypto::key_pair_t my_keys;
+	crypto::key_pair_t my_key_pair;
 	crypto::hash_t my_transport_hash;
 
 protected:
@@ -38,7 +38,13 @@ public:
 		return instance;
 	}
 
-	crypto::hash_t getMyTransportHash() {return my_transport_hash;};
+	void regenerateKeys();
+
+	/**
+	 * This function returns own transport hash from cache. If there is no such hash, then regenerate keys and hashes.
+	 * @return My transport hash
+	 */
+	crypto::hash_t getMyTransportHash();
 
 	crypto::key_public_t getMyPublicKey();
 	crypto::key_private_t getMyPrivateKey();
