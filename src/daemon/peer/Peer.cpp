@@ -17,14 +17,8 @@
 namespace p2pnet {
 namespace peer {
 
-Peer::Peer() {
-	// TODO Auto-generated constructor stub
-
-}
-
-Peer::~Peer() {
-	// TODO Auto-generated destructor stub
-}
+Peer::Peer() {}
+Peer::~Peer() {}
 
 } /* namespace peer */
 } /* namespace p2pnet */

@@ -18,7 +18,7 @@
 #include "../../common/crypto/CryptoTypes.h"
 #include "../relay/RelayTransportSocketEndpoint.h"
 #include "../net/UDPTransportSocketEndpoint.h"
-#include <forward_list>
+#include <list>
 
 namespace p2pnet {
 namespace peer {
@@ -31,9 +31,9 @@ public:
 	PeerRouteSet();
 	virtual ~PeerRouteSet();
 
-	std::forward_list<relay::RelayTransportSocketEndpoint> endpoint_relay_list;
+	std::list<relay::RelayTransportSocketEndpoint> endpoint_relay_list;
 	decltype(endpoint_relay_list)& getRelayEndpointList() {return endpoint_relay_list;};
-	std::forward_list<net::UDPTransportSocketEndpoint> endpoint_udp_list;
+	std::list<net::UDPTransportSocketEndpoint> endpoint_udp_list;
 	decltype(endpoint_udp_list)& getUDPEndpointList() {return endpoint_udp_list;}
 
 	// Protocol Buffers serialization
