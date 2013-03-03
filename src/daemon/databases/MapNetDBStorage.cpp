@@ -28,7 +28,7 @@ bool MapNetDBStorage<peermap_t>::hasPeer(crypto::hash_t peer_id){
 }
 
 template<typename peermap_t>
-Peer& MapNetDBStorage<peermap_t>::getPeer(crypto::hash_t peer_id){
+peer::Peer& MapNetDBStorage<peermap_t>::getPeer(crypto::hash_t peer_id){
 	return this->m_peermap[peer_id];
 }
 

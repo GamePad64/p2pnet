@@ -17,14 +17,8 @@
 namespace p2pnet {
 namespace databases {
 
-NetDBStorage::NetDBStorage() {
-	// TODO Auto-generated constructor stub
-
-}
-
-NetDBStorage::~NetDBStorage() {
-	// TODO Auto-generated destructor stub
-}
+NetDBStorage::NetDBStorage() {}
+NetDBStorage::~NetDBStorage() {}
 
 } /* namespace databases */
 } /* namespace p2pnet */

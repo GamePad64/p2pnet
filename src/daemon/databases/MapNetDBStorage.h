@@ -15,7 +15,6 @@
 #ifndef MAPNETDBSTORAGE_H_
 #define MAPNETDBSTORAGE_H_
 
-#include "PeerRouteSet.h"
 #include <map>
 #include <forward_list>
 #include <cpp-btree/safe_btree_map.h>
