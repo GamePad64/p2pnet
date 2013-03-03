@@ -18,7 +18,10 @@
 #include "GenericLPD.h"
 #include "../../../common/Config.h"
 #include "../../protobuf/LPDMessage.pb.h"
+#include "../UDPTransportSocket.h"
 #include <boost/asio.hpp>
+#include <string>
+#include <memory>
 
 using namespace boost::asio;
 
@@ -41,7 +44,10 @@ protected:
 	deadline_timer m_timer;
 	unsigned int m_timer_seconds = 0;
 
-	ip::udp::socket m_socket;
+	//! boost::asio multicast UDP Socket
+	ip::udp::socket m_lpd_socket;
+	//! Pointer to UDP socket, used for constructing TransportSocketLink
+	net::UDPTransportSocket* m_udp_socket;
 
 	ip::address m_target_address;
 	unsigned short m_target_port = 0;
@@ -53,7 +59,7 @@ protected:
 	 */
 	std::string udp_message;
 public:
-	UDPLPD(Config& config);
+	UDPLPD(Config& config, net::UDPTransportSocket* udp_socket);
 	virtual ~UDPLPD();
 
 	void run();

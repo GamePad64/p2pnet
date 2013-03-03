@@ -18,14 +18,8 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-GenericLPD::GenericLPD() {
-	// TODO Auto-generated constructor stub
-
-}
-
-GenericLPD::~GenericLPD() {
-	// TODO Auto-generated destructor stub
-}
+GenericLPD::GenericLPD() {}
+GenericLPD::~GenericLPD() {}
 
 } /* namespace lpd */
 } /* namespace net */
