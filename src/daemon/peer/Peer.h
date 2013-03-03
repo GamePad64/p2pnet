@@ -17,21 +17,43 @@
 
 #include "PeerRouteSet.h"
 #include "../net/TransportSocketLink.h"
+#include "../../common/crypto/CurrentCipherSet.h"
 #include <string>
 
 namespace p2pnet {
 namespace peer {
 
 class Peer {
+	crypto::hash_t m_transport_hash;
+	crypto::key_public_t m_key_public;
+
+	PeerRouteSet m_routeset;
 public:
 	Peer();
 	virtual ~Peer();
 
-	PeerRouteSet m_routeset;
-	PeerRouteSet& getPeerRouteSet(){return m_routeset;};
+	crypto::hash_t getTransportHash(){
+		return m_transport_hash;
+	}
 
-	net::TransportSocketLink m_link;
-	net::TransportSocketLink& getLink();
+	void setTransportHash(crypto::hash_t transport_hash){
+		m_transport_hash = transport_hash;
+	}
+
+	crypto::key_public_t getPublicKey(){
+		return m_key_public;
+	}
+
+	void setPublicKey(crypto::key_public_t key_public){
+		m_key_public = key_public;
+	}
+
+	/**
+	 * RouteSet of this peer
+	 */
+	PeerRouteSet& getPeerRouteSet() {
+		return m_routeset;
+	}
 
 	//void fromString(std::string peer_s);
 	//std::string toString();
