@@ -20,8 +20,9 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-UDPLPD::UDPLPD(Config& config) : m_config(config), m_io_service(AsioIOService::getIOService()), m_timer(m_io_service),
-		m_socket(m_io_service) {
+UDPLPD::UDPLPD(Config& config, net::UDPTransportSocket* udp_socket) : m_config(config),
+		m_io_service(AsioIOService::getIOService()), m_timer(m_io_service),
+		m_lpd_socket(m_io_service), m_udp_socket(udp_socket) {
 	udp_message = generateMessage().SerializeAsString();
 }
 
@@ -57,13 +58,13 @@ void UDPLPD::waitBeforeSend() {
 
 void UDPLPD::send(){
 	std::clog << "[UDPLPD] Local -> " << m_target_address.to_string() << ":" << m_target_port << std::endl;
-	m_socket.async_send_to(buffer(udp_message), ip::udp::endpoint(m_target_address, m_target_port), boost::bind(&UDPLPD::waitBeforeSend, this));
+	m_lpd_socket.async_send_to(buffer(udp_message), ip::udp::endpoint(m_target_address, m_target_port), boost::bind(&UDPLPD::waitBeforeSend, this));
 }
 
 void UDPLPD::receive(){
 	char* lpd_packet = new char[2048];
 	std::shared_ptr<ip::udp::endpoint> endpoint = std::make_shared<ip::udp::endpoint>(m_bind_address, m_target_port);
-	m_socket.async_receive_from(
+	m_lpd_socket.async_receive_from(
 			buffer(lpd_packet, 2048), *endpoint,
 			boost::bind(&UDPLPD::processReceived, this, placeholders::bytes_transferred, endpoint, lpd_packet));
 }

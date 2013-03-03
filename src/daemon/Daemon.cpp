@@ -19,7 +19,7 @@
 namespace p2pnet {
 
 Daemon::Daemon() {
-	udpv4_lpd = new net::lpd::UDPLPDv4(config);
+	udpv4_lpd = new net::lpd::UDPLPDv4(config, &udpv4_socket);
 }
 Daemon::~Daemon() {
 	delete udpv4_lpd;
@@ -56,8 +56,9 @@ void Daemon::initializeSockets() {
 		}
 	}
 }
+
 void Daemon::runLPD() {
-//	udpv4_lpd.startReceive();
+	udpv4_lpd->startReceive();
 	udpv4_lpd->startSend();
 }
 
