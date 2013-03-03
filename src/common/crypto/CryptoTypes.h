@@ -34,6 +34,8 @@ typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > hash_t;
 
 //! Hamming distance of two hash_t
 unsigned short hashDistance(hash_t hash1, hash_t hash2);
+//! Returns Hex value of hash
+std::string hashToHex(hash_t hash);
 } /* namespace crypto */
 } /* namespace p2pnet */
 
