@@ -13,6 +13,9 @@
  */
 
 #include "CryptoTypes.h"
+#include <sstream>
+#include <string>
+#include <iomanip>
 
 namespace p2pnet {
 namespace crypto {
@@ -36,6 +39,17 @@ unsigned short hashDistance(hash_t hash1, hash_t hash2){
 	}
 
 	return distance;
+}
+
+std::string hashToHex(hash_t hash){
+	std::ostringstream hash_ss;
+
+	hash_ss << std::hex << std::uppercase << std::setfill('0');
+	for( int twobytes : hash ) {
+		hash_ss << std::setw(2) << twobytes;
+	}
+
+	return hash_ss.str();
 }
 
 
