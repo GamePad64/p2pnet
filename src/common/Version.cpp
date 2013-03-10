@@ -42,7 +42,6 @@ void Version::fromString(std::string version_s) {
 	std::stringstream version_ss(version_s);
 	version_ss >> major_version >> temp_ch >> minor_version >> temp_ch >> bugfix_version >> temp_ch >> variant_version;
 }
-
 std::string Version::toString() {
 	std::stringstream version_ss;
 	version_ss << major_version << "." << minor_version << "." << bugfix_version;
@@ -51,9 +50,20 @@ std::string Version::toString() {
 	}
 	return version_ss.str();
 }
-
 Version::Version(std::string version_s){
 	fromString(version_s);
+}
+
+void Version::fromInteger(uint32_t version_int){
+	bugfix_version = version_int % 100;
+	minor_version = (version_int / 100) % 100;
+	major_version = (version_int / 10000) % 100;
+}
+uint32_t Version::toInteger(){
+	return bugfix_version + minor_version*100 + major_version*100;
+}
+Version::Version(uint32_t version_int){
+	fromInteger(version_int);
 }
 
 bool Version::operator==(Version& lhs) {
