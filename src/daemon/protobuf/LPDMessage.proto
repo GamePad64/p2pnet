@@ -17,7 +17,5 @@ package p2pnet.net.lpd;
 
 message UDPLPDMessage {
 	required uint32 port = 1;
-	optional uint32 version_major = 2;
-	optional uint32 version_minor = 3;
-	optional uint32 version_bugfix = 4;
+	optional uint32 version = 2;
 }

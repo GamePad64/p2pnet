@@ -37,6 +37,10 @@ public:
 	std::string toString();
 	Version(std::string version_s);
 
+	void fromInteger(uint32_t version_int);
+	uint32_t toInteger();
+	Version(uint32_t version_int);
+
 	// relational operators
 	bool operator==(Version& lhs);
 	bool operator<(Version& lhs);
