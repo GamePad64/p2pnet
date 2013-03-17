@@ -24,13 +24,16 @@ MapNetDBStorage<peermap_t>::~MapNetDBStorage() {}
 
 template<typename peermap_t>
 bool MapNetDBStorage<peermap_t>::hasPeer(crypto::hash_t peer_id){
-	return m_peermap.count(peer_id) != 0;
+	return m_peermap.count(peer_id) > 0;
 }
 
 template<typename peermap_t>
 peer::Peer& MapNetDBStorage<peermap_t>::getPeer(crypto::hash_t peer_id){
 	return this->m_peermap[peer_id];
 }
+
+template class MapNetDBStorage< std::map<crypto::hash_t, peer::Peer> >;
+template class MapNetDBStorage< btree::safe_btree_map<crypto::hash_t, peer::Peer> >;
 
 } /* namespace databases */
 } /* namespace p2pnet */

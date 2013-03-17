@@ -27,7 +27,6 @@ class PersonalKeyStorage {
 
 protected:
 	PersonalKeyStorage();
-	virtual ~PersonalKeyStorage();
 
 public:
 	static PersonalKeyStorage* getInstance(){
@@ -37,6 +36,7 @@ public:
 		}
 		return instance;
 	}
+	virtual ~PersonalKeyStorage();
 
 	void regenerateKeys();
 
