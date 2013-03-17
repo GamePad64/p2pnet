@@ -15,17 +15,22 @@
 #include "PersonalKeyStorage.h"
 #include "../../common/crypto/CurrentCipherSet.h"
 #include <string>
+#include <iostream>
 
 namespace p2pnet {
 namespace databases {
 
-PersonalKeyStorage::PersonalKeyStorage() {}
+PersonalKeyStorage::PersonalKeyStorage() {
+	// TEMP: We shouldn't regenerate keys every execution, so some sort of caching is required.
+	regenerateKeys();
+}
 PersonalKeyStorage::~PersonalKeyStorage() {}
 
 void PersonalKeyStorage::regenerateKeys() {
 	crypto::CurrentCipherSet cs;
 	my_key_pair = cs.generateKeyPair();
 	my_transport_hash = cs.computeHash(std::string(my_key_pair.key_public.begin(), my_key_pair.key_public.end()));
+	std::clog << "[Crypto] Keys regenerated. New TH: " << crypto::hashToHex(my_transport_hash) << std::endl;
 }
 
 crypto::hash_t PersonalKeyStorage::getMyTransportHash() {
