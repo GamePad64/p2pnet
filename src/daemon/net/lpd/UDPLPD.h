@@ -17,7 +17,9 @@
 
 #include "GenericLPD.h"
 #include "../../../common/Config.h"
+#include "../../databases/NetDBStorage.h"
 #include "../../protobuf/LPDMessage.pb.h"
+#include "../../protobuf/Protocol.pb.h"
 #include "../UDPTransportSocket.h"
 #include <boost/asio.hpp>
 #include <string>
@@ -32,7 +34,8 @@ namespace lpd {
 class UDPLPD: public p2pnet::net::lpd::GenericLPD {
 	void waitBeforeSend();
 	void processReceived(size_t bytes, std::shared_ptr<ip::udp::endpoint> endpoint, char* recv_buffer);
-	UDPLPDMessage generateMessage();
+	UDPLPDMessage generateLPDMessage();
+	protocol::p2pMessage generateAgreementMessage();
 
 protected:
 	Config& m_config;
@@ -46,8 +49,8 @@ protected:
 
 	//! boost::asio multicast UDP Socket
 	ip::udp::socket m_lpd_socket;
-	//! Pointer to UDP socket, used for constructing TransportSocketLink
-	net::UDPTransportSocket* m_udp_socket;
+	//! Reference to UDP socket, used for constructing TransportSocketLink
+	net::UDPTransportSocket& m_udp_socket;
 
 	ip::address m_target_address;
 	unsigned short m_target_port = 0;
@@ -58,8 +61,10 @@ protected:
 	 * Message, that we are going to send is stored here.
 	 */
 	std::string udp_message;
+
+	databases::NetDBStorage& m_netdb_storage;
 public:
-	UDPLPD(Config& config, net::UDPTransportSocket* udp_socket);
+	UDPLPD(Config& config, net::UDPTransportSocket& udp_socket, databases::NetDBStorage& netdb_storage);
 	virtual ~UDPLPD();
 
 	void run();

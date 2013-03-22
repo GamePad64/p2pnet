@@ -15,23 +15,30 @@
 #ifndef DAEMON_H_
 #define DAEMON_H_
 
-#include "AsioIOService.h"
-#include "net/UDPTransportSocket.h"
-#include "messaging/TransportSocketMessageDispatcher.h"
 #include "../common/Config.h"
-#include "net/lpd/UDPLPD.h"
+#include "AsioIOService.h"
+#include "databases/MapNetDBStorage.h"
+#include "databases/PersonalKeyStorage.h"
+#include "messaging/TransportSocketMessageDispatcher.h"
+#include "net/UDPTransportSocket.h"
+#include "net/lpd/UDPLPDv4.h"
 
 namespace p2pnet {
 
 class Daemon {
 	Config config;
 
-	net::UDPTransportSocket udpv4_socket;
-	net::UDPTransportSocket udpv6_socket;
+	databases::BMapNetDBStorage m_netdb_storage;
+	databases::PersonalKeyStorage* m_pk_storage;
 
-	net::lpd::UDPLPD* udpv4_lpd;
+	net::UDPTransportSocket m_socket_udpv4;
+	net::UDPTransportSocket m_socket_udpv6;
 
 	messaging::TransportSocketMessageDispatcher message_dispatcher;
+
+	net::lpd::UDPLPDv4 m_lpd_udpv4;
+	// TEMP: Will add udpv6 later.
+	//net::lpd::UDPLPDv6 m_lpd_udpv6;
 public:
 	Daemon();
 	virtual ~Daemon();

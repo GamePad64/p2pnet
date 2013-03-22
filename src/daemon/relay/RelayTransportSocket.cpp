@@ -17,14 +17,8 @@
 namespace p2pnet {
 namespace relay {
 
-RelayTransportSocket::RelayTransportSocket() {
-	// TODO Auto-generated constructor stub
-
-}
-
-RelayTransportSocket::~RelayTransportSocket() {
-	// TODO Auto-generated destructor stub
-}
+RelayTransportSocket::RelayTransportSocket() {}
+RelayTransportSocket::~RelayTransportSocket() {}
 
 } /* namespace relay */
 } /* namespace p2pnet */

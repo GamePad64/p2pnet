@@ -15,15 +15,23 @@
 #include "UDPLPD.h"
 #include "../../AsioIOService.h"
 #include "../UDPTransportSocket.h"
+#include "../../protobuf/Protocol.pb.h"
+#include "../../databases/PersonalKeyStorage.h"
 
 namespace p2pnet {
 namespace net {
 namespace lpd {
 
-UDPLPD::UDPLPD(Config& config, net::UDPTransportSocket* udp_socket) : m_config(config),
-		m_io_service(AsioIOService::getIOService()), m_timer(m_io_service),
-		m_lpd_socket(m_io_service), m_udp_socket(udp_socket) {
-	udp_message = generateMessage().SerializeAsString();
+UDPLPD::UDPLPD(Config& config,
+		net::UDPTransportSocket& udp_socket,
+		databases::NetDBStorage& netdb_storage) :
+				m_config(config),
+				m_io_service(AsioIOService::getIOService()),
+				m_timer(m_io_service),
+				m_lpd_socket(m_io_service),
+				m_udp_socket(udp_socket),
+				m_netdb_storage(netdb_storage) {
+	udp_message = generateLPDMessage().SerializeAsString();
 }
 
 UDPLPD::~UDPLPD() {
@@ -36,19 +44,46 @@ void UDPLPD::run() {
 	startSend();
 }
 
-UDPLPDMessage UDPLPD::generateMessage() {
+UDPLPDMessage UDPLPD::generateLPDMessage() {
 	UDPLPDMessage message;
 	unsigned int my_port = m_config.getConfig().get("net.sockets.udpv4.port", 2185);
 	message.set_port(my_port);
 	return message;
 }
 
-void UDPLPD::processReceived(size_t bytes, std::shared_ptr<ip::udp::endpoint> endpoint, char* recv_buffer){
+protocol::p2pMessage UDPLPD::generateAgreementMessage() {
+	protocol::p2pMessage message;
+
+	protocol::p2pMessageHeader* message_header = message.mutable_message_header();
+	databases::PersonalKeyStorage* pks = databases::PersonalKeyStorage::getInstance();
+	message_header->set_src_id(std::string(pks->getMyTransportHash().begin(), pks->getMyTransportHash().end()));
+
+	message.set_message_type(message.AGREEMENT);
+
+	protocol::p2pMessage_Agreement message_agreement;
+	crypto::key_public_t pubkey = pks->getMyPublicKey();
+	std::string pubkey_s = std::string(pubkey.begin(), pubkey.end());
+	message_agreement.set_src_pubkey(pubkey_s);
+	message.set_message_s(message_agreement.SerializeAsString());
+
+	return message;
+}
+
+void UDPLPD::processReceived(size_t bytes,
+		std::shared_ptr<ip::udp::endpoint> endpoint,
+		char* recv_buffer){
+	// We received message, continue receiving others
 	receive();
+
+	// Create Protocol Buffer message
 	UDPLPDMessage message;
 	message.ParseFromString(std::string(recv_buffer, bytes));
-	std::clog << "[UDPLPD] Local <- " << endpoint->address().to_string() << ":" << message.port() << std::endl;
 	delete[] recv_buffer;
+
+	std::clog << "[UDPLPD] Local <- " << endpoint->address().to_string() << ":" << message.port() << std::endl;
+
+	net::UDPTransportSocketEndpoint received_endpoint(endpoint->address().to_string(), message.port());
+	m_udp_socket.hereSendTo(received_endpoint, generateAgreementMessage().SerializeAsString());
 }
 
 void UDPLPD::waitBeforeSend() {

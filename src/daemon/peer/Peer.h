@@ -32,18 +32,12 @@ public:
 	Peer();
 	virtual ~Peer();
 
-	crypto::hash_t getTransportHash(){
-		return m_transport_hash;
-	}
-
+	crypto::hash_t getTransportHash(){return m_transport_hash;}
 	void setTransportHash(crypto::hash_t transport_hash){
 		m_transport_hash = transport_hash;
 	}
 
-	crypto::key_public_t getPublicKey(){
-		return m_key_public;
-	}
-
+	crypto::key_public_t getPublicKey(){return m_key_public;}
 	void setPublicKey(crypto::key_public_t key_public){
 		m_key_public = key_public;
 	}

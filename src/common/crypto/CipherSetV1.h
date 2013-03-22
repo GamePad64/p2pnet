@@ -25,7 +25,7 @@ namespace crypto {
 /** CipherSetV1:
  * 	uses Keccak as hash function
  * 	uses RSA as asymmetric encryption algorithm
- *
+ * 	will use DSA as signature algorithm
  */
 class CipherSetV1: public p2pnet::crypto::CipherSet {
 private:
@@ -46,8 +46,12 @@ public:
 	virtual std::string privKeyToPEM(key_private_t key_private);
 	virtual std::string pubKeyToPEM(key_public_t key_public);
 
+	// TODO PEM serialization
 	//virtual key_private_t PEMToPrivKey(std::string key_pem);
 	//virtual key_public_t PEMToPubKey(std::string key_pem);
+
+	// TODO DSA signature
+	// TODO Encryptions!
 
 	virtual std::string encodeToBase64(std::string data);
 	virtual std::string decodeFromBase64(std::string base64);

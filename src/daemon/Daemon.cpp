@@ -18,11 +18,11 @@
 
 namespace p2pnet {
 
-Daemon::Daemon() {
-	udpv4_lpd = new net::lpd::UDPLPDv4(config, &udpv4_socket);
+Daemon::Daemon() : m_lpd_udpv4(config, m_socket_udpv4, m_netdb_storage){
+	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 }
 Daemon::~Daemon() {
-	delete udpv4_lpd;
+	delete m_pk_storage;
 }
 
 void Daemon::run(){
@@ -34,11 +34,11 @@ void Daemon::run(){
 void Daemon::initializeSockets() {
 	if(config.getConfig().get("net.sockets.udpv4.enable", true)){
 		try {
-			udpv4_socket.bindLocalIPv4( static_cast<unsigned short int>(config.getConfig().get("net.sockets.udpv4.port", 2185)) );
-			udpv4_socket.addListener(&message_dispatcher);
+			m_socket_udpv4.bindLocalIPv4( static_cast<unsigned short int>(config.getConfig().get("net.sockets.udpv4.port", 2185)) );
+			m_socket_udpv4.addListener(&message_dispatcher);
 
 			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv4.bind", "0.0.0.0"), config.getConfig().get("net.sockets.udpv4.port", 2185));
-			udpv4_socket.asyncReceiveFrom(endpoint);
+			m_socket_udpv4.asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv4 UDP socket. Exception caught: " << e.what() << std::endl;
 		}
@@ -46,11 +46,11 @@ void Daemon::initializeSockets() {
 
 	if(config.getConfig().get("net.sockets.udpv6.enable", true)){
 		try {
-			udpv6_socket.bindLocalIPv6( static_cast<unsigned short int>(config.getConfig().get("net.sockets.udpv6.port", 2185)) );
-			udpv6_socket.addListener(&message_dispatcher);
+			m_socket_udpv6.bindLocalIPv6( static_cast<unsigned short int>(config.getConfig().get("net.sockets.udpv6.port", 2185)) );
+			m_socket_udpv6.addListener(&message_dispatcher);
 
 			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), config.getConfig().get("net.sockets.udpv6.port", 2185));
-			udpv6_socket.asyncReceiveFrom(endpoint);
+			m_socket_udpv6.asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv6 UDP socket. Exception caught: " << e.what() << std::endl;
 		}
@@ -58,8 +58,8 @@ void Daemon::initializeSockets() {
 }
 
 void Daemon::runLPD() {
-	udpv4_lpd->startReceive();
-	udpv4_lpd->startSend();
+	m_lpd_udpv4.startReceive();
+	m_lpd_udpv4.startSend();
 }
 
 } /* namespace p2pnet */
