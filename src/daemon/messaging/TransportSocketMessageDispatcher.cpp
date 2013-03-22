@@ -13,21 +13,21 @@
  */
 
 #include "TransportSocketMessageDispatcher.h"
+#include "../protobuf/Protocol.pb.h"
 
 namespace p2pnet {
 namespace messaging {
 
-TransportSocketMessageDispatcher::TransportSocketMessageDispatcher() {
-	// TODO Auto-generated constructor stub
-
-}
-
-TransportSocketMessageDispatcher::~TransportSocketMessageDispatcher() {
-	// TODO Auto-generated destructor stub
-}
+TransportSocketMessageDispatcher::TransportSocketMessageDispatcher() {}
+TransportSocketMessageDispatcher::~TransportSocketMessageDispatcher() {}
 
 void TransportSocketMessageDispatcher::receivedMessage(
 		net::MessageBundle message_bundle) {
+	protocol::p2pMessage message;
+	message.ParseFromString(message_bundle.message);
+	if(message.message_type() == protocol::p2pMessage::AGREEMENT){
+
+	}
 }
 
 void TransportSocketMessageDispatcher::sentMessage(

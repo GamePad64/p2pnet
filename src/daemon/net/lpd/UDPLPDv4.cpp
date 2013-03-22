@@ -19,7 +19,7 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-UDPLPDv4::UDPLPDv4(Config& config, net::UDPTransportSocket* udp_socket) : UDPLPD(config, udp_socket) {
+UDPLPDv4::UDPLPDv4(Config& config, net::UDPTransportSocket& udp_socket, databases::NetDBStorage& netdb_storage) : UDPLPD(config, udp_socket, netdb_storage) {
 	readConfig();
 	initSocket();
 }
