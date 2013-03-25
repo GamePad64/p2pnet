@@ -30,9 +30,7 @@ UDPLPD::UDPLPD(Config& config,
 				m_timer(m_io_service),
 				m_lpd_socket(m_io_service),
 				m_udp_socket(udp_socket),
-				m_netdb_storage(netdb_storage) {
-	udp_message = generateLPDMessage().SerializeAsString();
-}
+				m_netdb_storage(netdb_storage) {}
 
 UDPLPD::~UDPLPD() {
 	m_timer.cancel();
@@ -42,13 +40,6 @@ void UDPLPD::run() {
 	initSocket();
 	startReceive();
 	startSend();
-}
-
-UDPLPDMessage UDPLPD::generateLPDMessage() {
-	UDPLPDMessage message;
-	unsigned int my_port = m_config.getConfig().get("net.sockets.udpv4.port", 2185);
-	message.set_port(my_port);
-	return message;
 }
 
 protocol::p2pMessage UDPLPD::generateAgreementMessage() {
@@ -66,6 +57,9 @@ protocol::p2pMessage UDPLPD::generateAgreementMessage() {
 	message_agreement.set_src_pubkey(pubkey_s);
 	message.set_message_s(message_agreement.SerializeAsString());
 
+	std::cerr << message_agreement.DebugString();
+	std::cerr << message.DebugString();
+
 	return message;
 }
 
@@ -80,7 +74,7 @@ void UDPLPD::processReceived(size_t bytes,
 	message.ParseFromString(std::string(recv_buffer, bytes));
 	delete[] recv_buffer;
 
-	std::clog << "[UDPLPD] Local <- " << endpoint->address().to_string() << ":" << message.port() << std::endl;
+	std::clog << "[" << getServiceName() << "] Local <- " << endpoint->address().to_string() << ":" << message.port() << std::endl;
 
 	net::UDPTransportSocketEndpoint received_endpoint(endpoint->address().to_string(), message.port());
 	m_udp_socket.hereSendTo(received_endpoint, generateAgreementMessage().SerializeAsString());
@@ -92,8 +86,8 @@ void UDPLPD::waitBeforeSend() {
 }
 
 void UDPLPD::send(){
-	std::clog << "[UDPLPD] Local -> " << m_target_address.to_string() << ":" << m_target_port << std::endl;
-	m_lpd_socket.async_send_to(buffer(udp_message), ip::udp::endpoint(m_target_address, m_target_port), boost::bind(&UDPLPD::waitBeforeSend, this));
+	std::clog << "[" << getServiceName() << "] Local -> " << m_target_address.to_string() << ":" << m_target_port << std::endl;
+	m_lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()), ip::udp::endpoint(m_target_address, m_target_port), boost::bind(&UDPLPD::waitBeforeSend, this));
 }
 
 void UDPLPD::receive(){
@@ -105,12 +99,12 @@ void UDPLPD::receive(){
 }
 
 void UDPLPD::startSend() {
-	std::clog << "[UDPLPD] Started sending broadcasts to: " << m_target_address << ":" << m_target_port << std::endl;
+	std::clog << "[" << getServiceName() << "] Started sending broadcasts to: " << m_target_address << ":" << m_target_port << std::endl;
 	send();
 }
 
 void UDPLPD::startReceive() {
-	std::clog << "[UDPLPD] Started receiving broadcasts from: " << m_target_address << ":" << m_target_port << std::endl;
+	std::clog << "[" << getServiceName() << "] Started receiving broadcasts from: " << m_target_address << ":" << m_target_port << std::endl;
 	receive();
 }
 

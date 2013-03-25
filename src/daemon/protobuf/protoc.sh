@@ -1,3 +1,3 @@
 #!/bin/sh
 rm *.pb.*
-protoc --cpp_out=. *.proto
+~/DevEnv/root/bin/protoc *.proto --cpp_out=.

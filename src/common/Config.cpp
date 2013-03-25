@@ -25,6 +25,8 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/info_parser.hpp>
 
+#include <boost/filesystem.hpp>
+
 namespace p2pnet {
 
 Config::Config() {
@@ -48,25 +50,23 @@ std::string Config::getDefaultConfigFilepath() {
 		return env_filename;
 	}
 
-	std::string filepath;
-
 	#ifdef _WIN32
 	// Windows part:
-	filepath = getenv("AppData");
-	filepath += "\\P2PNet\\";
+	config_directory = getenv("AppData");
+	config_directory += "\\P2PNet\\";
 	#elif defined __unix__
 	// Linux, Mac OS X, etc.
 	if(getuid() == 0){
-		filepath = "/etc/p2pnet/";
+		config_directory = "/etc/p2pnet/";
 	}else{
-		filepath = getenv("HOME");
-		filepath += "/.p2pnet/";
+		config_directory = getenv("HOME");
+		config_directory += "/.p2pnet/";
 	}
 	#endif
 
-	config_filepath = filepath+"p2pnet.xml";
+	config_file = config_directory+"p2pnet.xml";
 
-	return config_filepath;
+	return config_file;
 }
 
 void Config::setDefaultConfigFilepath() {
@@ -74,7 +74,7 @@ void Config::setDefaultConfigFilepath() {
 }
 
 void Config::setConfigFilepath(std::string filepath){
-	config_filepath = filepath;
+	config_file = filepath;
 }
 
 void Config::resetToDefaults() {
@@ -82,11 +82,14 @@ void Config::resetToDefaults() {
 }
 
 void Config::loadFromFile() {
-	read_xml(config_filepath, pt);
+	boost::filesystem::create_directory(config_directory);
+	std::ofstream file(config_file);
+	file.close();
+	read_xml(config_file, pt);
 }
 
 void Config::saveToFile() {
-	write_xml(config_filepath, pt);
+	write_xml(config_file, pt);
 }
 
 } /* namespace p2pnet */

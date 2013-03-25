@@ -21,7 +21,8 @@
 namespace p2pnet {
 class Config {
 	boost::property_tree::ptree pt;
-	std::string config_filepath;
+	std::string config_directory;
+	std::string config_file;
 
 	/**
 	 * Returns full path to configuration file.
