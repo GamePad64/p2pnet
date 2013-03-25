@@ -34,7 +34,7 @@ namespace lpd {
 class UDPLPD: public p2pnet::net::lpd::GenericLPD {
 	void waitBeforeSend();
 	void processReceived(size_t bytes, std::shared_ptr<ip::udp::endpoint> endpoint, char* recv_buffer);
-	UDPLPDMessage generateLPDMessage();
+	virtual UDPLPDMessage generateLPDMessage() = 0;
 	protocol::p2pMessage generateAgreementMessage();
 
 protected:
@@ -60,7 +60,6 @@ protected:
 	/**
 	 * Message, that we are going to send is stored here.
 	 */
-	std::string udp_message;
 
 	databases::NetDBStorage& m_netdb_storage;
 public:
@@ -71,6 +70,9 @@ public:
 
 	virtual void readConfig() = 0;
 	virtual void initSocket() = 0;
+	virtual std::string getServiceName(){
+		return "UDPLPD";
+	}
 
 	void send();
 	void receive();

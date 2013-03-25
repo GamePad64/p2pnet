@@ -15,7 +15,8 @@
 # Compiled Protocol Buffers files
 *.pb.*
 
-/Test
-/Debug
-/Release
+/D_*
+/R_*
+/T_*
+
 /docs

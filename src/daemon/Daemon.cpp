@@ -18,7 +18,8 @@
 
 namespace p2pnet {
 
-Daemon::Daemon() : m_lpd_udpv4(config, m_socket_udpv4, m_netdb_storage){
+Daemon::Daemon() : m_lpd_udpv4(config, m_socket_udpv4, m_netdb_storage),
+		m_lpd_udpv6(config, m_socket_udpv6, m_netdb_storage){
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 }
 Daemon::~Daemon() {
@@ -59,7 +60,10 @@ void Daemon::initializeSockets() {
 
 void Daemon::runLPD() {
 	m_lpd_udpv4.startReceive();
+	m_lpd_udpv6.startReceive();
+
 	m_lpd_udpv4.startSend();
+	m_lpd_udpv6.startSend();
 }
 
 } /* namespace p2pnet */

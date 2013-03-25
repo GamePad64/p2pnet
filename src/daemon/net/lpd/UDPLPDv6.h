@@ -12,8 +12,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UDPLPDV4_H_
-#define UDPLPDV4_H_
+#ifndef UDPLPDV6_H_
+#define UDPLPDV6_H_
 
 #include "UDPLPD.h"
 #include <string>
@@ -22,25 +22,25 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-class UDPLPDv4: public p2pnet::net::lpd::UDPLPD {
+class UDPLPDv6: public p2pnet::net::lpd::UDPLPD {
 	const unsigned int m_default_timer_seconds = 10;
-	std::string m_default_bind_address = "0.0.0.0";
-	std::string m_default_target_address = "239.192.152.144";
+	std::string m_default_bind_address = "0::0";
+	std::string m_default_target_address = "ff08::BD02";
 	unsigned short m_default_target_port = 28915;
 public:
-	UDPLPDv4(Config& config, net::UDPTransportSocket& udp_socket, databases::NetDBStorage& netdb_storage);
-	virtual ~UDPLPDv4();
+	UDPLPDv6(Config& config, net::UDPTransportSocket& udp_socket, databases::NetDBStorage& netdb_storage);
+	virtual ~UDPLPDv6();
 
 	virtual UDPLPDMessage generateLPDMessage();
 
 	virtual void readConfig();
 	virtual void initSocket();
 	virtual std::string getServiceName(){
-		return "UDPLPDv4";
+		return "UDPLPDv6";
 	}
 };
 
 } /* namespace lpd */
 } /* namespace net */
 } /* namespace p2pnet */
-#endif /* UDPLPDV4_H_ */
+#endif /* UDPLPDV6_H_ */

@@ -22,6 +22,7 @@
 #include "messaging/TransportSocketMessageDispatcher.h"
 #include "net/UDPTransportSocket.h"
 #include "net/lpd/UDPLPDv4.h"
+#include "net/lpd/UDPLPDv6.h"
 
 namespace p2pnet {
 
@@ -37,8 +38,7 @@ class Daemon {
 	messaging::TransportSocketMessageDispatcher message_dispatcher;
 
 	net::lpd::UDPLPDv4 m_lpd_udpv4;
-	// TEMP: Will add udpv6 later.
-	//net::lpd::UDPLPDv6 m_lpd_udpv6;
+	net::lpd::UDPLPDv6 m_lpd_udpv6;
 public:
 	Daemon();
 	virtual ~Daemon();
