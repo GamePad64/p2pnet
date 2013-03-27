@@ -13,7 +13,6 @@
  */
 
 #include "TransportSocketMessageDispatcher.h"
-#include "../protobuf/Protocol.pb.h"
 
 namespace p2pnet {
 namespace messaging {
@@ -21,17 +20,29 @@ namespace messaging {
 TransportSocketMessageDispatcher::TransportSocketMessageDispatcher() {}
 TransportSocketMessageDispatcher::~TransportSocketMessageDispatcher() {}
 
-void TransportSocketMessageDispatcher::receivedMessage(
+MessageHandler* TransportSocketMessageDispatcher::getHandlerByType(
+		protocol::p2pMessage_MessageType message_type) {
+	if(message_type == protocol::p2pMessage::AGREEMENT){
+		return &cryptohandler;
+	}
+	return &nullhandler;
+}
+
+protocol::p2pMessage_MessageType TransportSocketMessageDispatcher::getMessageType(
 		net::MessageBundle message_bundle) {
 	protocol::p2pMessage message;
 	message.ParseFromString(message_bundle.message);
-	if(message.message_type() == protocol::p2pMessage::AGREEMENT){
+	return message.message_type();
+}
 
-	}
+void TransportSocketMessageDispatcher::receivedMessage(
+		net::MessageBundle message_bundle) {
+	getHandlerByType(getMessageType(message_bundle))->receivedMessage(message_bundle);
 }
 
 void TransportSocketMessageDispatcher::sentMessage(
 		net::MessageBundle message_bundle) {
+	getHandlerByType(getMessageType(message_bundle))->sentMessage(message_bundle);
 }
 
 } /* namespace messaging */
