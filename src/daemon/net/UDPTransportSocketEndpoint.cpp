@@ -41,7 +41,7 @@ std::string UDPTransportSocketEndpoint::getIP() const {
 	return this->asio_endpoint.address().to_string();
 };
 void UDPTransportSocketEndpoint::setIP(const std::string& ip){
-	this->asio_endpoint.address(address::from_string(ip));
+	this->asio_endpoint.address(address::from_string(ip.substr(0,ip.find('%'))));
 };
 
 UDPTransportSocketEndpoint::port_t UDPTransportSocketEndpoint::getPort() const {
