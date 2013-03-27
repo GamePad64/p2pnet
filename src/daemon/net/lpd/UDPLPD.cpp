@@ -30,7 +30,10 @@ UDPLPD::UDPLPD(Config& config,
 				m_timer(m_io_service),
 				m_lpd_socket(m_io_service),
 				m_udp_socket(udp_socket),
-				m_netdb_storage(netdb_storage) {}
+				m_netdb_storage(netdb_storage) {
+	m_target_port = 0;
+	m_timer_seconds = 0;
+}
 
 UDPLPD::~UDPLPD() {
 	m_timer.cancel();
