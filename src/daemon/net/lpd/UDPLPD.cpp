@@ -50,7 +50,10 @@ protocol::p2pMessage UDPLPD::generateAgreementMessage() {
 
 	protocol::p2pMessageHeader* message_header = message.mutable_message_header();
 	databases::PersonalKeyStorage* pks = databases::PersonalKeyStorage::getInstance();
-	message_header->set_src_id(std::string(pks->getMyTransportHash().begin(), pks->getMyTransportHash().end()));
+
+	crypto::hash_t th = pks->getMyTransportHash();
+	std::string th_s = std::string(th.begin(), th.end());
+	message_header->set_src_id(th_s);
 
 	message.set_message_type(message.AGREEMENT);
 
