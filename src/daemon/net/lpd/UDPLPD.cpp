@@ -57,9 +57,6 @@ protocol::p2pMessage UDPLPD::generateAgreementMessage() {
 	message_agreement.set_src_pubkey(pubkey_s);
 	message.set_message_s(message_agreement.SerializeAsString());
 
-	std::cerr << message_agreement.DebugString();
-	std::cerr << message.DebugString();
-
 	return message;
 }
 
@@ -76,8 +73,10 @@ void UDPLPD::processReceived(size_t bytes,
 
 	std::clog << "[" << getServiceName() << "] Local <- " << endpoint->address().to_string() << ":" << message.port() << std::endl;
 
-	net::UDPTransportSocketEndpoint received_endpoint(endpoint->address().to_string(), message.port());
+	std::string received_address = endpoint->address().to_string();
+	net::UDPTransportSocketEndpoint received_endpoint(received_address, message.port());
 	m_udp_socket.hereSendTo(received_endpoint, generateAgreementMessage().SerializeAsString());
+	std::clog << "[" << getServiceName() << "] Sent agreement request to " << received_endpoint.getIP() << std::endl;
 }
 
 void UDPLPD::waitBeforeSend() {
