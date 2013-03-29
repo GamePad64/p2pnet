@@ -40,6 +40,7 @@ public:
 	 * @param endpoint_s std::string in binary form
 	 */
 	virtual void fromString(std::string endpoint_s) = 0;
+	virtual std::string toHRString() = 0;
 };
 
 } /* namespace net */

@@ -78,6 +78,8 @@ public:
 	virtual std::string toString();
 	virtual void fromString(std::string endpoint_s);
 	UDPTransportSocketEndpoint(std::string endpoint_s);
+
+	virtual std::string toHRString();
 };
 
 } /* namespace net */

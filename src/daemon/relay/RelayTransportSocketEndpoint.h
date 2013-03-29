@@ -40,6 +40,8 @@ public:
 	virtual std::string toString();
 	virtual void fromString(std::string endpoint_s);
 	RelayTransportSocketEndpoint(std::string endpoint_s);
+
+	virtual std::string toHRString();
 };
 
 } /* namespace relay */

@@ -21,17 +21,26 @@ namespace messaging {
 CryptoHandler::CryptoHandler() {}
 CryptoHandler::~CryptoHandler() {}
 
-void CryptoHandler::receivedMessage(net::MessageBundle message_bundle){
-	protocol::p2pMessage message;
+void CryptoHandler::processAgreement(protocol::p2pMessage parsed_message, net::MessageBundle message_bundle) {
 	protocol::p2pMessage_Agreement message_agreement;
+	message_agreement.ParseFromString(parsed_message.message_s());
+
+	std::clog << "[CryptoHandler] " << "Received agreement request from: " << message_bundle.socket_link.getEndpointPtr()->toHRString() << " about: " << crypto::hashToHex(this->getSourceTH(parsed_message)) << std::endl;
+}
+
+void CryptoHandler::receivedMessage(net::MessageBundle message_bundle) {
+	protocol::p2pMessage message;
 
 	message.ParseFromString(message_bundle.message);
-	message_agreement.ParseFromString(message.message_s());
+	if(message.message_type() == message.AGREEMENT){
+		processAgreement(message, message_bundle);
+	}
 
-	crypto::hash_t sender_id(message.release_message_header()->src_id().begin(), message.release_message_header()->src_id().end());
-	std::clog << "[CryptoHandler] " << "Received agreement request from: " << crypto::hashToHex(sender_id);
-};
-void CryptoHandler::sentMessage(net::MessageBundle message_bundle){};
+
+}
+
+void CryptoHandler::sentMessage(net::MessageBundle message_bundle) {
+}
 
 } /* namespace messaging */
 } /* namespace p2pnet */
