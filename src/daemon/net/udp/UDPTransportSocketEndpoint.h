@@ -15,7 +15,7 @@
 #ifndef UDPTRANSPORTSOCKETENDPOINT_H_
 #define UDPTRANSPORTSOCKETENDPOINT_H_
 
-#include "TransportSocketEndpoint.h"
+#include "../TransportSocketEndpoint.h"
 #include <memory>
 #include <boost/asio.hpp>
 

@@ -13,7 +13,7 @@
  */
 
 #include "Daemon.h"
-#include "net/UDPTransportSocketEndpoint.h"
+#include "net/udp/UDPTransportSocketEndpoint.h"
 #include "net/lpd/UDPLPDv4.h"
 
 namespace p2pnet {

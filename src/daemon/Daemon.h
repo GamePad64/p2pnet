@@ -20,7 +20,7 @@
 #include "databases/MapNetDBStorage.h"
 #include "databases/PersonalKeyStorage.h"
 #include "messaging/TransportSocketMessageDispatcher.h"
-#include "net/UDPTransportSocket.h"
+#include "net/udp/UDPTransportSocket.h"
 #include "net/lpd/UDPLPDv4.h"
 #include "net/lpd/UDPLPDv6.h"
 

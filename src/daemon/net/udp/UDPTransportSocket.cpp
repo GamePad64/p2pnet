@@ -12,9 +12,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "TransportSocketListener.h"
+#include "../TransportSocketListener.h"
 #include "UDPTransportSocket.h"
-#include "../AsioIOService.h"
+#include "../../AsioIOService.h"
 #include <boost/bind.hpp>
 #include <string>
 

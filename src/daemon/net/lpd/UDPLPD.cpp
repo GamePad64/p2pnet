@@ -14,7 +14,7 @@
 
 #include "UDPLPD.h"
 #include "../../AsioIOService.h"
-#include "../UDPTransportSocket.h"
+#include "../udp/UDPTransportSocket.h"
 #include "../../protobuf/Protocol.pb.h"
 #include "../../databases/PersonalKeyStorage.h"
 

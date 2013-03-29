@@ -17,7 +17,7 @@
 
 #include "../../common/crypto/CryptoTypes.h"
 #include "../relay/RelayTransportSocketEndpoint.h"
-#include "../net/UDPTransportSocketEndpoint.h"
+#include "../net/udp/UDPTransportSocketEndpoint.h"
 #include <list>
 
 namespace p2pnet {
