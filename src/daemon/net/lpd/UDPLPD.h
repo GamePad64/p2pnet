@@ -20,7 +20,7 @@
 #include "../../databases/NetDBStorage.h"
 #include "../../protobuf/LPDMessage.pb.h"
 #include "../../protobuf/Protocol.pb.h"
-#include "../UDPTransportSocket.h"
+#include "../udp/UDPTransportSocket.h"
 #include <boost/asio.hpp>
 #include <string>
 #include <memory>

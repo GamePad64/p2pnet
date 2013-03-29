@@ -13,7 +13,7 @@
  */
 
 #include "UDPTransportSocketEndpoint.h"
-#include "../protobuf/TransportSocketEndpoint_s.pb.h"
+#include "../../protobuf/TransportSocketEndpoint_s.pb.h"
 #include <sstream>
 
 namespace p2pnet {

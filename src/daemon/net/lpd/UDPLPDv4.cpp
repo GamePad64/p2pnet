@@ -13,7 +13,7 @@
  */
 
 #include "UDPLPDv4.h"
-#include "../UDPTransportSocketEndpoint.h"
+#include "../udp/UDPTransportSocketEndpoint.h"
 
 namespace p2pnet {
 namespace net {
