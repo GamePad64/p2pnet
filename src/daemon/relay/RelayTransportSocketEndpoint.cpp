@@ -22,35 +22,45 @@ RelayTransportSocketEndpoint::RelayTransportSocketEndpoint() {}
 RelayTransportSocketEndpoint::~RelayTransportSocketEndpoint() {}
 
 const crypto::hash_t& RelayTransportSocketEndpoint::getRelayHash() const {
-	return relay_hash;
+	return m_relay_th;
 }
 
 void RelayTransportSocketEndpoint::setRelayHash(
 		const crypto::hash_t& relayHash) {
-	relay_hash = relayHash;
+	m_relay_th = relayHash;
 }
 
 RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(
 		crypto::hash_t relay_hash) {
-	this->relay_hash = relay_hash;
+	this->m_relay_th = relay_hash;
 }
 
-std::string RelayTransportSocketEndpoint::toString() {
-	return std::string(relay_hash.begin(), relay_hash.end());
+void RelayTransportSocketEndpoint::fromProtobuf(net::TransportSocketEndpoint_s tse_s){
+	std::string relay_th_str = tse_s.th();
+	crypto::hash_t relay_th(relay_th_str.begin(), relay_th_str.end());
+	setRelayHash(relay_th);
 }
 
-void RelayTransportSocketEndpoint::fromString(std::string endpoint_s) {
-	relay_hash = crypto::hash_t(endpoint_s.begin(), endpoint_s.end());
+net::TransportSocketEndpoint_s RelayTransportSocketEndpoint::toProtobuf(){
+	net::TransportSocketEndpoint_s tse_s;
+	tse_s.set_type(net::TransportSocketEndpoint_type::RELAY);
+
+	std::string relay_th_str = std::string(getRelayHash().begin(), getRelayHash().end());
+	tse_s.set_th(relay_th_str);
+	return tse_s;
 }
 
-RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(
-		std::string endpoint_s) {
-	this->fromString(endpoint_s);
+RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(net::TransportSocketEndpoint_s tse_s) {
+	fromProtobuf(tse_s);
+}
+
+RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(std::string tse_str){
+	fromString(tse_str);
 }
 
 std::string RelayTransportSocketEndpoint::toHRString(){
 	std::ostringstream os;
-	os << "TH:" << crypto::hashToHex(relay_hash);
+	os << "TH:" << crypto::hashToHex(m_relay_th);
 	return os.str();
 }
 

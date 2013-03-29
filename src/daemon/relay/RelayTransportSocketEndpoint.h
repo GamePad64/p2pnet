@@ -22,7 +22,7 @@ namespace p2pnet {
 namespace relay {
 
 class RelayTransportSocketEndpoint: public p2pnet::net::TransportSocketEndpoint {
-	crypto::hash_t relay_hash;
+	crypto::hash_t m_relay_th;
 public:
 	RelayTransportSocketEndpoint();
 	virtual ~RelayTransportSocketEndpoint();
@@ -37,9 +37,11 @@ public:
 		return copy;
 	}
 
-	virtual std::string toString();
-	virtual void fromString(std::string endpoint_s);
-	RelayTransportSocketEndpoint(std::string endpoint_s);
+	virtual void fromProtobuf(net::TransportSocketEndpoint_s tse_s);
+	virtual net::TransportSocketEndpoint_s toProtobuf();
+	RelayTransportSocketEndpoint(net::TransportSocketEndpoint_s tse_s);
+
+	RelayTransportSocketEndpoint(std::string tse_str);
 
 	virtual std::string toHRString();
 };

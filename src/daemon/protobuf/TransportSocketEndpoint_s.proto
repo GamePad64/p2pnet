@@ -17,12 +17,14 @@ package p2pnet.net;
 
 enum TransportSocketEndpoint_type {
 	UDP = 0;
+	RELAY = 1;
 }
 
-message UDPTransportSocketEndpoint_s {
+message TransportSocketEndpoint_s {
 	required TransportSocketEndpoint_type type = 1 [default = UDP];
-	required string ip = 2;
+	optional string ip = 2;
 	optional uint32 port = 3;
+	optional bytes th = 4;
 }
 
 message PeerRoute_s {
