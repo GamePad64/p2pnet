@@ -13,6 +13,7 @@
  */
 
 #include "RelayTransportSocketEndpoint.h"
+#include <sstream>
 
 namespace p2pnet {
 namespace relay {
@@ -45,6 +46,12 @@ void RelayTransportSocketEndpoint::fromString(std::string endpoint_s) {
 RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(
 		std::string endpoint_s) {
 	this->fromString(endpoint_s);
+}
+
+std::string RelayTransportSocketEndpoint::toHRString(){
+	std::ostringstream os;
+	os << "TH:" << crypto::hashToHex(relay_hash);
+	return os.str();
 }
 
 } /* namespace relay */

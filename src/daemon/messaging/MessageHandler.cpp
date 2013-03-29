@@ -12,26 +12,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CRYPTOHANDLER_H_
-#define CRYPTOHANDLER_H_
-
-#include "../net/TransportSocketListener.h"
 #include "MessageHandler.h"
-#include "../../common/crypto/CryptoTypes.h"
 
 namespace p2pnet {
 namespace messaging {
 
-class CryptoHandler : public MessageHandler {
-	void processAgreement(protocol::p2pMessage parsed_message, net::MessageBundle message_bundle);
-public:
-	CryptoHandler();
-	virtual ~CryptoHandler();
-
-	virtual void receivedMessage(net::MessageBundle message_bundle);
-	virtual void sentMessage(net::MessageBundle message_bundle);
-};
+crypto::hash_t MessageHandler::getSourceTH(const protocol::p2pMessage& message) {
+	protocol::p2pMessageHeader message_header;
+	message_header = message.message_header();
+	return crypto::hash_t(message_header.src_id().begin(), message_header.src_id().end());
+}
 
 } /* namespace messaging */
 } /* namespace p2pnet */
-#endif /* CRYPTOHANDLER_H_ */

@@ -17,11 +17,14 @@
 
 #include "../protobuf/Protocol.pb.h"
 #include "../net/TransportSocketListener.h"
+#include "../../common/crypto/CryptoTypes.h"
 
 namespace p2pnet {
 namespace messaging {
 
 class MessageHandler {
+protected:
+	crypto::hash_t getSourceTH(const protocol::p2pMessage& message);
 public:
 	MessageHandler(){};
 	virtual ~MessageHandler(){};
@@ -32,4 +35,5 @@ public:
 
 } /* namespace messaging */
 } /* namespace p2pnet */
+
 #endif /* MESSAGEHANDLER_H_ */

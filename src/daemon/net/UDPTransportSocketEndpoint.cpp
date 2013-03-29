@@ -14,6 +14,7 @@
 
 #include "UDPTransportSocketEndpoint.h"
 #include "../protobuf/TransportSocketEndpoint_s.pb.h"
+#include <sstream>
 
 namespace p2pnet {
 namespace net {
@@ -71,6 +72,12 @@ void UDPTransportSocketEndpoint::fromString(std::string endpoint_s) {
 
 UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string endpoint_s) {
 	this->fromString(endpoint_s);
+}
+
+std::string UDPTransportSocketEndpoint::toHRString(){
+	std::ostringstream os;
+	os << "UDP:" << getIP() << ":" << getPort();
+	return os.str();
 }
 
 } /* namespace net */
