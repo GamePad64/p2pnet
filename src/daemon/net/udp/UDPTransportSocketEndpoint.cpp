@@ -56,22 +56,25 @@ UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string ip, UDPTransp
 	this->setPort(port);
 };
 
-std::string UDPTransportSocketEndpoint::toString() {
-	UDPTransportSocketEndpoint_s endpoint_pb;
-	endpoint_pb.set_ip(this->getIP());
-	endpoint_pb.set_port(this->getPort());
-	return endpoint_pb.SerializeAsString();
+void UDPTransportSocketEndpoint::fromProtobuf(TransportSocketEndpoint_s tse_s){
+	setIP(tse_s.ip());
+	setPort(tse_s.port());
 }
 
-void UDPTransportSocketEndpoint::fromString(std::string endpoint_s) {
-	UDPTransportSocketEndpoint_s endpoint_pb;
-	endpoint_pb.ParseFromString(endpoint_s);
-	this->setIP(endpoint_pb.ip());
-	this->setPort(endpoint_pb.port());
+TransportSocketEndpoint_s UDPTransportSocketEndpoint::toProtobuf(){
+	TransportSocketEndpoint_s tse_s;
+	tse_s.set_type(TransportSocketEndpoint_type::UDP);
+	tse_s.set_ip(getIP());
+	tse_s.set_port(getPort());
+	return tse_s;
 }
 
-UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string endpoint_s) {
-	this->fromString(endpoint_s);
+UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(TransportSocketEndpoint_s tse_s) {
+	fromProtobuf(tse_s);
+}
+
+UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string tse_str){
+	fromString(tse_str);
 }
 
 std::string UDPTransportSocketEndpoint::toHRString(){

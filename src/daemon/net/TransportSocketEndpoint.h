@@ -17,6 +17,7 @@
 
 #include <string>
 #include <memory>
+#include "../protobuf/TransportSocketEndpoint_s.pb.h"
 
 namespace p2pnet {
 namespace net {
@@ -30,16 +31,12 @@ public:
 
 	virtual TransportSocketEndpoint::pointer yieldCopyPtr() const = 0;
 
-	/*!
-	 * Returns Protocol Buffers representation of this TransportSocketEndpoint.
-	 * @return binary std::string
-	 */
-	virtual std::string toString() = 0;
-	/*!
-	 * This function restores state of TransportSocketEndpoint from Protocol Buffers representation.
-	 * @param endpoint_s std::string in binary form
-	 */
-	virtual void fromString(std::string endpoint_s) = 0;
+	virtual void fromProtobuf(TransportSocketEndpoint_s tse_s) = 0;
+	virtual TransportSocketEndpoint_s toProtobuf() = 0;
+
+	void fromString(std::string endpoint_s);
+	std::string toString();
+
 	virtual std::string toHRString() = 0;
 };
 
