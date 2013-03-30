@@ -13,6 +13,7 @@
  */
 
 #include "CryptoTypes.h"
+#include "CurrentCipherSet.h"
 #include <sstream>
 #include <string>
 #include <iomanip>
@@ -52,6 +53,10 @@ std::string hashToHex(hash_t hash){
 	return hash_ss.str();
 }
 
+std::string hashToB58(hash_t hash){
+	CurrentCipherSet cs;
+	return cs.encodeToBase58(std::string(hash.begin(), hash.end()));
+}
 
 } /* namespace crypto */
 } /* namespace p2pnet */
