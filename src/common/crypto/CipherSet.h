@@ -47,6 +47,9 @@ public:
 	// Base64 operations
 	virtual std::string encodeToBase64(std::string data) = 0;
 	virtual std::string decodeFromBase64(std::string base64) = 0;
+	// Base58 operations
+	virtual std::string encodeToBase58(std::string data) = 0;
+	virtual std::string decodeFromBase58(std::string base64) = 0;
 };
 
 } /* namespace crypto */
