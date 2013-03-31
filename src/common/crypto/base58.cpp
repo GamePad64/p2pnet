@@ -23,25 +23,6 @@
 namespace p2pnet {
 namespace crypto {
 
-/*function base58_encode($num) {
-    $alphabet = '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
-    $base_count = strlen($alphabet);
-    $encoded = '';
-
-    while ($num >= $base_count) {
-        $div = $num / $base_count;
-        $mod = ($num - ($base_count * intval($div)));
-        $encoded = $alphabet[$mod] . $encoded;
-        $num = intval($div);
-    }
-
-    if ($num) {
-        $encoded = $alphabet[$num] . $encoded;
-    }
-
-    return $encoded;
-}*/
-
 std::string base58_alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 
 std::string CipherSetV1::encodeToBase58(std::string data) {
@@ -51,9 +32,10 @@ std::string CipherSetV1::encodeToBase58(std::string data) {
 	std::deque<char> result;
 
 	while(big_data >= base_count){
-		big_data /= base_count;
+		Botan::BigInt div = big_data / base_count;
 		Botan::BigInt mod = big_data % base_count;
 		result.push_front(base58_alphabet[mod.to_u32bit()]);
+		big_data = div;
 	}
 
 	if(big_data > 0){
@@ -64,7 +46,18 @@ std::string CipherSetV1::encodeToBase58(std::string data) {
 }
 
 std::string CipherSetV1::decodeFromBase58(std::string base58) {
-	//stub
+	int len = base58.length();
+
+	Botan::BigInt big_data = 0;
+	Botan::BigInt multi = 1;
+
+	for(int i = len-1; i >= 0; i--){
+		big_data += multi * base58_alphabet.find(base58[i]);
+		multi *= base58_alphabet.length();
+	}
+
+	std::vector<unsigned char> decoded = Botan::BigInt::encode(big_data);
+	return std::string(decoded.begin(), decoded.end());
 }
 
 }
