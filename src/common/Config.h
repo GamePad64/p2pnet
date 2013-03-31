@@ -16,7 +16,6 @@
 #define CONFIG_H_
 
 #include <boost/property_tree/ptree.hpp>
-#include <map>
 
 namespace p2pnet {
 class Config {

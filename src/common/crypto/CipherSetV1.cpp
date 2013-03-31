@@ -13,6 +13,8 @@
  */
 
 #include "CipherSetV1.h"
+#include <botan/keccak.h>
+#include <botan/rsa.h>
 
 namespace p2pnet {
 namespace crypto {
