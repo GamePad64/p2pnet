@@ -16,8 +16,6 @@
 #define CIPHERSETV1_H_
 
 #include "CipherSet.h"
-#include <botan/keccak.h>
-#include <botan/rsa.h>
 #include <string>
 
 namespace p2pnet {
@@ -57,8 +55,6 @@ public:
 	virtual std::string encodeToBase64(std::string data);
 	virtual std::string decodeFromBase64(std::string base64);
 
-
-	const std::string base58_alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 	virtual std::string encodeToBase58(std::string data);
 	virtual std::string decodeFromBase58(std::string base58);
 };

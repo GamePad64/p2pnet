@@ -17,8 +17,6 @@
 
 #include "CryptoTypes.h"
 #include <string>
-#include <vector>
-#include <botan/botan.h>
 
 namespace p2pnet {
 namespace crypto {
