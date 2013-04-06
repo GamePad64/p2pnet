@@ -15,21 +15,21 @@
 #ifndef RELAYTRANSPORTSOCKETENDPOINT_H_
 #define RELAYTRANSPORTSOCKETENDPOINT_H_
 
-#include "../../common/crypto/CryptoTypes.h"
+#include "../../common/crypto/Hash.h"
 #include "../net/TransportSocketEndpoint.h"
 
 namespace p2pnet {
 namespace relay {
 
 class RelayTransportSocketEndpoint: public p2pnet::net::TransportSocketEndpoint {
-	crypto::hash_t m_relay_th;
+	crypto::Hash m_relay_th;
 public:
 	RelayTransportSocketEndpoint();
 	virtual ~RelayTransportSocketEndpoint();
 
-	const crypto::hash_t& getRelayHash() const;
-	void setRelayHash(const crypto::hash_t& relayHash);
-	RelayTransportSocketEndpoint(crypto::hash_t relay_hash);
+	const crypto::Hash& getRelayHash() const;
+	void setRelayHash(const crypto::Hash& relayHash);
+	RelayTransportSocketEndpoint(crypto::Hash relay_hash);
 
 	// Inherited from TransportSocketEndpoint
 	virtual TransportSocketEndpoint::pointer yieldCopyPtr() const {

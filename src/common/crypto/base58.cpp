@@ -12,20 +12,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BASE58_H_
-#define BASE58_H_
-
+// Botan::BigInt is really good enough for that. Pretty good BigInt library.
 #include <botan/bigint.h>
-#include <string>
 #include <deque>
-#include "CipherSetV1.h"
+#include "base58.h"
 
 namespace p2pnet {
 namespace crypto {
 
 std::string base58_alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 
-std::string CipherSetV1::encodeToBase58(std::string data) {
+std::string encodeToBase58(std::string data) {
 	Botan::BigInt big_data = Botan::BigInt::decode(std::vector<unsigned char>(data.begin(), data.end()));
 
 	Botan::BigInt base_count = base58_alphabet.length();
@@ -45,7 +42,7 @@ std::string CipherSetV1::encodeToBase58(std::string data) {
 	return std::string(result.begin(), result.end());
 }
 
-std::string CipherSetV1::decodeFromBase58(std::string base58) {
+std::string decodeFromBase58(std::string base58) {
 	int len = base58.length();
 
 	Botan::BigInt big_data = 0;
@@ -62,5 +59,3 @@ std::string CipherSetV1::decodeFromBase58(std::string base58) {
 
 }
 }
-
-#endif /* BASE58_H_ */

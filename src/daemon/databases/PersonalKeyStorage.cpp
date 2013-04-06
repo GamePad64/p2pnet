@@ -14,6 +14,7 @@
 
 #include "PersonalKeyStorage.h"
 #include "../../common/crypto/CurrentCipherSet.h"
+#include "../../common/crypto/Hash.h"
 #include <string>
 #include <iostream>
 
@@ -30,10 +31,10 @@ void PersonalKeyStorage::regenerateKeys() {
 	crypto::CurrentCipherSet cs;
 	my_key_pair = cs.generateKeyPair();
 	my_transport_hash = cs.computeHash(std::string(my_key_pair.key_public.begin(), my_key_pair.key_public.end()));
-	std::clog << "[Crypto] Keys regenerated. New TH: " << crypto::hashToB58(my_transport_hash) << std::endl;
+	std::clog << "[Crypto] Keys regenerated. New TH: " << my_transport_hash.toBase58() << std::endl;
 }
 
-crypto::hash_t PersonalKeyStorage::getMyTransportHash() {
+crypto::Hash PersonalKeyStorage::getMyTransportHash() {
 	return my_transport_hash;
 }
 

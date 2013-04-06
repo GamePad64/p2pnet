@@ -36,8 +36,8 @@ public:
 	const short KECCAK_LENGTH = 512;
 	const short RSA_LENGTH = 4096;
 
-	virtual hash_t computeHash(const std::string& data);
-	virtual bool checkHash(const std::string& data, const hash_t& hash);
+	virtual Hash computeHash(const std::string& data);
+	virtual bool checkHash(const std::string& data, const Hash& hash);
 	virtual key_pair_t generateKeyPair();
 	virtual bool checkKeyPair(key_pair_t key_pair);
 
@@ -51,12 +51,6 @@ public:
 
 	// TODO DSA signature
 	// TODO Encryptions!
-
-	virtual std::string encodeToBase64(std::string data);
-	virtual std::string decodeFromBase64(std::string base64);
-
-	virtual std::string encodeToBase58(std::string data);
-	virtual std::string decodeFromBase58(std::string base58);
 };
 
 } /* namespace crypto */

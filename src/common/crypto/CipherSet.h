@@ -16,6 +16,7 @@
 #define CIPHERSET_H_
 
 #include "CryptoTypes.h"
+#include "Hash.h"
 #include <string>
 
 namespace p2pnet {
@@ -28,9 +29,9 @@ public:
 
 	// Cryptographic functions
 	//! Computes hash from string
-	virtual hash_t computeHash(const std::string& data) = 0;
+	virtual Hash computeHash(const std::string& data) = 0;
 	//! Checks if hash is hash(data)
-	virtual bool checkHash(const std::string& data, const hash_t& hash) = 0;
+	virtual bool checkHash(const std::string& data, const Hash& hash) = 0;
 	//! Generates key pair in BER format
 	virtual key_pair_t generateKeyPair() = 0;
 	virtual bool checkKeyPair(key_pair_t key_pair) = 0;
@@ -41,13 +42,6 @@ public:
 
 	//virtual key_private_t PEMToPrivKey(std::string key_pem) = 0;
 	//virtual key_public_t PEMToPubKey(std::string key_pem) = 0;
-
-	// Base64 operations
-	virtual std::string encodeToBase64(std::string data) = 0;
-	virtual std::string decodeFromBase64(std::string base64) = 0;
-	// Base58 operations
-	virtual std::string encodeToBase58(std::string data) = 0;
-	virtual std::string decodeFromBase58(std::string base64) = 0;
 };
 
 } /* namespace crypto */

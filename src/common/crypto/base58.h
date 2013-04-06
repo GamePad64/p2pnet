@@ -12,18 +12,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MessageHandler.h"
+#ifndef BASE58_H_
+#define BASE58_H_
+
+#include <string>
 
 namespace p2pnet {
-namespace messaging {
+namespace crypto {
 
-crypto::Hash MessageHandler::getSourceTH(const protocol::p2pMessage& message) {
-	protocol::p2pMessageHeader message_header;
-	message_header = message.message_header();
-	crypto::Hash hash;
-	hash.fromBinaryString(message_header.src_id());
-	return hash;
+std::string encodeToBase58(std::string data);
+std::string decodeFromBase58(std::string base58);
+
+}
 }
 
-} /* namespace messaging */
-} /* namespace p2pnet */
+#endif /* BASE58_H_ */

@@ -13,6 +13,7 @@
  */
 
 #include "RelayTransportSocketEndpoint.h"
+#include "../../common/crypto/Hash.h"
 #include <sstream>
 
 namespace p2pnet {
@@ -21,23 +22,24 @@ namespace relay {
 RelayTransportSocketEndpoint::RelayTransportSocketEndpoint() {}
 RelayTransportSocketEndpoint::~RelayTransportSocketEndpoint() {}
 
-const crypto::hash_t& RelayTransportSocketEndpoint::getRelayHash() const {
+const crypto::Hash& RelayTransportSocketEndpoint::getRelayHash() const {
 	return m_relay_th;
 }
 
 void RelayTransportSocketEndpoint::setRelayHash(
-		const crypto::hash_t& relayHash) {
+		const crypto::Hash& relayHash) {
 	m_relay_th = relayHash;
 }
 
 RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(
-		crypto::hash_t relay_hash) {
+		crypto::Hash relay_hash) {
 	this->m_relay_th = relay_hash;
 }
 
 void RelayTransportSocketEndpoint::fromProtobuf(net::TransportSocketEndpoint_s tse_s){
 	std::string relay_th_str = tse_s.th();
-	crypto::hash_t relay_th(relay_th_str.begin(), relay_th_str.end());
+	crypto::Hash relay_th;
+	relay_th.fromBinaryString(relay_th_str);
 	setRelayHash(relay_th);
 }
 
@@ -45,8 +47,7 @@ net::TransportSocketEndpoint_s RelayTransportSocketEndpoint::toProtobuf(){
 	net::TransportSocketEndpoint_s tse_s;
 	tse_s.set_type(net::TransportSocketEndpoint_type::RELAY);
 
-	std::string relay_th_str = std::string(getRelayHash().begin(), getRelayHash().end());
-	tse_s.set_th(relay_th_str);
+	tse_s.set_th(m_relay_th.toBinaryString());
 	return tse_s;
 }
 
@@ -60,7 +61,7 @@ RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(std::string tse_str){
 
 std::string RelayTransportSocketEndpoint::toHRString(){
 	std::ostringstream os;
-	os << "TH:" << crypto::hashToHex(m_relay_th);
+	os << "TH:" << m_relay_th.toBase58();
 	return os.str();
 }
 

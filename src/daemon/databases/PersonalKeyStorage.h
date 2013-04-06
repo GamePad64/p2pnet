@@ -16,14 +16,14 @@
 #define PERSONALKEYSTORAGE_H_
 
 #include "../../common/crypto/CurrentCipherSet.h"
-#include "../../common/crypto/CryptoTypes.h"
+#include "../../common/crypto/Hash.h"
 
 namespace p2pnet {
 namespace databases {
 
 class PersonalKeyStorage {
 	crypto::key_pair_t my_key_pair;
-	crypto::hash_t my_transport_hash;
+	crypto::Hash my_transport_hash;
 
 protected:
 	PersonalKeyStorage();
@@ -44,7 +44,7 @@ public:
 	 * This function returns own transport hash from cache. If there is no such hash, then regenerate keys and hashes.
 	 * @return My transport hash
 	 */
-	crypto::hash_t getMyTransportHash();
+	crypto::Hash getMyTransportHash();
 
 	crypto::key_public_t getMyPublicKey();
 	crypto::key_private_t getMyPrivateKey();

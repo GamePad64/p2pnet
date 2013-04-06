@@ -12,18 +12,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MessageHandler.h"
+#include "base64.h"
+#include <botan/botan.h>
 
 namespace p2pnet {
-namespace messaging {
+namespace crypto {
 
-crypto::Hash MessageHandler::getSourceTH(const protocol::p2pMessage& message) {
-	protocol::p2pMessageHeader message_header;
-	message_header = message.message_header();
-	crypto::Hash hash;
-	hash.fromBinaryString(message_header.src_id());
-	return hash;
+std::string encodeToBase64(std::string data) {
+	Botan::Pipe pipe(new Botan::Base64_Encoder);
+	pipe.process_msg(data);
+	return pipe.read_all_as_string(0);
 }
 
-} /* namespace messaging */
-} /* namespace p2pnet */
+std::string decodeFromBase64(std::string base64) {
+	Botan::Pipe pipe(new Botan::Base64_Decoder);
+	pipe.process_msg(base64);
+	return pipe.read_all_as_string(0);
+}
+
+}
+}

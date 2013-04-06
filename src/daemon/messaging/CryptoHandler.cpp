@@ -13,6 +13,7 @@
  */
 
 #include "CryptoHandler.h"
+#include "../../common/crypto/Hash.h"
 #include <iostream>
 
 namespace p2pnet {
@@ -25,7 +26,7 @@ void CryptoHandler::processAgreement(protocol::p2pMessage parsed_message, net::M
 	protocol::p2pMessage_Agreement message_agreement;
 	message_agreement.ParseFromString(parsed_message.message_s());
 
-	std::clog << "[CryptoHandler] " << "Received agreement request from: " << message_bundle.socket_link.getEndpointPtr()->toHRString() << " about: " << crypto::hashToHex(this->getSourceTH(parsed_message)) << std::endl;
+	std::clog << "[CryptoHandler] " << "Received agreement request from: " << message_bundle.socket_link.getEndpointPtr()->toHRString() << " about: " << this->getSourceTH(parsed_message).toBase58() << std::endl;
 }
 
 void CryptoHandler::receivedMessage(net::MessageBundle message_bundle) {

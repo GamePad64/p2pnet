@@ -27,12 +27,12 @@ public:
 	NetDBStorage();
 	virtual ~NetDBStorage();
 
-	typedef std::list<crypto::hash_t> hashlist_t;
+	typedef std::list<crypto::Hash> hashlist_t;
 	virtual hashlist_t getAllHashes() = 0;
 
 	// Public key database
-	virtual bool hasPeer(crypto::hash_t peer_id) = 0;
-	virtual peer::Peer& getPeer(crypto::hash_t peer_id) = 0;
+	virtual bool hasPeer(crypto::Hash peer_id) = 0;
+	virtual peer::Peer& getPeer(crypto::Hash peer_id) = 0;
 };
 
 } /* namespace databases */
