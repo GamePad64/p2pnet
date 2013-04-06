@@ -23,8 +23,7 @@ CryptoHandler::CryptoHandler() {}
 CryptoHandler::~CryptoHandler() {}
 
 void CryptoHandler::processAgreement(protocol::p2pMessage parsed_message, net::MessageBundle message_bundle) {
-	protocol::p2pMessage_Agreement message_agreement;
-	message_agreement.ParseFromString(parsed_message.message_s());
+	protocol::AgreementPart message_agreement = parsed_message.agreement();
 
 	std::clog << "[CryptoHandler] " << "Received agreement request from: " << message_bundle.socket_link.getEndpointPtr()->toHRString() << " about: " << this->getSourceTH(parsed_message).toBase58() << std::endl;
 }

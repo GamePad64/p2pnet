@@ -12,18 +12,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MessageHandler.h"
+#ifndef MESSAGEPARSER_H_
+#define MESSAGEPARSER_H_
+
+#include "../protobuf/Protocol.pb.h"
 
 namespace p2pnet {
 namespace messaging {
 
-crypto::Hash MessageHandler::getSourceTH(const protocol::p2pMessage& message) {
-	protocol::p2pMessageHeader message_header;
-	message_header = message.message_header();
-	crypto::Hash hash;
-	hash.fromBinaryString(message_header.src_th());
-	return hash;
-}
+class MessageParser {
+	protocol::p2pMessageHeader generateMessageHeader() const;
+	protocol::p2pMessageHeader generateMessageHeader(const crypto::Hash dest) const;
+//	protocol::p2pMessageHeader generateMessageHeader(const crypto::Hash src, const crypto::Hash dest) const;
+public:
+	MessageParser();
+	virtual ~MessageParser();
+
+	protocol::p2pMessage generateAgreementMessage();
+};
 
 } /* namespace messaging */
 } /* namespace p2pnet */
+#endif /* MESSAGEPARSER_H_ */

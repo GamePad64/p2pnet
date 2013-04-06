@@ -16,7 +16,7 @@
 #include "../../AsioIOService.h"
 #include "../udp/UDPTransportSocket.h"
 #include "../../protobuf/Protocol.pb.h"
-#include "../../databases/PersonalKeyStorage.h"
+#include "../../messaging/MessageParser.h"
 
 namespace p2pnet {
 namespace net {
@@ -45,26 +45,6 @@ void UDPLPD::run() {
 	startSend();
 }
 
-protocol::p2pMessage UDPLPD::generateAgreementMessage() {
-	protocol::p2pMessage message;
-
-	protocol::p2pMessageHeader* message_header = message.mutable_message_header();
-	databases::PersonalKeyStorage* pks = databases::PersonalKeyStorage::getInstance();
-
-	crypto::Hash th = pks->getMyTransportHash();
-	message_header->set_src_id(th.toBinaryString());
-
-	message.set_message_type(message.AGREEMENT);
-
-	protocol::p2pMessage_Agreement message_agreement;
-	crypto::key_public_t pubkey = pks->getMyPublicKey();
-	std::string pubkey_s = std::string(pubkey.begin(), pubkey.end());
-	message_agreement.set_src_pubkey(pubkey_s);
-	message.set_message_s(message_agreement.SerializeAsString());
-
-	return message;
-}
-
 void UDPLPD::processReceived(size_t bytes,
 		std::shared_ptr<ip::udp::endpoint> endpoint,
 		char* recv_buffer){
@@ -80,7 +60,10 @@ void UDPLPD::processReceived(size_t bytes,
 
 	std::string received_address = endpoint->address().to_string();
 	net::UDPTransportSocketEndpoint received_endpoint(received_address, message.port());
-	m_udp_socket.hereSendTo(received_endpoint, generateAgreementMessage().SerializeAsString());
+
+	messaging::MessageParser parser;
+
+	m_udp_socket.hereSendTo(received_endpoint, parser.generateAgreementMessage().SerializeAsString());
 	std::clog << "[" << getServiceName() << "] Sent agreement request to " << received_endpoint.getIP() << std::endl;
 }
 
