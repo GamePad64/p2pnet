@@ -46,12 +46,12 @@ public:
 	hashlist_t getAllHashes(){return m_hashes;};
 
 	// Routing database
-	bool hasPeer(crypto::hash_t peer_id);
-	peer::Peer& getPeer(crypto::hash_t peer_id);
+	bool hasPeer(crypto::Hash peer_id);
+	peer::Peer& getPeer(crypto::Hash peer_id);
 };
 
-typedef MapNetDBStorage< std::map<crypto::hash_t, peer::Peer> > StdMapNetDBStorage;
-typedef MapNetDBStorage< btree::safe_btree_map<crypto::hash_t, peer::Peer> > BMapNetDBStorage;
+typedef MapNetDBStorage< std::map<crypto::Hash::hash_t, peer::Peer> > StdMapNetDBStorage;
+typedef MapNetDBStorage< btree::safe_btree_map<crypto::Hash::hash_t, peer::Peer> > BMapNetDBStorage;
 
 } /* namespace databases */
 } /* namespace p2pnet */

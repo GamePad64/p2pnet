@@ -24,7 +24,7 @@ namespace p2pnet {
 namespace peer {
 
 class Peer {
-	crypto::hash_t m_transport_hash;
+	crypto::Hash m_transport_hash;
 	crypto::key_public_t m_key_public;
 
 	PeerRouteSet m_routeset;
@@ -32,8 +32,8 @@ public:
 	Peer();
 	virtual ~Peer();
 
-	crypto::hash_t getTransportHash(){return m_transport_hash;}
-	void setTransportHash(crypto::hash_t transport_hash){
+	crypto::Hash getTransportHash(){return m_transport_hash;}
+	void setTransportHash(crypto::Hash transport_hash){
 		m_transport_hash = transport_hash;
 	}
 

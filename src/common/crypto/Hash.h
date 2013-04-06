@@ -12,24 +12,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CRYPTOTYPES_H_
-#define CRYPTOTYPES_H_
+#ifndef HASH_H_
+#define HASH_H_
 
-#include <botan/botan.h>
 #include <vector>
+#include <string>
+#include <botan/botan.h>
 
 namespace p2pnet {
 namespace crypto {
 
-typedef std::vector<Botan::byte> key_public_t;
-typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > key_private_t;
+class Hash {
+public:
+	Hash();
+	virtual ~Hash();
 
-typedef struct {
-	key_public_t key_public;
-	key_private_t key_private;
-} key_pair_t;
+	typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > hash_t;
+
+	void fromBinaryVector(hash_t hash_vector);
+	const hash_t toBinaryVector() const;
+
+	void fromBinaryString(std::string hash_string);
+	const std::string toBinaryString() const;
+
+	void fromHex(std::string hex_string);
+	const std::string toHex() const;
+
+	void fromBase58(std::string hash_string);
+	const std::string toBase58() const;
+
+	void fromBase64(std::string hash_string);
+	const std::string toBase64() const;
+
+	unsigned short computeDistance(Hash rhash);
+private:
+	hash_t hash;
+};
 
 } /* namespace crypto */
 } /* namespace p2pnet */
-
-#endif /* CRYPTOTYPES_H_ */
+#endif /* HASH_H_ */

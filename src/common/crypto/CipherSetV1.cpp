@@ -13,6 +13,7 @@
  */
 
 #include "CipherSetV1.h"
+#include "../../common/crypto/Hash.h"
 #include <botan/keccak.h>
 #include <botan/rsa.h>
 
@@ -22,13 +23,15 @@ namespace crypto {
 CipherSetV1::CipherSetV1() {}
 CipherSetV1::~CipherSetV1() {}
 
-hash_t CipherSetV1::computeHash(const std::string& data) {
+Hash CipherSetV1::computeHash(const std::string& data) {
 	Botan::Keccak_1600 hasher(KECCAK_LENGTH);
-	return hasher.process(data);
+	Hash hash;
+	hash.fromBinaryVector(hasher.process(data));
+	return hash;
 }
 
-bool CipherSetV1::checkHash(const std::string& data, const hash_t& hash) {
-	return (this->computeHash(data) == hash);
+bool CipherSetV1::checkHash(const std::string& data, const Hash& hash) {
+	return (computeHash(data).toBinaryVector() == hash.toBinaryVector());
 }
 
 key_pair_t CipherSetV1::generateKeyPair() {
@@ -74,18 +77,6 @@ std::string CipherSetV1::pubKeyToPEM(key_public_t key_public) {
 
 key_public_t CipherSetV1::PEMToPubKey(std::string key_pem) {
 }*/
-
-std::string CipherSetV1::encodeToBase64(std::string data) {
-	Botan::Pipe pipe(new Botan::Base64_Encoder);
-	pipe.process_msg(data);
-	return pipe.read_all_as_string(0);
-}
-
-std::string CipherSetV1::decodeFromBase64(std::string base64) {
-	Botan::Pipe pipe(new Botan::Base64_Decoder);
-	pipe.process_msg(base64);
-	return pipe.read_all_as_string(0);
-}
 
 } /* namespace crypto */
 } /* namespace p2pnet */
