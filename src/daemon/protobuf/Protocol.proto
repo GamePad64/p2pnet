@@ -13,11 +13,15 @@
  */
 
 syntax = "proto2";
-package p2pnet.protocol;
+package p2pnet.messaging.protocol;
 
 message p2pMessageHeader {
-	optional bytes src_id = 1;
-	optional bytes dest_id = 2;
+	optional bytes src_th = 1;
+	optional bytes dest_th = 2;
+}
+
+message AgreementPart {
+	required bytes src_pubkey = 1;	// My own public key in BER format
 }
 
 message p2pMessage {
@@ -29,9 +33,5 @@ message p2pMessage {
 	}
 
 	optional MessageType message_type = 2 [default = DATA];
-	optional bytes message_s = 3;
-}
-
-message p2pMessage_Agreement {
-	required bytes src_pubkey = 1;	// My own public key in BER format
+	optional AgreementPart agreement = 3;
 }

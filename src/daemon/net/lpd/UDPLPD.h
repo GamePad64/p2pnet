@@ -35,7 +35,6 @@ class UDPLPD: public p2pnet::net::lpd::GenericLPD {
 	void waitBeforeSend();
 	void processReceived(size_t bytes, std::shared_ptr<ip::udp::endpoint> endpoint, char* recv_buffer);
 	virtual UDPLPDMessage generateLPDMessage() = 0;
-	protocol::p2pMessage generateAgreementMessage();
 
 protected:
 	Config& m_config;
