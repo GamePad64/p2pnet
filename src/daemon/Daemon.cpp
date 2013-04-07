@@ -35,10 +35,11 @@ void Daemon::run(){
 void Daemon::initializeSockets() {
 	if(config.getConfig().get("net.sockets.udpv4.enable", true)){
 		try {
-			m_socket_udpv4.bindLocalIPv4( static_cast<unsigned short int>(config.getConfig().get("net.sockets.udpv4.port", 2185)) );
+			unsigned short int port_v4 = config.getConfig().get("net.sockets.udpv4.port", 2185);
+			m_socket_udpv4.bindLocalIPv4(port_v4);
 			m_socket_udpv4.addListener(&message_dispatcher);
 
-			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv4.bind", "0.0.0.0"), config.getConfig().get("net.sockets.udpv4.port", 2185));
+			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv4.bind", "0.0.0.0"), port_v4);
 			m_socket_udpv4.asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv4 UDP socket. Exception caught: " << e.what() << std::endl;
@@ -47,10 +48,11 @@ void Daemon::initializeSockets() {
 
 	if(config.getConfig().get("net.sockets.udpv6.enable", true)){
 		try {
-			m_socket_udpv6.bindLocalIPv6( static_cast<unsigned short int>(config.getConfig().get("net.sockets.udpv6.port", 2185)) );
+			unsigned short int port_v6 = config.getConfig().get("net.sockets.udpv6.port", 2185);
+			m_socket_udpv6.bindLocalIPv6(port_v6);
 			m_socket_udpv6.addListener(&message_dispatcher);
 
-			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), config.getConfig().get("net.sockets.udpv6.port", 2185));
+			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), port_v6);
 			m_socket_udpv6.asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv6 UDP socket. Exception caught: " << e.what() << std::endl;
