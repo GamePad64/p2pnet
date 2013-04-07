@@ -33,7 +33,8 @@ public:
 	CipherSetV1();
 	virtual ~CipherSetV1();
 
-	const short KECCAK_LENGTH = 512;
+	// Well, 224 bit TH is enough... for now. If there will be any collisions, we'll make TH longer.
+	const short KECCAK_LENGTH = 224;
 	const short RSA_LENGTH = 4096;
 
 	virtual Hash computeHash(const std::string& data);
