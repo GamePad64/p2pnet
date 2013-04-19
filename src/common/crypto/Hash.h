@@ -15,22 +15,20 @@
 #ifndef HASH_H_
 #define HASH_H_
 
-#include <vector>
-#include <string>
-#include <botan/botan.h>
+#include "MathString.h"
 
 namespace p2pnet {
 namespace crypto {
 
-class Hash {
+class Hash : public MathString {
+private:
+	binary_vector_t hash;
 public:
-	Hash();
-	virtual ~Hash();
+	Hash(){};
+	virtual ~Hash(){};
 
-	typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > hash_t;
-
-	void fromBinaryVector(hash_t hash_vector);
-	const hash_t toBinaryVector() const;
+	void fromBinaryVector(binary_vector_t hash_vector){hash = hash_vector;};
+	const binary_vector_t toBinaryVector() const {return hash;};
 
 	void fromBinaryString(std::string hash_string);
 	const std::string toBinaryString() const;
@@ -45,8 +43,6 @@ public:
 	const std::string toBase64() const;
 
 	unsigned short computeDistance(Hash rhash);
-private:
-	hash_t hash;
 };
 
 } /* namespace crypto */
