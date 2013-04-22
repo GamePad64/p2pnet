@@ -15,14 +15,14 @@
 #ifndef PERSONALKEYSTORAGE_H_
 #define PERSONALKEYSTORAGE_H_
 
-#include "../../common/crypto/CurrentCipherSet.h"
+#include "../../common/crypto/PrivateKeyDSA.h"
 #include "../../common/crypto/Hash.h"
 
 namespace p2pnet {
 namespace databases {
 
 class PersonalKeyStorage {
-	crypto::key_pair_t my_key_pair;
+	crypto::PrivateKeyDSA my_private_key;
 	crypto::Hash my_transport_hash;
 
 protected:
@@ -46,9 +46,8 @@ public:
 	 */
 	crypto::Hash getMyTransportHash();
 
-	crypto::key_public_t getMyPublicKey();
-	crypto::key_private_t getMyPrivateKey();
-	crypto::key_pair_t getMyKeyPair();
+	crypto::PublicKeyDSA getMyPublicKey();
+	crypto::PrivateKeyDSA getMyPrivateKey();
 };
 
 } /* namespace databases */

@@ -32,8 +32,8 @@ peer::Peer& MapNetDBStorage<peermap_t>::getPeer(crypto::Hash peer_th){
 	return this->m_peermap[peer_th.toBinaryVector()];
 }
 
-template class MapNetDBStorage< std::map<crypto::Hash::hash_t, peer::Peer> >;
-template class MapNetDBStorage< btree::safe_btree_map<crypto::Hash::hash_t, peer::Peer> >;
+template class MapNetDBStorage< std::map<crypto::Hash::binary_vector_t, peer::Peer> >;
+template class MapNetDBStorage< btree::safe_btree_map<crypto::Hash::binary_vector_t, peer::Peer> >;
 
 } /* namespace databases */
 } /* namespace p2pnet */

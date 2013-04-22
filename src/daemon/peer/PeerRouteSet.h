@@ -15,7 +15,6 @@
 #ifndef PEERROUTESET_H_
 #define PEERROUTESET_H_
 
-#include "../../common/crypto/CryptoTypes.h"
 #include "../relay/RelayTransportSocketEndpoint.h"
 #include "../net/udp/UDPTransportSocketEndpoint.h"
 #include <list>

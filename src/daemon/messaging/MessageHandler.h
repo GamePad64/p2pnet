@@ -22,15 +22,15 @@
 namespace p2pnet {
 namespace messaging {
 
-class MessageHandler {
+class MessageHandler : public net::TransportSocketListener {
 protected:
 	crypto::Hash getSourceTH(const protocol::p2pMessage& message);
 public:
 	MessageHandler(){};
 	virtual ~MessageHandler(){};
 
-	virtual void receivedMessage(net::MessageBundle message_bundle){};
-	virtual void sentMessage(net::MessageBundle message_bundle){};	// Well, not used usually.
+	virtual void receivedMessage(net::MessageBundle message_bundle) = 0;
+	virtual void sentMessage(net::MessageBundle message_bundle) = 0;	// Well, not used usually.
 };
 
 } /* namespace messaging */

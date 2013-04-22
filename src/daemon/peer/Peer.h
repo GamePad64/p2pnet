@@ -17,7 +17,7 @@
 
 #include "PeerRouteSet.h"
 #include "../net/TransportSocketLink.h"
-#include "../../common/crypto/CurrentCipherSet.h"
+#include "../../common/crypto/PublicKeyDSA.h"
 #include <string>
 
 namespace p2pnet {
@@ -25,7 +25,7 @@ namespace peer {
 
 class Peer {
 	crypto::Hash m_transport_hash;
-	crypto::key_public_t m_key_public;
+	crypto::PublicKeyDSA m_key_public;
 
 	PeerRouteSet m_routeset;
 public:
@@ -37,8 +37,8 @@ public:
 		m_transport_hash = transport_hash;
 	}
 
-	crypto::key_public_t getPublicKey(){return m_key_public;}
-	void setPublicKey(crypto::key_public_t key_public){
+	const crypto::PublicKeyDSA& getPublicKey(){return m_key_public;}
+	void setPublicKey(crypto::PublicKeyDSA& key_public){
 		m_key_public = key_public;
 	}
 

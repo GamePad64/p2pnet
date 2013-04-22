@@ -17,15 +17,17 @@
 
 #include "../net/TransportSocketListener.h"
 #include "MessageHandler.h"
-#include "../../common/crypto/CryptoTypes.h"
+#include "../databases/NetDBStorage.h"
 
 namespace p2pnet {
 namespace messaging {
 
 class CryptoHandler : public MessageHandler {
 	void processAgreement(protocol::p2pMessage parsed_message, net::MessageBundle message_bundle);
+
+	databases::NetDBStorage* m_netdb_storage;
 public:
-	CryptoHandler();
+	CryptoHandler(databases::NetDBStorage* netdb_storage);
 	virtual ~CryptoHandler();
 
 	virtual void receivedMessage(net::MessageBundle message_bundle);

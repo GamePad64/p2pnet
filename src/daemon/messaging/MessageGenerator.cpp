@@ -12,25 +12,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESSAGEPARSER_H_
-#define MESSAGEPARSER_H_
-
+#include "MessageGenerator.h"
 #include "../protobuf/Protocol.pb.h"
 
 namespace p2pnet {
 namespace messaging {
 
-class MessageParser {
-	protocol::p2pMessageHeader generateMessageHeader() const;
-	protocol::p2pMessageHeader generateMessageHeader(const crypto::Hash dest) const;
-//	protocol::p2pMessageHeader generateMessageHeader(const crypto::Hash src, const crypto::Hash dest) const;
-public:
-	MessageParser();
-	virtual ~MessageParser();
+MessageGenerator::MessageGenerator() {
+	pks = databases::PersonalKeyStorage::getInstance();
+}
+MessageGenerator::~MessageGenerator() {}
 
-	protocol::p2pMessage generateAgreementMessage();
-};
+protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangeRequestPayload() {
+	protocol::p2pMessage_Payload payload;
+	payload.set_message_type(protocol::p2pMessage_Payload_MessageType_KEY_EXCHANGE_REQUEST);
+	payload.mutable_key_exchange()->set_src_pubkey(pks->getMyPublicKey().toBinaryString());
+	return payload;
+}
+
+protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangeResponsePayload() {
+}
+
+protocol::p2pMessage_Payload MessageGenerator::generateAgreementPayload() {
+	//protocol::p2pMessage_Payload payload;
+	//payload.set_message_type(protocol::p2p);
+}
 
 } /* namespace messaging */
 } /* namespace p2pnet */
-#endif /* MESSAGEPARSER_H_ */

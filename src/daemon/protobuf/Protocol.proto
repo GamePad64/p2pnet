@@ -15,23 +15,55 @@
 syntax = "proto2";
 package p2pnet.messaging.protocol;
 
-message p2pMessageHeader {
-	optional bytes src_th = 1;
-	optional bytes dest_th = 2;
-}
-
-message AgreementPart {
-	required bytes src_pubkey = 1;	// My own public key in BER format
-}
-
 message p2pMessage {
-	required p2pMessageHeader message_header = 1;
-	enum MessageType {
-		DATA = 0;
-		ONION = 1;
-		AGREEMENT = 2;
+	message Header {
+		optional bytes src_th = 1;
+		optional bytes dest_th = 2;
 	}
 
-	optional MessageType message_type = 2 [default = DATA];
-	optional AgreementPart agreement = 3;
+	required Header header = 1;
+
+	message Payload {
+		// MessageType section.
+		enum MessageType {
+			DATA = 0;
+			ONION = 1;
+
+			// Key exchange cryptographic messages.
+			KEY_EXCHANGE_REQUEST = 2;
+			KEY_EXCHANGE_RESPONSE = 3;
+			AGREEMENT = 4;
+		}
+
+		optional MessageType message_type = 1 [default = DATA];
+
+		// End of MessageType section.
+
+		message KeyExchangePart {
+			required bytes src_pubkey = 1;	// My own ECDSA public key
+		}
+
+		message AgreementPart {
+			required bytes src_pubkey = 1;	// My own ECDH public key (just generated)
+		}
+
+		optional KeyExchangePart key_exchange = 2;
+		optional AgreementPart agreement = 3;
+	}
+
+	required Payload payload = 2;
+
+	// CRC-32 of message payload. If CRC-32 doesn't match the message, then the message is dropped.
+	required fixed32 crc32 = 3;
+}
+
+/*
+ * This message type is used in Local Peer Discovery through UDP.
+ */
+message UDPLPDMessage {
+	required uint32 port = 1;
+	optional uint32 version = 2;
+
+	required bytes src_th = 3;
+	required bytes src_pubkey = 4;
 }

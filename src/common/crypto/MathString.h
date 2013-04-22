@@ -29,19 +29,19 @@ public:
 
 	typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > binary_vector_t;
 
-	virtual void fromBinaryVector(binary_vector_t hash_vector) = 0;
+	virtual void fromBinaryVector(binary_vector_t serialized_vector) = 0;
 	virtual const binary_vector_t toBinaryVector() const = 0;
 
-	virtual void fromBinaryString(std::string hash_string);
+	virtual void fromBinaryString(std::string serialized_string);
 	virtual const std::string toBinaryString() const;
 
 	virtual void fromHex(std::string hex_string);
 	virtual const std::string toHex() const;
 
-	virtual void fromBase58(std::string hash_string);
+	virtual void fromBase58(std::string b58_string);
 	virtual const std::string toBase58() const;
 
-	virtual void fromBase64(std::string hash_string);
+	virtual void fromBase64(std::string b64_string);
 	virtual const std::string toBase64() const;
 };
 

@@ -31,7 +31,7 @@ public:
 	UDPLPDv6(Config& config, net::UDPTransportSocket& udp_socket, databases::NetDBStorage& netdb_storage);
 	virtual ~UDPLPDv6();
 
-	virtual UDPLPDMessage generateLPDMessage();
+	unsigned short getUDPPort();
 
 	virtual void readConfig();
 	virtual void initSocket();
