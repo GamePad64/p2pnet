@@ -16,7 +16,7 @@
 #include "../../AsioIOService.h"
 #include "../udp/UDPTransportSocket.h"
 #include "../../protobuf/Protocol.pb.h"
-#include "../../messaging/MessageParser.h"
+#include "../../databases/PersonalKeyStorage.h"
 
 namespace p2pnet {
 namespace net {
@@ -45,6 +45,11 @@ void UDPLPD::run() {
 	startSend();
 }
 
+void UDPLPD::waitBeforeSend() {
+	m_timer.expires_from_now(boost::posix_time::seconds(m_timer_seconds));
+	m_timer.async_wait(boost::bind(&UDPLPD::send, this));
+}
+
 void UDPLPD::processReceived(size_t bytes,
 		std::shared_ptr<ip::udp::endpoint> endpoint,
 		char* recv_buffer){
@@ -52,29 +57,47 @@ void UDPLPD::processReceived(size_t bytes,
 	receive();
 
 	// Create Protocol Buffer message
-	UDPLPDMessage message;
-	message.ParseFromString(std::string(recv_buffer, bytes));
+	messaging::protocol::UDPLPDMessage recv_message;
+	recv_message.ParseFromString(std::string(recv_buffer, bytes));
 	delete[] recv_buffer;
 
-	std::clog << "[" << getServiceName() << "] Local <- " << endpoint->address().to_string() << ":" << message.port() << std::endl;
+	std::clog << "[" << getServiceName() << "] Local <- " << endpoint->address().to_string() << ":" << recv_message.port() << std::endl;
 
-	std::string received_address = endpoint->address().to_string();
-	net::UDPTransportSocketEndpoint received_endpoint(received_address, message.port());
+	// We check this TH/Pubkey pair for validity.
+	crypto::PublicKeyDSA pubkey;
+	pubkey.fromBinaryString(recv_message.src_pubkey());
+	crypto::Hash h;
+	h.compute(recv_message.src_pubkey());
+	if(pubkey.validate() && h.toBinaryString() == recv_message.src_th()){
+		// We checked TH/Pubkey pair and now we are sure, that this TH is not fake.
 
-	messaging::MessageParser parser;
+		std::string received_address = endpoint->address().to_string();
+		net::UDPTransportSocketEndpoint received_endpoint(received_address, recv_message.port());
 
-	m_udp_socket.hereSendTo(received_endpoint, parser.generateAgreementMessage().SerializeAsString());
-	std::clog << "[" << getServiceName() << "] Sent agreement request to " << received_endpoint.getIP() << std::endl;
+		//m_udp_socket.hereSendTo(received_endpoint, parser.generateAgreementMessage().SerializeAsString());
+		std::clog << "[" << getServiceName() << "] Sent agreement request to " << received_endpoint.getIP() << std::endl;
+	}else{
+		// This packet is fake (or, maybe, corrupted)
+		std::clog << "[" << getServiceName() << "] Packet rejected.";
+	}
 }
 
-void UDPLPD::waitBeforeSend() {
-	m_timer.expires_from_now(boost::posix_time::seconds(m_timer_seconds));
-	m_timer.async_wait(boost::bind(&UDPLPD::send, this));
+messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
+	databases::PersonalKeyStorage* pks = databases::PersonalKeyStorage::getInstance();
+
+	messaging::protocol::UDPLPDMessage message;
+	message.set_src_th(pks->getMyTransportHash().toBinaryString());
+	message.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
+	message.set_port(getUDPPort());
+
+	return message;
 }
 
 void UDPLPD::send(){
 	std::clog << "[" << getServiceName() << "] Local -> " << m_target_address.to_string() << ":" << m_target_port << std::endl;
-	m_lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()), ip::udp::endpoint(m_target_address, m_target_port), boost::bind(&UDPLPD::waitBeforeSend, this));
+	m_lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()),
+			ip::udp::endpoint(m_target_address, m_target_port),
+			boost::bind(&UDPLPD::waitBeforeSend,this));
 }
 
 void UDPLPD::receive(){

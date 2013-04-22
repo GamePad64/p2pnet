@@ -13,7 +13,6 @@
  */
 
 #include "PersonalKeyStorage.h"
-#include "../../common/crypto/CurrentCipherSet.h"
 #include "../../common/crypto/Hash.h"
 #include <string>
 #include <iostream>
@@ -28,9 +27,9 @@ PersonalKeyStorage::PersonalKeyStorage() {
 PersonalKeyStorage::~PersonalKeyStorage() {}
 
 void PersonalKeyStorage::regenerateKeys() {
-	crypto::CurrentCipherSet cs;
-	my_key_pair = cs.generateKeyPair();
-	my_transport_hash = cs.computeHash(std::string(my_key_pair.key_public.begin(), my_key_pair.key_public.end()));
+	my_private_key.generate();
+	my_transport_hash.compute(my_private_key.toBinaryString());
+
 	std::clog << "[Crypto] Keys regenerated. New TH: " << my_transport_hash.toBase58() << std::endl;
 }
 
@@ -38,16 +37,12 @@ crypto::Hash PersonalKeyStorage::getMyTransportHash() {
 	return my_transport_hash;
 }
 
-crypto::key_public_t PersonalKeyStorage::getMyPublicKey() {
-	return my_key_pair.key_public;
+crypto::PublicKeyDSA PersonalKeyStorage::getMyPublicKey() {
+	return my_private_key;
 }
 
-crypto::key_private_t PersonalKeyStorage::getMyPrivateKey() {
-	return my_key_pair.key_private;
-}
-
-crypto::key_pair_t PersonalKeyStorage::getMyKeyPair() {
-	return my_key_pair;
+crypto::PrivateKeyDSA PersonalKeyStorage::getMyPrivateKey() {
+	return my_private_key;
 }
 
 } /* namespace databases */

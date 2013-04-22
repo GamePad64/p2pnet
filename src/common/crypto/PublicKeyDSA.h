@@ -12,42 +12,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HASH_H_
-#define HASH_H_
+#ifndef PUBLICKEYDSA_H_
+#define PUBLICKEYDSA_H_
 
+#include <botan/ecdsa.h>
 #include "MathString.h"
-#include <botan/keccak.h>
 
 namespace p2pnet {
 namespace crypto {
 
-const short HASH_LENGTH = 224;
-
-class Hash : public MathString {
-private:
-	binary_vector_t hash;
-	Botan::Keccak_1600 hasher;
-
-	friend class PublicKeyDSA;
-	friend class PrivateKeyDSA;
-	/**
-	 * This function returns hashing algorithm name as Botan library does. It is needed for internal encryption operations.
-	 * @return
-	 */
-	std::string getAlgoName();
+class PublicKeyDSA : public MathString {
+	Botan::ECDSA_PublicKey key_public;
+protected:
+	static Botan::AutoSeeded_RNG rng;
+	virtual const Botan::ECDSA_PublicKey& getPublicKey();
 public:
-	Hash();
-	virtual ~Hash();
+	PublicKeyDSA();
+	virtual ~PublicKeyDSA();
 
-	void compute(std::string data);
-	bool check(std::string data);
+	std::string encrypt(std::string data);
 
-	void fromBinaryVector(binary_vector_t serialized_vector){hash = serialized_vector;};
-	const binary_vector_t toBinaryVector() const {return hash;};
+	bool verify(std::string data, std::string signature);
+	bool verifyRaw(std::string data, std::string signature);
 
-	unsigned short computeDistance(Hash rhash);
+	bool validate();
+
+	virtual void fromPEM(std::string pem);
+	virtual std::string toPEM();
+
+	virtual void fromBinaryVector(binary_vector_t serialized_vector);
+	virtual const binary_vector_t toBinaryVector() const;
 };
 
 } /* namespace crypto */
 } /* namespace p2pnet */
-#endif /* HASH_H_ */
+#endif /* PUBLICKEYDSA_H_ */

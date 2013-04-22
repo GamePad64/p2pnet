@@ -27,11 +27,8 @@ UDPLPDv6::~UDPLPDv6() {
 	m_lpd_socket.set_option(ip::multicast::leave_group(m_target_address));
 }
 
-UDPLPDMessage UDPLPDv6::generateLPDMessage() {
-	UDPLPDMessage message;
-	unsigned int my_port = m_config.getConfig().get("net.sockets.udpv6.port", 2185);
-	message.set_port(my_port);
-	return message;
+unsigned short UDPLPDv6::getUDPPort(){
+	return m_config.getConfig().get("net.sockets.udpv6.port", 2185);
 }
 
 void UDPLPDv6::readConfig() {

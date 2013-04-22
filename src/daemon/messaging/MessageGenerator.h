@@ -12,24 +12,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CRYPTOTYPES_H_
-#define CRYPTOTYPES_H_
+#ifndef MESSAGEGENERATOR_H_
+#define MESSAGEGENERATOR_H_
 
-#include <botan/botan.h>
-#include <vector>
+#include "../protobuf/Protocol.pb.h"
+#include "../databases/PersonalKeyStorage.h"
 
 namespace p2pnet {
-namespace crypto {
+namespace messaging {
 
-typedef std::vector<Botan::byte> key_public_t;
-typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > key_private_t;
+class MessageGenerator {
+	databases::PersonalKeyStorage* pks;
+public:
+	MessageGenerator();
+	virtual ~MessageGenerator();
 
-typedef struct {
-	key_public_t key_public;
-	key_private_t key_private;
-} key_pair_t;
+	protocol::p2pMessage_Payload generateKeyExchangeRequestPayload();
+	protocol::p2pMessage_Payload generateKeyExchangeResponsePayload();
+	protocol::p2pMessage_Payload generateAgreementPayload();
+};
 
-} /* namespace crypto */
+} /* namespace messaging */
 } /* namespace p2pnet */
-
-#endif /* CRYPTOTYPES_H_ */
+#endif /* MESSAGEGENERATOR_H_ */

@@ -18,7 +18,6 @@
 #include "GenericLPD.h"
 #include "../../../common/Config.h"
 #include "../../databases/NetDBStorage.h"
-#include "../../protobuf/LPDMessage.pb.h"
 #include "../../protobuf/Protocol.pb.h"
 #include "../udp/UDPTransportSocket.h"
 #include <boost/asio.hpp>
@@ -34,12 +33,15 @@ namespace lpd {
 class UDPLPD: public p2pnet::net::lpd::GenericLPD {
 	void waitBeforeSend();
 	void processReceived(size_t bytes, std::shared_ptr<ip::udp::endpoint> endpoint, char* recv_buffer);
-	virtual UDPLPDMessage generateLPDMessage() = 0;
+	messaging::protocol::UDPLPDMessage generateLPDMessage();
 
 protected:
 	Config& m_config;
 
 	io_service& m_io_service;
+
+	virtual unsigned short getUDPPort() = 0;
+
 	/**
 	 * This timer is used between sending two messages. Default is to wait 10 seconds.
 	 */

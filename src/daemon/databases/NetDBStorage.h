@@ -15,7 +15,6 @@
 #ifndef NETDBSTORAGE_H_
 #define NETDBSTORAGE_H_
 
-#include "../../common/crypto/CryptoTypes.h"
 #include "../peer/Peer.h"
 #include <list>
 

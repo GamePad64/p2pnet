@@ -50,8 +50,8 @@ public:
 	peer::Peer& getPeer(crypto::Hash peer_id);
 };
 
-typedef MapNetDBStorage< std::map<crypto::Hash::hash_t, peer::Peer> > StdMapNetDBStorage;
-typedef MapNetDBStorage< btree::safe_btree_map<crypto::Hash::hash_t, peer::Peer> > BMapNetDBStorage;
+typedef MapNetDBStorage< std::map<crypto::Hash::binary_vector_t, peer::Peer> > StdMapNetDBStorage;
+typedef MapNetDBStorage< btree::safe_btree_map<crypto::Hash::binary_vector_t, peer::Peer> > BMapNetDBStorage;
 
 } /* namespace databases */
 } /* namespace p2pnet */

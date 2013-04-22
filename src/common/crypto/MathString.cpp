@@ -24,8 +24,8 @@ namespace crypto {
 MathString::MathString() {}
 MathString::~MathString() {}
 
-void MathString::fromBinaryString(std::string hash_string) {
-	fromBinaryVector(binary_vector_t(hash_string.begin(), hash_string.end()));
+void MathString::fromBinaryString(std::string serialized_string) {
+	fromBinaryVector(binary_vector_t(serialized_string.begin(), serialized_string.end()));
 }
 
 const std::string MathString::toBinaryString() const {
@@ -34,7 +34,7 @@ const std::string MathString::toBinaryString() const {
 }
 
 void MathString::fromHex(std::string hex_string) {
-	//FIXME: Well, later.
+	//FIXME: Well, later. It is not necessary right now.
 	// Use strtoul(), Luke! It is in <cstdlib>, you know :)
 }
 
@@ -49,16 +49,16 @@ const std::string MathString::toHex() const {
 	return hash_ss.str();
 }
 
-void MathString::fromBase58(std::string hash_string) {
-	fromBinaryString(decodeFromBase58(hash_string));
+void MathString::fromBase58(std::string b58_string) {
+	fromBinaryString(decodeFromBase58(b58_string));
 }
 
 const std::string MathString::toBase58() const {
 	return encodeToBase58(toBinaryString());
 }
 
-void MathString::fromBase64(std::string hash_string) {
-	fromBinaryString(decodeFromBase58(hash_string));
+void MathString::fromBase64(std::string b64_string) {
+	fromBinaryString(decodeFromBase58(b64_string));
 }
 
 const std::string MathString::toBase64() const {

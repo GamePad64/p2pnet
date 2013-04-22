@@ -21,6 +21,26 @@
 namespace p2pnet {
 namespace crypto {
 
+std::string Hash::getAlgoName() {
+	return hasher.name();
+}
+
+Hash::Hash() : hasher(HASH_LENGTH) {}
+
+Hash::~Hash() {
+}
+
+void Hash::compute(std::string data) {
+	hash = hasher.process(data);
+}
+
+bool Hash::check(std::string data) {
+	Hash h;
+	h.compute(data);
+
+	return ( h.toBinaryString() == this->toBinaryString() );
+}
+
 unsigned short Hash::computeDistance(Hash rhash) {
 	unsigned short distance = 0;
 
