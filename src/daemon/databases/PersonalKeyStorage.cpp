@@ -40,7 +40,7 @@ crypto::Hash PersonalKeyStorage::getMyTransportHash() {
 }
 
 crypto::PublicKeyDSA PersonalKeyStorage::getMyPublicKey() {
-	return my_private_key;
+	return my_private_key.derivePublicKey();
 }
 
 crypto::PrivateKeyDSA PersonalKeyStorage::getMyPrivateKey() {

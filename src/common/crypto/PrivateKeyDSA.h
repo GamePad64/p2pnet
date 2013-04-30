@@ -47,6 +47,8 @@ public:
 	virtual std::string toPEM();
 
 	virtual const binary_vector_t toBinaryVector() const;
+
+	PublicKeyDSA derivePublicKey();
 };
 
 } /* namespace crypto */
