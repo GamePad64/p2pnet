@@ -22,8 +22,8 @@ namespace p2pnet {
 namespace databases {
 
 class PersonalKeyStorage {
-	crypto::PrivateKeyDSA my_private_key;
-	crypto::Hash my_transport_hash;
+	crypto::PrivateKeyDSA* my_private_key;
+	crypto::Hash* my_transport_hash;
 
 protected:
 	PersonalKeyStorage();

@@ -20,31 +20,33 @@
 namespace p2pnet {
 namespace databases {
 
-PersonalKeyStorage::PersonalKeyStorage() :
-		my_private_key(crypto::PrivateKeyDSA::generate()),
-		my_transport_hash(crypto::Hash::compute(my_private_key.crypto::MathString<crypto::PrivateKeyDSA>::toBinaryString())) {
+PersonalKeyStorage::PersonalKeyStorage() {
 	// TEMP: We shouldn't regenerate keys every execution, so some sort of caching is required.
 	regenerateKeys();
 }
-PersonalKeyStorage::~PersonalKeyStorage() {}
+PersonalKeyStorage::~PersonalKeyStorage() {
+	delete my_transport_hash;
+	delete my_private_key;
+}
 
 void PersonalKeyStorage::regenerateKeys() {
-	my_private_key.generate();
-	my_transport_hash.compute(my_private_key.crypto::MathString<crypto::PrivateKeyDSA>::toBinaryString());
+	my_private_key = new crypto::PrivateKeyDSA(crypto::PrivateKeyDSA::generate());
+	my_transport_hash = new crypto::Hash(
+			crypto::Hash::compute(my_private_key->derivePublicKey().toBinaryString()));
 
-	std::clog << "[Crypto] Keys regenerated. New TH: " << my_transport_hash.toBase58() << std::endl;
+	std::clog << "[Crypto] Keys regenerated. New TH: " << my_transport_hash->toBase58() << std::endl;
 }
 
 crypto::Hash PersonalKeyStorage::getMyTransportHash() {
-	return my_transport_hash;
+	return *my_transport_hash;
 }
 
 crypto::PublicKeyDSA PersonalKeyStorage::getMyPublicKey() {
-	return my_private_key.derivePublicKey();
+	return my_private_key->derivePublicKey();
 }
 
 crypto::PrivateKeyDSA PersonalKeyStorage::getMyPrivateKey() {
-	return my_private_key;
+	return *my_private_key;
 }
 
 } /* namespace databases */

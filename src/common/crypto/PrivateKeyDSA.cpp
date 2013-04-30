@@ -27,21 +27,15 @@ std::shared_ptr<Botan::ECDSA_PrivateKey> PrivateKeyDSA::getPrivateKeyPtrFromBina
 	return std::shared_ptr<Botan::ECDSA_PrivateKey>(privkey);
 }
 
-const Botan::ECDSA_PublicKey& PrivateKeyDSA::getPublicKey() {
-	return key_private;
-}
-
 const Botan::ECDSA_PrivateKey& PrivateKeyDSA::getPrivateKey() {
 	return key_private;
 }
 
 PrivateKeyDSA::PrivateKeyDSA(binary_vector_t serialized_vector) :
-		PublicKeyDSA(serialized_vector),
 		MathString<PrivateKeyDSA>::MathString(serialized_vector),
 		key_private(*(getPrivateKeyPtrFromBinaryVector(serialized_vector))) {
 }
 PrivateKeyDSA::PrivateKeyDSA(Botan::ECDSA_PrivateKey& botan_key) :
-		PublicKeyDSA(botan_key),
 		MathString<PrivateKeyDSA>::MathString(Botan::PKCS8::BER_encode(botan_key)),
 		key_private(botan_key) {}
 PrivateKeyDSA::~PrivateKeyDSA() {}
