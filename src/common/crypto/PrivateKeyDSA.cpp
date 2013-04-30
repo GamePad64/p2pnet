@@ -98,5 +98,9 @@ const PrivateKeyDSA::binary_vector_t PrivateKeyDSA::toBinaryVector() const {
 	return Botan::PKCS8::BER_encode(key_private);
 }
 
+PublicKeyDSA PrivateKeyDSA::derivePublicKey() {
+	return PublicKeyDSA(key_private);
+}
+
 } /* namespace crypto */
 } /* namespace p2pnet */

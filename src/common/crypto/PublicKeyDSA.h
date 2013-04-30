@@ -28,6 +28,7 @@ class PublicKeyDSA : public MathString<PublicKeyDSA> {
 protected:
 	virtual const Botan::ECDSA_PublicKey& getPublicKey();
 
+	friend class PrivateKeyDSA;
 	PublicKeyDSA(Botan::ECDSA_PublicKey& botan_key);
 public:
 	PublicKeyDSA(binary_vector_t serialized_vector);
