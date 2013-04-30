@@ -19,31 +19,22 @@
 namespace p2pnet {
 namespace relay {
 
-RelayTransportSocketEndpoint::RelayTransportSocketEndpoint() {}
-RelayTransportSocketEndpoint::~RelayTransportSocketEndpoint() {}
+RelayTransportSocketEndpoint::~RelayTransportSocketEndpoint() {
+}
 
-const crypto::Hash& RelayTransportSocketEndpoint::getRelayHash() const {
+const crypto::Hash& RelayTransportSocketEndpoint::getRelayTH() const {
 	return m_relay_th;
 }
 
-void RelayTransportSocketEndpoint::setRelayHash(
-		const crypto::Hash& relayHash) {
+void RelayTransportSocketEndpoint::setRelayTH(const crypto::Hash& relayHash) {
 	m_relay_th = relayHash;
 }
 
-RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(
-		crypto::Hash relay_hash) {
-	this->m_relay_th = relay_hash;
+RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(crypto::Hash relay_th) :
+		m_relay_th(relay_th) {
 }
 
-void RelayTransportSocketEndpoint::fromProtobuf(net::TransportSocketEndpoint_s tse_s){
-	std::string relay_th_str = tse_s.th();
-	crypto::Hash relay_th;
-	relay_th.fromBinaryString(relay_th_str);
-	setRelayHash(relay_th);
-}
-
-net::TransportSocketEndpoint_s RelayTransportSocketEndpoint::toProtobuf(){
+net::TransportSocketEndpoint_s RelayTransportSocketEndpoint::toProtobuf() {
 	net::TransportSocketEndpoint_s tse_s;
 	tse_s.set_type(net::TransportSocketEndpoint_type::RELAY);
 
@@ -51,15 +42,11 @@ net::TransportSocketEndpoint_s RelayTransportSocketEndpoint::toProtobuf(){
 	return tse_s;
 }
 
-RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(net::TransportSocketEndpoint_s tse_s) {
-	fromProtobuf(tse_s);
+RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(net::TransportSocketEndpoint_s tse_s) :
+		m_relay_th(crypto::Hash::fromBinaryString(tse_s.th())) {
 }
 
-RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(std::string tse_str){
-	fromString(tse_str);
-}
-
-std::string RelayTransportSocketEndpoint::toHRString(){
+std::string RelayTransportSocketEndpoint::toHRString() {
 	std::ostringstream os;
 	os << "TH:" << m_relay_th.toBase58();
 	return os.str();

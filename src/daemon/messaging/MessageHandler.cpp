@@ -18,8 +18,7 @@ namespace p2pnet {
 namespace messaging {
 
 crypto::Hash MessageHandler::getSourceTH(const protocol::p2pMessage& message) {
-	crypto::Hash hash;
-	hash.fromBinaryString(message.header().src_th());
+	crypto::Hash hash = crypto::Hash::fromBinaryString(message.header().src_th());
 	return hash;
 }
 

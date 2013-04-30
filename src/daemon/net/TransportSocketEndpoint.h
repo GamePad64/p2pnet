@@ -29,13 +29,13 @@ public:
 
 	typedef std::shared_ptr<TransportSocketEndpoint> pointer;
 
-	virtual TransportSocketEndpoint::pointer yieldCopyPtr() const = 0;
+	virtual pointer yieldCopyPtr() const = 0;
 
-	virtual void fromProtobuf(TransportSocketEndpoint_s tse_s) = 0;
+	static pointer fromProtobuf(TransportSocketEndpoint_s tse_s);
 	virtual TransportSocketEndpoint_s toProtobuf() = 0;
 
-	void fromString(std::string endpoint_s);
-	std::string toString();
+	static pointer fromString(std::string endpoint_s);
+	std::string toString(){return toProtobuf().SerializeAsString();};
 
 	virtual std::string toHRString() = 0;
 };

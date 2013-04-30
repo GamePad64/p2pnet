@@ -20,24 +20,41 @@
 namespace p2pnet {
 namespace crypto {
 
+std::shared_ptr<Botan::ECDSA_PrivateKey> PrivateKeyDSA::getPrivateKeyPtrFromBinaryVector(binary_vector_t serialized_vector) {
+	Botan::DataSource_Memory botan_source(serialized_vector);
+	Botan::AutoSeeded_RNG rng;
+	Botan::ECDSA_PrivateKey* privkey = dynamic_cast<Botan::ECDSA_PrivateKey*>(Botan::PKCS8::load_key(botan_source, rng));
+	return std::shared_ptr<Botan::ECDSA_PrivateKey>(privkey);
+}
+
 const Botan::ECDSA_PublicKey& PrivateKeyDSA::getPublicKey() {
-	return *key_private;
+	return key_private;
 }
 
 const Botan::ECDSA_PrivateKey& PrivateKeyDSA::getPrivateKey() {
-	return *key_private;
+	return key_private;
 }
 
-PrivateKeyDSA::PrivateKeyDSA() {}
+PrivateKeyDSA::PrivateKeyDSA(binary_vector_t serialized_vector) :
+		PublicKeyDSA(serialized_vector),
+		MathString<PrivateKeyDSA>::MathString(serialized_vector),
+		key_private(*(getPrivateKeyPtrFromBinaryVector(serialized_vector))) {
+}
+PrivateKeyDSA::PrivateKeyDSA(Botan::ECDSA_PrivateKey& botan_key) :
+		PublicKeyDSA(botan_key),
+		MathString<PrivateKeyDSA>::MathString(Botan::PKCS8::BER_encode(botan_key)),
+		key_private(botan_key) {}
 PrivateKeyDSA::~PrivateKeyDSA() {}
 
-void PrivateKeyDSA::generate(){
-	key_private = std::make_shared<Botan::ECDSA_PrivateKey>(rng, Botan::EC_Group(curve));
+PrivateKeyDSA PrivateKeyDSA::generate(){
+	Botan::AutoSeeded_RNG rng;
+
+	Botan::ECDSA_PrivateKey botan_key(rng, Botan::EC_Group(curve));
+	return PrivateKeyDSA(botan_key);
 }
 
 std::string PrivateKeyDSA::decrypt(std::string enc_data) {
-	Hash h;
-	Botan::PK_Decryptor_EME pk_decryptor(getPrivateKey(), "EME1(" + h.getAlgoName() + ")");
+	Botan::PK_Decryptor_EME pk_decryptor(getPrivateKey(), "EME1(" + Hash::getAlgoName() + ")");
 
 	binary_vector_t decrypted_data_bv = pk_decryptor.decrypt(std::vector<Botan::byte>(enc_data.begin(), enc_data.end()));
 	std::string decrypted_data_s(decrypted_data_bv.begin(), decrypted_data_bv.end());
@@ -46,8 +63,8 @@ std::string PrivateKeyDSA::decrypt(std::string enc_data) {
 }
 
 std::string PrivateKeyDSA::sign(std::string data){
-	Hash h;
-	Botan::PK_Signer pk_signer(*key_private, "EMSA1(" + h.getAlgoName() + ")");
+	Botan::PK_Signer pk_signer(key_private, "EMSA1(" + Hash::getAlgoName() + ")");
+	Botan::AutoSeeded_RNG rng;
 
 	std::vector<Botan::byte> message_v = pk_signer.sign_message(std::vector<Botan::byte>(data.begin(), data.end()), rng);
 	std::string message_s(message_v.begin(), message_v.end());
@@ -55,8 +72,8 @@ std::string PrivateKeyDSA::sign(std::string data){
 }
 
 std::string PrivateKeyDSA::signRaw(std::string data){
-	Hash h;
-	Botan::PK_Signer pk_signer(*key_private, "Raw");
+	Botan::PK_Signer pk_signer(key_private, "Raw");
+	Botan::AutoSeeded_RNG rng;
 
 	std::vector<Botan::byte> message_v = pk_signer.sign_message(std::vector<Botan::byte>(data.begin(), data.end()), rng);
 	std::string message_s(message_v.begin(), message_v.end());
@@ -64,22 +81,21 @@ std::string PrivateKeyDSA::signRaw(std::string data){
 }
 
 void PrivateKeyDSA::fromPEM(std::string pem) {
+	Botan::AutoSeeded_RNG rng;
+
 	std::vector<Botan::byte> pem_v(pem.begin(), pem.end());
 	Botan::DataSource_Memory botan_source(pem_v);
-	key_private = Botan::PKCS8::load_key(botan_source, rng);
+	auto key_private_ptr = Botan::PKCS8::load_key(botan_source, rng);
+	key_private = *dynamic_cast<Botan::ECDSA_PrivateKey*>(key_private_ptr);
+	delete key_private_ptr;
 }
 
 std::string PrivateKeyDSA::toPEM() {
 	return Botan::PKCS8::PEM_encode(getPrivateKey());
 }
 
-void PrivateKeyDSA::fromBinaryVector(binary_vector_t serialized_vector) {
-	Botan::DataSource_Memory botan_source(serialized_vector);
-	key_private = std::make_shared<ECDSA_PrivateKey>(Botan::PKCS8::load_key(botan_source, rng));
-}
-
 const PrivateKeyDSA::binary_vector_t PrivateKeyDSA::toBinaryVector() const {
-	return Botan::PKCS8::BER_encode(*key_private);
+	return Botan::PKCS8::BER_encode(key_private);
 }
 
 } /* namespace crypto */

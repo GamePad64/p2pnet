@@ -64,10 +64,8 @@ void UDPLPD::processReceived(size_t bytes,
 	std::clog << "[" << getServiceName() << "] Local <- " << endpoint->address().to_string() << ":" << recv_message.port() << std::endl;
 
 	// We check this TH/Pubkey pair for validity.
-	crypto::PublicKeyDSA pubkey;
-	pubkey.fromBinaryString(recv_message.src_pubkey());
-	crypto::Hash h;
-	h.compute(recv_message.src_pubkey());
+	crypto::PublicKeyDSA pubkey = crypto::PublicKeyDSA::fromBinaryString(recv_message.src_pubkey());
+	crypto::Hash h = crypto::Hash::compute(recv_message.src_pubkey());
 	if(pubkey.validate() && h.toBinaryString() == recv_message.src_th()){
 		// We checked TH/Pubkey pair and now we are sure, that this TH is not fake.
 

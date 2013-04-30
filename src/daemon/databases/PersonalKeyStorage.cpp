@@ -20,7 +20,9 @@
 namespace p2pnet {
 namespace databases {
 
-PersonalKeyStorage::PersonalKeyStorage() {
+PersonalKeyStorage::PersonalKeyStorage() :
+		my_private_key(crypto::PrivateKeyDSA::generate()),
+		my_transport_hash(crypto::Hash::compute(my_private_key.crypto::MathString<crypto::PrivateKeyDSA>::toBinaryString())) {
 	// TEMP: We shouldn't regenerate keys every execution, so some sort of caching is required.
 	regenerateKeys();
 }
@@ -28,7 +30,7 @@ PersonalKeyStorage::~PersonalKeyStorage() {}
 
 void PersonalKeyStorage::regenerateKeys() {
 	my_private_key.generate();
-	my_transport_hash.compute(my_private_key.toBinaryString());
+	my_transport_hash.compute(my_private_key.crypto::MathString<crypto::PrivateKeyDSA>::toBinaryString());
 
 	std::clog << "[Crypto] Keys regenerated. New TH: " << my_transport_hash.toBase58() << std::endl;
 }

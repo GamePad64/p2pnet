@@ -18,28 +18,31 @@
 #include "PeerRouteSet.h"
 #include "../net/TransportSocketLink.h"
 #include "../../common/crypto/PublicKeyDSA.h"
+#include "TH.h"
 #include <string>
+#include <memory>
 
 namespace p2pnet {
 namespace peer {
 
 class Peer {
-	crypto::Hash m_transport_hash;
-	crypto::PublicKeyDSA m_key_public;
+	peer::TH m_th;
+	std::unique_ptr<crypto::PublicKeyDSA> m_key_public;
 
 	PeerRouteSet m_routeset;
 public:
-	Peer();
+	typedef std::shared_ptr<Peer> pointer;
+
+	Peer(peer::TH th);
 	virtual ~Peer();
 
-	crypto::Hash getTransportHash(){return m_transport_hash;}
-	void setTransportHash(crypto::Hash transport_hash){
-		m_transport_hash = transport_hash;
-	}
+	peer::TH getTransportHash(){return m_th;}
 
-	const crypto::PublicKeyDSA& getPublicKey(){return m_key_public;}
+	bool hasPublicKey(){return bool(m_key_public);};
+	const crypto::PublicKeyDSA getPublicKey(){return *m_key_public;}
 	void setPublicKey(crypto::PublicKeyDSA& key_public){
-		m_key_public = key_public;
+		crypto::PublicKeyDSA* pubkeydsa_ptr = new crypto::PublicKeyDSA(key_public);
+		m_key_public = std::unique_ptr<crypto::PublicKeyDSA>(pubkeydsa_ptr);
 	}
 
 	/**
