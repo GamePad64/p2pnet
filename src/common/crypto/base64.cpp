@@ -12,7 +12,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base64.h"
 #include <botan/botan.h>
 
 namespace p2pnet {

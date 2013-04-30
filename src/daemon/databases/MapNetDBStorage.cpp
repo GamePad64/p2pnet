@@ -17,23 +17,25 @@
 namespace p2pnet {
 namespace databases {
 
-template<typename peermap_t>
-MapNetDBStorage<peermap_t>::MapNetDBStorage() {}
-template<typename peermap_t>
-MapNetDBStorage<peermap_t>::~MapNetDBStorage() {}
+template <typename peermap_t>
+MapNetDBStorage<peermap_t>::MapNetDBStorage() {
+}
+template <typename peermap_t>
+MapNetDBStorage<peermap_t>::~MapNetDBStorage() {
+}
 
-template<typename peermap_t>
-bool MapNetDBStorage<peermap_t>::hasPeer(crypto::Hash peer_id){
+template <typename peermap_t>
+bool MapNetDBStorage<peermap_t>::hasPeer(crypto::Hash peer_id) {
 	return m_peermap.count(peer_id.toBinaryVector()) > 0;
 }
 
-template<typename peermap_t>
-peer::Peer& MapNetDBStorage<peermap_t>::getPeer(crypto::Hash peer_th){
+template <typename peermap_t>
+peer::Peer::pointer MapNetDBStorage<peermap_t>::getPeer(crypto::Hash peer_th) {
 	return this->m_peermap[peer_th.toBinaryVector()];
 }
 
-template class MapNetDBStorage< std::map<crypto::Hash::binary_vector_t, peer::Peer> >;
-template class MapNetDBStorage< btree::safe_btree_map<crypto::Hash::binary_vector_t, peer::Peer> >;
+template class MapNetDBStorage<std::map<crypto::Hash::binary_vector_t, peer::Peer::pointer> > ;
+template class MapNetDBStorage< btree::safe_btree_map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > ;
 
 } /* namespace databases */
 } /* namespace p2pnet */

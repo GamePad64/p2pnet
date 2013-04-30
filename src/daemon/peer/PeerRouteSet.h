@@ -30,9 +30,9 @@ public:
 	PeerRouteSet();
 	virtual ~PeerRouteSet();
 
-	std::list<relay::RelayTransportSocketEndpoint> endpoint_relay_list;
+	std::list<net::TransportSocketEndpoint::pointer> endpoint_relay_list;
 	decltype(endpoint_relay_list)& getRelayEndpointList() {return endpoint_relay_list;};
-	std::list<net::UDPTransportSocketEndpoint> endpoint_udp_list;
+	std::list<net::TransportSocketEndpoint::pointer> endpoint_udp_list;
 	decltype(endpoint_udp_list)& getUDPEndpointList() {return endpoint_udp_list;}
 
 	// Protocol Buffers serialization

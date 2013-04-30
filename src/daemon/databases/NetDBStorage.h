@@ -31,7 +31,7 @@ public:
 
 	// Public key database
 	virtual bool hasPeer(crypto::Hash peer_id) = 0;
-	virtual peer::Peer& getPeer(crypto::Hash peer_id) = 0;
+	virtual peer::Peer::pointer getPeer(crypto::Hash peer_id) = 0;
 };
 
 } /* namespace databases */

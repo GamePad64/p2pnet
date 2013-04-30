@@ -17,7 +17,7 @@
 namespace p2pnet {
 namespace peer {
 
-Peer::Peer() {}
+Peer::Peer(peer::TH th) : m_th(th) {}
 Peer::~Peer() {}
 
 } /* namespace peer */

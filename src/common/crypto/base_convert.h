@@ -12,18 +12,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BASE58_H_
-#define BASE58_H_
+#ifndef BASE_CONVERT_H_
+#define BASE_CONVERT_H_
 
 #include <string>
 
 namespace p2pnet {
 namespace crypto {
 
+std::string encodeToHex(std::string data);
+std::string decodeFromHex(std::string hex_string);
+
 std::string encodeToBase58(std::string data);
 std::string decodeFromBase58(std::string base58);
 
+std::string encodeToBase64(std::string data);
+std::string decodeFromBase64(std::string base64);
+
 }
 }
 
-#endif /* BASE58_H_ */
+#endif /* BASE_CONVERT_H_ */

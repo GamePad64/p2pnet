@@ -23,10 +23,15 @@ namespace crypto {
 
 const short HASH_LENGTH = 224;
 
-class Hash : public MathString {
+/**
+ * Base class for hashing operations.
+ * Now it represents Keccak algorithm, which was selected as SHA-3.
+ */
+class Hash : public MathString< Hash > {
+	friend class MathString;
 private:
 	binary_vector_t hash;
-	Botan::Keccak_1600 hasher;
+	static Botan::Keccak_1600 hasher;
 
 	friend class PublicKeyDSA;
 	friend class PrivateKeyDSA;
@@ -34,16 +39,18 @@ private:
 	 * This function returns hashing algorithm name as Botan library does. It is needed for internal encryption operations.
 	 * @return
 	 */
-	std::string getAlgoName();
+	static std::string getAlgoName();
+protected:
+	Hash(const binary_vector_t serialized_vector);
 public:
-	Hash();
 	virtual ~Hash();
 
-	void compute(std::string data);
+	static Hash compute(std::string data);
 	bool check(std::string data);
 
-	void fromBinaryVector(binary_vector_t serialized_vector){hash = serialized_vector;};
-	const binary_vector_t toBinaryVector() const {return hash;};
+	const binary_vector_t toBinaryVector() const {
+		return hash;
+	}
 
 	unsigned short computeDistance(Hash rhash);
 };

@@ -22,16 +22,21 @@ namespace crypto {
 
 const std::string curve = "secp256r1";
 
-class PrivateKeyDSA : public PublicKeyDSA {
+class PrivateKeyDSA : virtual public PublicKeyDSA, virtual public MathString<PrivateKeyDSA> {
+	typedef PublicKeyDSA::binary_vector_t binary_vector_t;
 	Botan::ECDSA_PrivateKey key_private;
+
+	std::shared_ptr<Botan::ECDSA_PrivateKey> getPrivateKeyPtrFromBinaryVector(binary_vector_t serialized_vector);
 protected:
 	virtual const Botan::ECDSA_PublicKey& getPublicKey();
 	virtual const Botan::ECDSA_PrivateKey& getPrivateKey();
+
+	PrivateKeyDSA(Botan::ECDSA_PrivateKey& botan_key);
 public:
-	PrivateKeyDSA();
+	PrivateKeyDSA(binary_vector_t serialized_vector);
 	virtual ~PrivateKeyDSA();
 
-	void generate();
+	static PrivateKeyDSA generate();
 
 	std::string decrypt(std::string enc_data);
 
@@ -41,7 +46,6 @@ public:
 	virtual void fromPEM(std::string pem);
 	virtual std::string toPEM();
 
-	virtual void fromBinaryVector(binary_vector_t serialized_vector);
 	virtual const binary_vector_t toBinaryVector() const;
 };
 

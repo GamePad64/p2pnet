@@ -24,12 +24,11 @@ namespace relay {
 class RelayTransportSocketEndpoint: public p2pnet::net::TransportSocketEndpoint {
 	crypto::Hash m_relay_th;
 public:
-	RelayTransportSocketEndpoint();
 	virtual ~RelayTransportSocketEndpoint();
 
-	const crypto::Hash& getRelayHash() const;
-	void setRelayHash(const crypto::Hash& relayHash);
-	RelayTransportSocketEndpoint(crypto::Hash relay_hash);
+	const crypto::Hash& getRelayTH() const;
+	void setRelayTH(const crypto::Hash& relay_th);
+	RelayTransportSocketEndpoint(crypto::Hash relay_th);
 
 	// Inherited from TransportSocketEndpoint
 	virtual TransportSocketEndpoint::pointer yieldCopyPtr() const {
@@ -37,11 +36,8 @@ public:
 		return copy;
 	}
 
-	virtual void fromProtobuf(net::TransportSocketEndpoint_s tse_s);
 	virtual net::TransportSocketEndpoint_s toProtobuf();
 	RelayTransportSocketEndpoint(net::TransportSocketEndpoint_s tse_s);
-
-	RelayTransportSocketEndpoint(std::string tse_str);
 
 	virtual std::string toHRString();
 };
