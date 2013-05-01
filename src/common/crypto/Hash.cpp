@@ -13,32 +13,36 @@
  */
 
 #include "Hash.h"
-#include "base58.h"
-#include "base64.h"
+//#include "base58.h"
+//#include "base64.h"
 #include <sstream>
 #include <iomanip>
 
 namespace p2pnet {
 namespace crypto {
 
+Botan::Keccak_1600 Hash::hasher(HASH_LENGTH);
+
 std::string Hash::getAlgoName() {
 	return hasher.name();
 }
 
-Hash::Hash() : hasher(HASH_LENGTH) {}
+Hash::Hash(const binary_vector_t serialized_vector) :
+		MathString< Hash >::MathString(serialized_vector) {
+	hash = serialized_vector;
+}
 
 Hash::~Hash() {
 }
 
-void Hash::compute(std::string data) {
-	hash = hasher.process(data);
+Hash Hash::compute(std::string data) {
+	return Hash(hasher.process(data));
 }
 
 bool Hash::check(std::string data) {
-	Hash h;
-	h.compute(data);
+	Hash h = Hash::compute(data);
 
-	return ( h.toBinaryString() == this->toBinaryString() );
+	return (h.toBinaryString() == this->toBinaryString());
 }
 
 unsigned short Hash::computeDistance(Hash rhash) {
@@ -51,9 +55,9 @@ unsigned short Hash::computeDistance(Hash rhash) {
 
 	unsigned char comp_value;
 
-	while(char1 != hash.end() && char2 != rhash_vector.end()){
+	while (char1 != hash.end() && char2 != rhash_vector.end()) {
 		comp_value = (*char1) ^ (*char2);
-		while(comp_value){
+		while (comp_value) {
 			++distance;
 			comp_value &= comp_value - 1;
 		}

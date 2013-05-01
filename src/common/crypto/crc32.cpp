@@ -12,15 +12,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MessageHandler.h"
+#include "crc32.h"
+#include <botan/crc32.h>
 
 namespace p2pnet {
-namespace messaging {
+namespace crypto {
 
-crypto::Hash MessageHandler::getSourceTH(const protocol::p2pMessage& message) {
-	crypto::Hash hash = crypto::Hash::fromBinaryString(message.header().src_th());
-	return hash;
+uint32_t computeCRC32(std::string data) {
+	Botan::CRC32 hasher;
+	auto crc32_v = hasher.process(data);
+	uint32_t crc32 =
+			(uint32_t)crc32_v[0] << 24 |
+			(uint32_t)crc32_v[1] << 16 |
+			(uint32_t)crc32_v[2] << 8  |
+			(uint32_t)crc32_v[3];
+	return crc32;
 }
 
-} /* namespace messaging */
-} /* namespace p2pnet */
+}
+}

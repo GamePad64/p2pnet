@@ -12,18 +12,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BASE64_H_
-#define BASE64_H_
-
-#include <string>
+#ifndef CRC32_H_
+#define CRC32_H_
 
 namespace p2pnet {
 namespace crypto {
 
-std::string encodeToBase64(std::string data);
-std::string decodeFromBase64(std::string base64);
+uint32_t computeCRC32(std::string data);
 
 }
 }
 
-#endif /* BASE64_H_ */
+#endif /* CRC32_H_ */

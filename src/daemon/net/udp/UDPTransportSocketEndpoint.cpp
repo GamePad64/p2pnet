@@ -56,11 +56,6 @@ UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string ip, UDPTransp
 	this->setPort(port);
 };
 
-void UDPTransportSocketEndpoint::fromProtobuf(TransportSocketEndpoint_s tse_s){
-	setIP(tse_s.ip());
-	setPort(tse_s.port());
-}
-
 TransportSocketEndpoint_s UDPTransportSocketEndpoint::toProtobuf(){
 	TransportSocketEndpoint_s tse_s;
 	tse_s.set_type(TransportSocketEndpoint_type::UDP);
@@ -70,11 +65,8 @@ TransportSocketEndpoint_s UDPTransportSocketEndpoint::toProtobuf(){
 }
 
 UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(TransportSocketEndpoint_s tse_s) {
-	fromProtobuf(tse_s);
-}
-
-UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string tse_str){
-	fromString(tse_str);
+	setIP(tse_s.ip());
+	setPort(tse_s.port());
 }
 
 std::string UDPTransportSocketEndpoint::toHRString(){

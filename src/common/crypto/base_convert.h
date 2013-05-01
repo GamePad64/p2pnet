@@ -12,15 +12,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MessageHandler.h"
+#ifndef BASE_CONVERT_H_
+#define BASE_CONVERT_H_
+
+#include <string>
 
 namespace p2pnet {
-namespace messaging {
+namespace crypto {
 
-crypto::Hash MessageHandler::getSourceTH(const protocol::p2pMessage& message) {
-	crypto::Hash hash = crypto::Hash::fromBinaryString(message.header().src_th());
-	return hash;
+std::string encodeToHex(std::string data);
+std::string decodeFromHex(std::string hex_string);
+
+std::string encodeToBase58(std::string data);
+std::string decodeFromBase58(std::string base58);
+
+std::string encodeToBase64(std::string data);
+std::string decodeFromBase64(std::string base64);
+
+}
 }
 
-} /* namespace messaging */
-} /* namespace p2pnet */
+#endif /* BASE_CONVERT_H_ */

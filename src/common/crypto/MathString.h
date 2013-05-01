@@ -15,6 +15,8 @@
 #ifndef MATHSTRING_H_
 #define MATHSTRING_H_
 
+#include "base_convert.h"
+
 #include <vector>
 #include <string>
 #include <botan/botan.h>
@@ -22,27 +24,53 @@
 namespace p2pnet {
 namespace crypto {
 
+template< class T >
 class MathString {
 public:
-	MathString();
-	virtual ~MathString();
+	typedef std::vector< Botan::byte, Botan::secure_allocator< Botan::byte > > binary_vector_t;
 
-	typedef std::vector<Botan::byte, Botan::secure_allocator<Botan::byte> > binary_vector_t;
+protected:
+	MathString(const binary_vector_t bv) {
+	}
 
-	virtual void fromBinaryVector(binary_vector_t serialized_vector) = 0;
+public:
+	virtual ~MathString() {
+	}
+
+	static T fromBinaryVector(binary_vector_t serialized_vector) {
+		return T(serialized_vector);
+	}
 	virtual const binary_vector_t toBinaryVector() const = 0;
 
-	virtual void fromBinaryString(std::string serialized_string);
-	virtual const std::string toBinaryString() const;
+	static T fromBinaryString(std::string serialized_string) {
+		return fromBinaryVector(binary_vector_t(serialized_string.begin(), serialized_string.end()));
+	}
+	const std::string toBinaryString() const {
+		binary_vector_t bv = toBinaryVector();
+		std::string s = std::string(bv.begin(), bv.end());
+		return s;
+	}
 
-	virtual void fromHex(std::string hex_string);
-	virtual const std::string toHex() const;
+	static T fromHex(std::string hex_string) {
+		return fromBinaryString(decodeFromHex(hex_string));
+	}
+	const std::string toHex() const {
+		return encodeToHex(toBinaryString());
+	}
 
-	virtual void fromBase58(std::string b58_string);
-	virtual const std::string toBase58() const;
+	static T fromBase58(std::string b58_string) {
+		return fromBinaryString(decodeFromBase58(b58_string));
+	}
+	const std::string toBase58() const {
+		return encodeToBase58(toBinaryString());
+	}
 
-	virtual void fromBase64(std::string b64_string);
-	virtual const std::string toBase64() const;
+	static T fromBase64(std::string b64_string) {
+		return fromBinaryString(decodeFromBase64(b64_string));
+	}
+	const std::string toBase64() const {
+		return encodeToBase64(toBinaryString());
+	}
 };
 
 } /* namespace crypto */

@@ -12,18 +12,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BASE58_H_
-#define BASE58_H_
+#ifndef TH_H_
+#define TH_H_
 
-#include <string>
+#include "../../common/crypto/Hash.h"
 
 namespace p2pnet {
-namespace crypto {
+namespace peer {
 
-std::string encodeToBase58(std::string data);
-std::string decodeFromBase58(std::string base58);
+typedef crypto::Hash TH;
 
-}
-}
+} /* namespace peer */
+} /* namespace p2pnet */
 
-#endif /* BASE58_H_ */
+#endif /* TH_H_ */

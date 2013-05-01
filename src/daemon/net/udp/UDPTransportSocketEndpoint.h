@@ -54,11 +54,8 @@ public:
 		return copy;
 	}
 
-	virtual void fromProtobuf(TransportSocketEndpoint_s tse_s);
 	virtual TransportSocketEndpoint_s toProtobuf();
 	UDPTransportSocketEndpoint(TransportSocketEndpoint_s tse_s);
-
-	UDPTransportSocketEndpoint(std::string tse_str);
 
 	virtual std::string toHRString();
 };

@@ -12,23 +12,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../protobuf/TransportSocketEndpoint_s.pb.h"
+// Base class
 #include "TransportSocketEndpoint.h"
-//#include "UDPTransportSocketEndpoint.h"
+// Child classes
+#include "udp/UDPTransportSocketEndpoint.h"
+#include "../relay/RelayTransportSocketEndpoint.h"
+// Serialized representation
+#include "../protobuf/TransportSocketEndpoint_s.pb.h"
+// Standard headers
 #include <memory>
 
 namespace p2pnet {
 namespace net {
 
-void TransportSocketEndpoint::fromString(std::string endpoint_s){
+TransportSocketEndpoint::pointer TransportSocketEndpoint::fromProtobuf(TransportSocketEndpoint_s tse_s){
+	TransportSocketEndpoint::pointer tse_ptr;
+	switch(tse_s.type()){
+	case TransportSocketEndpoint_type::UDP:
+		tse_ptr = std::make_shared<UDPTransportSocketEndpoint>(tse_s);
+		break;
+	case TransportSocketEndpoint_type::RELAY:
+		tse_ptr = std::make_shared<relay::RelayTransportSocketEndpoint>(tse_s);
+		break;
+	default:
+		;
+	}
+	return tse_ptr;
+};
+
+TransportSocketEndpoint::pointer TransportSocketEndpoint::fromString(std::string endpoint_s){
 	TransportSocketEndpoint_s tse_s;
 	tse_s.ParseFromString(endpoint_s);
-	fromProtobuf(tse_s);
-}
-
-std::string TransportSocketEndpoint::toString(){
-	return toProtobuf().SerializeAsString();
-}
+	return fromProtobuf(tse_s);
+};
 
 } /* namespace net */
 } /* namespace p2pnet */

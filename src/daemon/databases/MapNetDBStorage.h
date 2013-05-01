@@ -32,7 +32,7 @@ namespace databases {
  *
  * This map version consists of two maps.
  */
-template < typename peermap_t >
+template< typename peermap_t >
 class MapNetDBStorage : public NetDBStorage {
 
 private:
@@ -43,15 +43,17 @@ public:
 	MapNetDBStorage();
 	virtual ~MapNetDBStorage();
 
-	hashlist_t getAllHashes(){return m_hashes;};
+	hashlist_t getAllHashes() {
+		return m_hashes;
+	}
 
 	// Routing database
 	bool hasPeer(crypto::Hash peer_id);
-	peer::Peer& getPeer(crypto::Hash peer_id);
+	peer::Peer::pointer getPeer(crypto::Hash peer_id);
 };
 
-typedef MapNetDBStorage< std::map<crypto::Hash::binary_vector_t, peer::Peer> > StdMapNetDBStorage;
-typedef MapNetDBStorage< btree::safe_btree_map<crypto::Hash::binary_vector_t, peer::Peer> > BMapNetDBStorage;
+typedef MapNetDBStorage< std::map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > StdMapNetDBStorage;
+typedef MapNetDBStorage< btree::safe_btree_map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > BMapNetDBStorage;
 
 } /* namespace databases */
 } /* namespace p2pnet */

@@ -22,15 +22,9 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-UDPLPD::UDPLPD(Config& config,
-		net::UDPTransportSocket& udp_socket,
-		databases::NetDBStorage& netdb_storage) :
-				m_config(config),
-				m_io_service(AsioIOService::getIOService()),
-				m_timer(m_io_service),
-				m_lpd_socket(m_io_service),
-				m_udp_socket(udp_socket),
-				m_netdb_storage(netdb_storage) {
+UDPLPD::UDPLPD(Config& config, net::UDPTransportSocket& udp_socket, databases::NetDBStorage& netdb_storage) :
+		m_config(config), m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), m_lpd_socket(
+				m_io_service), m_udp_socket(udp_socket), m_netdb_storage(netdb_storage) {
 	m_target_port = 0;
 	m_timer_seconds = 0;
 }
@@ -50,36 +44,37 @@ void UDPLPD::waitBeforeSend() {
 	m_timer.async_wait(boost::bind(&UDPLPD::send, this));
 }
 
-void UDPLPD::processReceived(size_t bytes,
-		std::shared_ptr<ip::udp::endpoint> endpoint,
-		char* recv_buffer){
+void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > endpoint, char* recv_buffer) {
 	// We received message, continue receiving others
 	receive();
 
 	// Create Protocol Buffer message
 	messaging::protocol::UDPLPDMessage recv_message;
 	recv_message.ParseFromString(std::string(recv_buffer, bytes));
-	delete[] recv_buffer;
+	// EXCEPTION: Corrupted packet! UDP protobuf message has required fields and can throw exception if the message is incomplete.
 
-	std::clog << "[" << getServiceName() << "] Local <- " << endpoint->address().to_string() << ":" << recv_message.port() << std::endl;
+	std::clog << "[" << getServiceName() << "] Local <- " << endpoint->address().to_string() << ":"
+			<< recv_message.port() << std::endl;
 
 	// We check this TH/Pubkey pair for validity.
-	crypto::PublicKeyDSA pubkey;
-	pubkey.fromBinaryString(recv_message.src_pubkey());
-	crypto::Hash h;
-	h.compute(recv_message.src_pubkey());
-	if(pubkey.validate() && h.toBinaryString() == recv_message.src_th()){
+	crypto::PublicKeyDSA pubkey = crypto::PublicKeyDSA::fromBinaryString(recv_message.src_pubkey());
+	crypto::Hash h = crypto::Hash::fromBinaryString(recv_message.src_th());
+
+	if (pubkey.validate() && h.check(recv_message.src_pubkey())) {
 		// We checked TH/Pubkey pair and now we are sure, that this TH is not fake.
 
 		std::string received_address = endpoint->address().to_string();
 		net::UDPTransportSocketEndpoint received_endpoint(received_address, recv_message.port());
 
 		//m_udp_socket.hereSendTo(received_endpoint, parser.generateAgreementMessage().SerializeAsString());
-		std::clog << "[" << getServiceName() << "] Sent agreement request to " << received_endpoint.getIP() << std::endl;
-	}else{
+		std::clog << "[" << getServiceName() << "] Sent agreement request to " << received_endpoint.getIP()
+				<< std::endl;
+	} else {
 		// This packet is fake (or, maybe, corrupted)
-		std::clog << "[" << getServiceName() << "] Packet rejected.";
+		std::clog << "[" << getServiceName() << "] Packet rejected." << std::endl;
 	}
+
+	delete[] recv_buffer;
 }
 
 messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
@@ -93,28 +88,30 @@ messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
 	return message;
 }
 
-void UDPLPD::send(){
-	std::clog << "[" << getServiceName() << "] Local -> " << m_target_address.to_string() << ":" << m_target_port << std::endl;
+void UDPLPD::send() {
+	std::clog << "[" << getServiceName() << "] Local -> " << m_target_address.to_string() << ":" << m_target_port
+			<< std::endl;
 	m_lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()),
-			ip::udp::endpoint(m_target_address, m_target_port),
-			boost::bind(&UDPLPD::waitBeforeSend,this));
+			ip::udp::endpoint(m_target_address, m_target_port), boost::bind(&UDPLPD::waitBeforeSend, this));
 }
 
-void UDPLPD::receive(){
+void UDPLPD::receive() {
 	char* lpd_packet = new char[2048];
-	std::shared_ptr<ip::udp::endpoint> endpoint = std::make_shared<ip::udp::endpoint>(m_bind_address, m_target_port);
-	m_lpd_socket.async_receive_from(
-			buffer(lpd_packet, 2048), *endpoint,
+	std::shared_ptr< ip::udp::endpoint > endpoint = std::make_shared< ip::udp::endpoint >(m_bind_address,
+			m_target_port);
+	m_lpd_socket.async_receive_from(buffer(lpd_packet, 2048), *endpoint,
 			boost::bind(&UDPLPD::processReceived, this, placeholders::bytes_transferred, endpoint, lpd_packet));
 }
 
 void UDPLPD::startSend() {
-	std::clog << "[" << getServiceName() << "] Started sending broadcasts to: " << m_target_address << ":" << m_target_port << std::endl;
+	std::clog << "[" << getServiceName() << "] Started sending broadcasts to: " << m_target_address << ":"
+			<< m_target_port << std::endl;
 	send();
 }
 
 void UDPLPD::startReceive() {
-	std::clog << "[" << getServiceName() << "] Started receiving broadcasts from: " << m_target_address << ":" << m_target_port << std::endl;
+	std::clog << "[" << getServiceName() << "] Started receiving broadcasts from: " << m_target_address << ":"
+			<< m_target_port << std::endl;
 	receive();
 }
 
