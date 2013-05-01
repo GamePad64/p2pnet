@@ -23,7 +23,7 @@ namespace databases {
 
 class PersonalKeyStorage {
 	crypto::PrivateKeyDSA* my_private_key;
-	crypto::Hash* my_transport_hash;
+	peer::TH* my_transport_hash;
 
 protected:
 	PersonalKeyStorage();
@@ -44,7 +44,7 @@ public:
 	 * This function returns own transport hash from cache. If there is no such hash, then regenerate keys and hashes.
 	 * @return My transport hash
 	 */
-	crypto::Hash getMyTransportHash();
+	peer::TH getMyTransportHash();
 
 	crypto::PublicKeyDSA getMyPublicKey();
 	crypto::PrivateKeyDSA getMyPrivateKey();

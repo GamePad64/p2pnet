@@ -23,10 +23,33 @@ MessageGenerator::MessageGenerator() {
 }
 MessageGenerator::~MessageGenerator() {}
 
+protocol::p2pMessage MessageGenerator::generateMessage(peer::TH src_th, peer::TH dest_th,
+		protocol::p2pMessage_Payload payload) {
+	protocol::p2pMessage message;
+
+	message.mutable_header()->set_src_th(src_th.toBinaryString());
+	message.mutable_header()->set_dest_th(dest_th.toBinaryString());
+
+	message.mutable_payload() = payload;
+
+
+
+	return message;
+}
+
+protocol::p2pMessage MessageGenerator::generateMessage(peer::TH dest_th, protocol::p2pMessage_Payload payload) {
+	return generateMessage(pks->getMyTransportHash(), dest_th, payload);
+}
+
+// Payload generators
 protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangeRequestPayload() {
 	protocol::p2pMessage_Payload payload;
+	protocol::p2pMessage_Payload_KeyExchangeRequestPart key_exchange_request;
+
 	payload.set_message_type(protocol::p2pMessage_Payload_MessageType_KEY_EXCHANGE_REQUEST);
-	payload.mutable_key_exchange()->set_src_pubkey(pks->getMyPublicKey().toBinaryString());
+
+	key_exchange_request.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
+	payload.set_serialized_payload(key_exchange_request.SerializeAsString());
 	return payload;
 }
 
