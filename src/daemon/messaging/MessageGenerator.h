@@ -23,6 +23,13 @@ namespace messaging {
 
 class MessageGenerator {
 	static databases::PersonalKeyStorage* pks;
+
+	/**
+	 * This function concatenates message header with its payload and converts them into string, so we can use this string to compute CRC-32.
+	 * @param message Message, that we want to prepare for CRC-32.
+	 * @return String, that we pass to hashing function.
+	 */
+	std::string prepareForCRC32(const protocol::p2pMessage& message);
 public:
 	MessageGenerator();
 	virtual ~MessageGenerator();

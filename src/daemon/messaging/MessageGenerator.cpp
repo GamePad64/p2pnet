@@ -14,6 +14,7 @@
 
 #include "MessageGenerator.h"
 #include "../protobuf/Protocol.pb.h"
+#include "../../common/crypto/crc32.h"
 
 namespace p2pnet {
 namespace messaging {
@@ -23,16 +24,24 @@ MessageGenerator::MessageGenerator() {
 }
 MessageGenerator::~MessageGenerator() {}
 
+std::string MessageGenerator::prepareForCRC32(const protocol::p2pMessage& message) {
+	return message.header().SerializeAsString() + message.payload().SerializeAsString();
+}
+
 protocol::p2pMessage MessageGenerator::generateMessage(peer::TH src_th, peer::TH dest_th,
 		protocol::p2pMessage_Payload payload) {
 	protocol::p2pMessage message;
 
+	// Step I: Generating header, which consists of source end destination.
 	message.mutable_header()->set_src_th(src_th.toBinaryString());
 	message.mutable_header()->set_dest_th(dest_th.toBinaryString());
 
+	// Step II: Inserting payload into message.
 	message.mutable_payload() = payload;
 
-
+	// Step III: Concatenating header with payload and computing CRC-32.
+	//           Maybe, it will be CRC-32C in next releases, because it is CPU-accelerated in SSE4.2.
+	message.set_crc32(crypto::computeCRC32(prepareForCRC32(message)));
 
 	return message;
 }
