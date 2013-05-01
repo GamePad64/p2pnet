@@ -16,7 +16,7 @@
 #define PERSONALKEYSTORAGE_H_
 
 #include "../../common/crypto/PrivateKeyDSA.h"
-#include "../../common/crypto/Hash.h"
+#include "../peer/TH.h"
 
 namespace p2pnet {
 namespace databases {
