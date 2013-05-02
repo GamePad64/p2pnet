@@ -65,6 +65,19 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 
 		peer::TH th = peer::TH::compute(message.src_pubkey());
 
+		peer::Peer& peer_recv = m_netdb_storage.getPeer(th);
+
+		if( peer_recv.hasRoute(endpoint) ){
+			peer_recv.addRoute(endpoint);
+		}//else{
+			/*
+			 * This function should be called when we want to "bump" selected route,
+			 * so it is set to preferred.
+			 */
+		//	peer_recv.bumpRoute(endpoint);
+		//}
+
+		sendKeyExchangeMessage(endpoint, th);
 	} else {
 		// This packet is fake (or, maybe, corrupted)
 		std::clog << "[" << getServiceName() << "] Packet rejected." << std::endl;
@@ -91,7 +104,7 @@ messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
 
 	// We need to sign this message for security reasons.
 	std::string signature = pks->getMyPrivateKey().sign(pks->getMyPublicKey().toBinaryString());
-	message.set_pubkey_signature(signature);
+	message.set_signature(signature);
 
 	return message;
 }
@@ -99,7 +112,7 @@ messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
 bool UDPLPD::checkLPDMessage(const messaging::protocol::UDPLPDMessage& message){
 	crypto::PublicKeyDSA pubkey = crypto::PublicKeyDSA::fromBinaryString(message.src_pubkey());
 
-	return pubkey.validate() && pubkey.verify(message.src_pubkey(), message.pubkey_signature());
+	return pubkey.validate() && pubkey.verify(message.src_pubkey(), message.signature());
 }
 
 void UDPLPD::send() {

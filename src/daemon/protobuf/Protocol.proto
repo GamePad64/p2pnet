@@ -70,5 +70,5 @@ message UDPLPDMessage {
 	 */
 
 	required bytes src_pubkey = 3;
-	required bytes pubkey_signature = 4;
+	required bytes signature = 4;
 }
