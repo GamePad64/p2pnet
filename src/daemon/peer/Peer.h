@@ -38,8 +38,8 @@ public:
 
 	peer::TH getTransportHash(){return m_th;}
 
-	bool hasPublicKey(){return bool(m_key_public);};
-	const crypto::PublicKeyDSA getPublicKey(){return *m_key_public;}
+	bool hasPublicKey() const {return bool(m_key_public);};
+	const crypto::PublicKeyDSA getPublicKey() const {return *m_key_public;}
 	void setPublicKey(crypto::PublicKeyDSA& key_public){
 		crypto::PublicKeyDSA* pubkeydsa_ptr = new crypto::PublicKeyDSA(key_public);
 		m_key_public = std::unique_ptr<crypto::PublicKeyDSA>(pubkeydsa_ptr);
@@ -51,7 +51,7 @@ public:
 	std::list<net::TransportSocketEndpoint_s>& getAllRoutes() {
 		return m_transportroutes;
 	}
-	bool hasRoute(const net::TransportSocketEndpoint& route);
+	bool hasRoute(const net::TransportSocketEndpoint& route) const;
 	void addRoute(const net::TransportSocketEndpoint& route);
 
 	//void fromString(std::string peer_s);

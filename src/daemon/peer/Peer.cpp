@@ -20,7 +20,7 @@ namespace peer {
 Peer::Peer(peer::TH th) : m_th(th) {}
 Peer::~Peer() {}
 
-bool Peer::hasRoute(const net::TransportSocketEndpoint& route) {
+bool Peer::hasRoute(const net::TransportSocketEndpoint& route) const {
 	/*
 	 * Yes, it is a fucking scary function.
 	 * It uses protobuf serialization for comparison =(
