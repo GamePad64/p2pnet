@@ -15,12 +15,12 @@
 #ifndef PEER_H_
 #define PEER_H_
 
-#include "PeerRouteSet.h"
 #include "../net/TransportSocketLink.h"
 #include "../../common/crypto/PublicKeyDSA.h"
 #include "TH.h"
 #include <string>
 #include <memory>
+#include <list>
 
 namespace p2pnet {
 namespace peer {
@@ -29,7 +29,7 @@ class Peer {
 	peer::TH m_th;
 	std::unique_ptr<crypto::PublicKeyDSA> m_key_public;
 
-	PeerRouteSet m_routeset;
+	std::list<net::TransportSocketEndpoint::pointer> m_transportroutes;
 public:
 	typedef std::shared_ptr<Peer> pointer;
 
@@ -48,9 +48,10 @@ public:
 	/**
 	 * RouteSet of this peer
 	 */
-	PeerRouteSet& getPeerRouteSet() {
-		return m_routeset;
+	std::list<net::TransportSocketEndpoint::pointer>& getAllRoutes() {
+		return m_transportroutes;
 	}
+	bool hasRoute(const net::TransportSocketEndpoint& route);
 
 	//void fromString(std::string peer_s);
 	//std::string toString();

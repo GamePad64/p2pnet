@@ -34,7 +34,7 @@ RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(crypto::Hash relay_th
 		m_relay_th(relay_th) {
 }
 
-net::TransportSocketEndpoint_s RelayTransportSocketEndpoint::toProtobuf() {
+net::TransportSocketEndpoint_s RelayTransportSocketEndpoint::toProtobuf() const {
 	net::TransportSocketEndpoint_s tse_s;
 	tse_s.set_type(net::TransportSocketEndpoint_type::RELAY);
 
