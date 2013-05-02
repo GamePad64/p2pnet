@@ -15,6 +15,9 @@
 #ifndef CRC32_H_
 #define CRC32_H_
 
+#include <stdint.h>
+#include <string>
+
 namespace p2pnet {
 namespace crypto {
 
