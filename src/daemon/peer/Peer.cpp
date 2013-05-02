@@ -29,10 +29,14 @@ bool Peer::hasRoute(const net::TransportSocketEndpoint& route) {
 	auto route_s = route.toProtobuf();
 
 	for(auto &i : m_transportroutes){
-		if(route_s.SerializeAsString() == i->toProtobuf().SerializeAsString())
+		if(route_s.SerializeAsString() == i.SerializeAsString())
 			return true;
 	}
 	return false;
+}
+
+void Peer::addRoute(const net::TransportSocketEndpoint& route) {
+	m_transportroutes.push_front(route.toProtobuf());
 }
 
 } /* namespace peer */
