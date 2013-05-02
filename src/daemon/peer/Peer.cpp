@@ -24,7 +24,7 @@ bool Peer::hasRoute(const net::TransportSocketEndpoint& route) {
 	/*
 	 * Yes, it is a fucking scary function.
 	 * It uses protobuf serialization for comparison =(
-	 * It will be fixed, when we move the database handling to SQLite/
+	 * It will be fixed, when we move the database handling to SQLite.
 	 */
 	auto route_s = route.toProtobuf();
 

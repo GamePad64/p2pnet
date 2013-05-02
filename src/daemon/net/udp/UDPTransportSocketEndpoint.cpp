@@ -56,7 +56,7 @@ UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string ip, UDPTransp
 	this->setPort(port);
 };
 
-TransportSocketEndpoint_s UDPTransportSocketEndpoint::toProtobuf(){
+TransportSocketEndpoint_s UDPTransportSocketEndpoint::toProtobuf() const {
 	TransportSocketEndpoint_s tse_s;
 	tse_s.set_type(TransportSocketEndpoint_type::UDP);
 	tse_s.set_ip(getIP());

@@ -48,8 +48,8 @@ public:
 	}
 
 	// Routing database
-	bool hasPeer(crypto::Hash peer_id);
-	peer::Peer::pointer getPeer(crypto::Hash peer_id);
+	bool hasPeer(const peer::TH& peer_id);
+	peer::Peer::pointer getPeer(const peer::TH& peer_id);
 };
 
 typedef MapNetDBStorage< std::map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > StdMapNetDBStorage;

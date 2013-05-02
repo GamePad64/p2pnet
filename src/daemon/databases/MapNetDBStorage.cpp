@@ -25,12 +25,12 @@ MapNetDBStorage<peermap_t>::~MapNetDBStorage() {
 }
 
 template <typename peermap_t>
-bool MapNetDBStorage<peermap_t>::hasPeer(crypto::Hash peer_id) {
+bool MapNetDBStorage<peermap_t>::hasPeer(const peer::TH& peer_id) {
 	return m_peermap.count(peer_id.toBinaryVector()) > 0;
 }
 
 template <typename peermap_t>
-peer::Peer::pointer MapNetDBStorage<peermap_t>::getPeer(crypto::Hash peer_th) {
+peer::Peer::pointer MapNetDBStorage<peermap_t>::getPeer(const peer::TH& peer_th) {
 	return this->m_peermap[peer_th.toBinaryVector()];
 }
 
