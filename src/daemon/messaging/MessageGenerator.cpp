@@ -28,17 +28,14 @@ std::string MessageGenerator::prepareForCRC32(const protocol::p2pMessage& messag
 	return message.header().SerializeAsString() + message.payload().SerializeAsString();
 }
 
-protocol::p2pMessage MessageGenerator::generateMessage(peer::TH src_th, peer::TH dest_th,
-		protocol::p2pMessage_Payload payload) {
+protocol::p2pMessage MessageGenerator::generateMessage(const protocol::p2pMessage_Header& header,
+		const protocol::p2pMessage_Payload& payload) {
 	protocol::p2pMessage message;
 
-	// Step I: Generating header, which consists of source end destination.
-	message.mutable_header()->set_src_th(src_th.toBinaryString());
-	message.mutable_header()->set_dest_th(dest_th.toBinaryString());
-
+	// Step I: Inserting header into message.
+	*(message.mutable_header()) = header;
 	// Step II: Inserting payload into message.
-	message.mutable_payload() = payload;
-
+	*(message.mutable_payload()) = payload;
 	// Step III: Concatenating header with payload and computing CRC-32.
 	//           Maybe, it will be CRC-32C in next releases, because it is CPU-accelerated in SSE4.2.
 	message.set_crc32(crypto::computeCRC32(prepareForCRC32(message)));
@@ -46,23 +43,34 @@ protocol::p2pMessage MessageGenerator::generateMessage(peer::TH src_th, peer::TH
 	return message;
 }
 
-protocol::p2pMessage MessageGenerator::generateMessage(peer::TH dest_th, protocol::p2pMessage_Payload payload) {
+protocol::p2pMessage MessageGenerator::generateMessage(const peer::TH& src_th,
+		const peer::TH& dest_th,
+		const protocol::p2pMessage_Payload& payload) {
+	// Step N: Generating header, which consists of source end destination.
+	protocol::p2pMessage_Header header;
+	header.set_src_th(src_th.toBinaryString());
+	header.set_dest_th(dest_th.toBinaryString());
+
+	return generateMessage(header, payload);
+}
+
+protocol::p2pMessage MessageGenerator::generateMessage(const peer::TH& dest_th,
+		const protocol::p2pMessage_Payload& payload) {
 	return generateMessage(pks->getMyTransportHash(), dest_th, payload);
 }
 
 // Payload generators
-protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangeRequestPayload() {
+protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangePayload() {
 	protocol::p2pMessage_Payload payload;
-	protocol::p2pMessage_Payload_KeyExchangeRequestPart key_exchange_request;
+	protocol::p2pMessage_Payload_KeyExchangePart key_exchange;
 
-	payload.set_message_type(protocol::p2pMessage_Payload_MessageType_KEY_EXCHANGE_REQUEST);
+	payload.set_message_type(protocol::p2pMessage_Payload_MessageType_KEY_EXCHANGE);
 
-	key_exchange_request.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
-	payload.set_serialized_payload(key_exchange_request.SerializeAsString());
+	key_exchange.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
+	key_exchange.set_signature(pks->getMyPrivateKey().sign(pks->getMyPublicKey().toBinaryString()));// OPTIMIZE: cache this message, or we will sign new message every time we receive request.
+
+	payload.set_serialized_payload(key_exchange.SerializeAsString());
 	return payload;
-}
-
-protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangeResponsePayload() {
 }
 
 protocol::p2pMessage_Payload MessageGenerator::generateAgreementPayload() {

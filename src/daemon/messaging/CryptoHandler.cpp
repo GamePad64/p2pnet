@@ -42,7 +42,7 @@ void CryptoHandler::receivedMessage(net::MessageBundle message_bundle) {
 	protocol::p2pMessage message;
 
 	message.ParseFromString(message_bundle.message);
-	if (message.payload().message_type() == protocol::p2pMessage::Payload::MessageType::p2pMessage_Payload_MessageType_KEY_EXCHANGE_REQUEST) {
+	if (message.payload().message_type() == protocol::p2pMessage::Payload::MessageType::p2pMessage_Payload_MessageType_KEY_EXCHANGE) {
 		processAgreement(message, message_bundle);
 	}
 
