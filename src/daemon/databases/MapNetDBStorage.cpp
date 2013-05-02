@@ -30,8 +30,8 @@ bool MapNetDBStorage<peermap_t>::hasPeer(const peer::TH& peer_id) {
 }
 
 template <typename peermap_t>
-peer::Peer::pointer MapNetDBStorage<peermap_t>::getPeer(const peer::TH& peer_th) {
-	return this->m_peermap[peer_th.toBinaryVector()];
+peer::Peer& MapNetDBStorage<peermap_t>::getPeer(const peer::TH& peer_th) {
+	return *(m_peermap[peer_th.toBinaryVector()]);
 }
 
 template class MapNetDBStorage<std::map<crypto::Hash::binary_vector_t, peer::Peer::pointer> > ;
