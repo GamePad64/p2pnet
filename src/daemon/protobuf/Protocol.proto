@@ -30,21 +30,17 @@ message p2pMessage {
 			ONION = 1;
 
 			// Key exchange cryptographic messages.
-			KEY_EXCHANGE_REQUEST = 2;
-			KEY_EXCHANGE_RESPONSE = 3;
-			AGREEMENT = 4;
+			KEY_EXCHANGE = 2;
+			AGREEMENT = 3;
 		}
 
 		optional MessageType message_type = 1 [default = DATA];
 
 		// End of MessageType section.
 
-		message KeyExchangeRequestPart {
+		message KeyExchangePart {
 			required bytes src_pubkey = 1;
-		}
-
-		message KeyExchangeResponsePart {
-			required bytes src_pubkey = 1;
+			required bytes signature = 2;
 		}
 
 		message AgreementPart {
@@ -67,6 +63,12 @@ message UDPLPDMessage {
 	required uint32 port = 1;
 	optional uint32 version = 2;
 
-	required bytes src_th = 3;
-	required bytes src_pubkey = 4;
+	/*
+	 * Earlier, there was only TH, not pubkey. But now, we will send pubkey+signature, so we could trust this peer from NOW.
+	 * But, there is spoofing danger. Attacker could read real genuine UDPLPD message and retranslate to us.
+	 * So, additional authentication is needed. It will be commited after establishing ECDSA-encrypted connection.
+	 */
+
+	required bytes src_pubkey = 3;
+	required bytes pubkey_signature = 4;
 }
