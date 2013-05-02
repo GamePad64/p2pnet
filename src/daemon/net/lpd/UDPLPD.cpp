@@ -17,6 +17,8 @@
 #include "../udp/UDPTransportSocket.h"
 #include "../../protobuf/Protocol.pb.h"
 #include "../../databases/PersonalKeyStorage.h"
+#include "../../messaging/MessageGenerator.h"
+#include "../../peer/TH.h"
 
 namespace p2pnet {
 namespace net {
@@ -44,31 +46,25 @@ void UDPLPD::waitBeforeSend() {
 	m_timer.async_wait(boost::bind(&UDPLPD::send, this));
 }
 
-void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > endpoint, char* recv_buffer) {
+void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > asio_endpoint, char* recv_buffer) {
 	// We received message, continue receiving others
 	receive();
 
 	// Create Protocol Buffer message
-	messaging::protocol::UDPLPDMessage recv_message;
-	recv_message.ParseFromString(std::string(recv_buffer, bytes));
+	messaging::protocol::UDPLPDMessage message;
+	message.ParseFromString(std::string(recv_buffer, bytes));
 	// EXCEPTION: Corrupted packet! UDP protobuf message has required fields and can throw exception if the message is incomplete.
 
-	std::clog << "[" << getServiceName() << "] Local <- " << endpoint->address().to_string() << ":"
-			<< recv_message.port() << std::endl;
+	std::clog << "[" << getServiceName() << "] Local <- " << asio_endpoint->address().to_string() << ":"
+			<< message.port() << std::endl;
 
-	// We check this TH/Pubkey pair for validity.
-	crypto::PublicKeyDSA pubkey = crypto::PublicKeyDSA::fromBinaryString(recv_message.src_pubkey());
-	crypto::Hash h = crypto::Hash::fromBinaryString(recv_message.src_th());
+	if (checkLPDMessage(message)) {
+		// Converting Boost::asio endpoint representation to string, so we could pass it as an argument to our network backend.
+		std::string received_address = asio_endpoint->address().to_string();
+		net::UDPTransportSocketEndpoint endpoint(received_address, message.port());
 
-	if (pubkey.validate() && h.check(recv_message.src_pubkey())) {
-		// We checked TH/Pubkey pair and now we are sure, that this TH is not fake.
+		peer::TH th = peer::TH::compute(message.src_pubkey());
 
-		std::string received_address = endpoint->address().to_string();
-		net::UDPTransportSocketEndpoint received_endpoint(received_address, recv_message.port());
-
-		//m_udp_socket.hereSendTo(received_endpoint, parser.generateAgreementMessage().SerializeAsString());
-		std::clog << "[" << getServiceName() << "] Sent agreement request to " << received_endpoint.getIP()
-				<< std::endl;
 	} else {
 		// This packet is fake (or, maybe, corrupted)
 		std::clog << "[" << getServiceName() << "] Packet rejected." << std::endl;
@@ -77,15 +73,33 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 	delete[] recv_buffer;
 }
 
+void UDPLPD::sendKeyExchangeMessage(net::UDPTransportSocketEndpoint& endpoint, const peer::TH& dest_th){
+	messaging::MessageGenerator generator;
+	auto message = generator.generateMessage(dest_th, generator.generateKeyExchangePayload());
+
+	m_udp_socket.hereSendTo(endpoint, message.SerializeAsString());
+	std::clog << "[" << getServiceName() << "] Sent agreement request to " << endpoint.getIP() << std::endl;
+}
+
 messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
 	databases::PersonalKeyStorage* pks = databases::PersonalKeyStorage::getInstance();
 
 	messaging::protocol::UDPLPDMessage message;
-	message.set_src_th(pks->getMyTransportHash().toBinaryString());
-	message.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
 	message.set_port(getUDPPort());
 
+	message.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
+
+	// We need to sign this message for security reasons.
+	std::string signature = pks->getMyPrivateKey().sign(pks->getMyPublicKey().toBinaryString());
+	message.set_pubkey_signature(signature);
+
 	return message;
+}
+
+bool UDPLPD::checkLPDMessage(const messaging::protocol::UDPLPDMessage& message){
+	crypto::PublicKeyDSA pubkey = crypto::PublicKeyDSA::fromBinaryString(message.src_pubkey());
+
+	return pubkey.validate() && pubkey.verify(message.src_pubkey(), message.pubkey_signature());
 }
 
 void UDPLPD::send() {

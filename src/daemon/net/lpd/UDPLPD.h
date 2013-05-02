@@ -32,14 +32,30 @@ namespace lpd {
 
 class UDPLPD: public p2pnet::net::lpd::GenericLPD {
 	void waitBeforeSend();
+	/**
+	 * This function is invoked on receiving packets. It must perform necessary checks for packet integrity.
+	 * Its arguments are from asio::socket, as it works as callback.
+	 */
 	void processReceived(size_t bytes, std::shared_ptr<ip::udp::endpoint> endpoint, char* recv_buffer);
+
+	void sendKeyExchangeMessage(net::UDPTransportSocketEndpoint& endpoint, const peer::TH& dest_th);
+
+	/**
+	 * Message to be sent to UDP multicast.
+	 * @return Protobuf structure, ready to be serialized.
+	 */
 	messaging::protocol::UDPLPDMessage generateLPDMessage();
+	bool checkLPDMessage(const messaging::protocol::UDPLPDMessage& message);
 
 protected:
 	Config& m_config;
 
 	io_service& m_io_service;
 
+	/**
+	 * This function is virtual, so it returns UDP port for given protocol, for IPv4 or IPv6.
+	 * @return
+	 */
 	virtual unsigned short getUDPPort() = 0;
 
 	/**
