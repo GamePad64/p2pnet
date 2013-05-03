@@ -25,9 +25,9 @@ namespace messaging {
 class CryptoHandler : public MessageHandler {
 	void processAgreement(protocol::p2pMessage parsed_message, net::MessageBundle message_bundle);
 
-	databases::NetDBStorage* m_netdb_storage;
+	databases::NetDBStorage& m_netdb_storage;
 public:
-	CryptoHandler(databases::NetDBStorage* netdb_storage);
+	CryptoHandler(databases::NetDBStorage& netdb_storage);
 	virtual ~CryptoHandler();
 
 	virtual void receivedMessage(net::MessageBundle message_bundle);

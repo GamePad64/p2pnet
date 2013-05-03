@@ -13,6 +13,7 @@
  */
 
 #include "Peer.h"
+#include <iostream>
 
 namespace p2pnet {
 namespace peer {
@@ -20,23 +21,27 @@ namespace peer {
 Peer::Peer(peer::TH th) : m_th(th) {}
 Peer::~Peer() {}
 
-bool Peer::hasRoute(const net::TransportSocketEndpoint& route) const {
+bool Peer::hasRoute(const net::TransportSocketEndpoint& route) {
 	/*
 	 * Yes, it is a fucking scary function.
 	 * It uses protobuf serialization for comparison =(
 	 * It will be fixed, when we move the database handling to SQLite.
 	 */
 	auto route_s = route.toProtobuf();
+	std::string route_str = route_s.SerializeAsString();
 
-	for(auto &i : m_transportroutes){
-		if(route_s.SerializeAsString() == i.SerializeAsString())
+	auto i = getAllRoutes().begin();
+
+	while(i != getAllRoutes().end()){
+		if(route_str == *i)
 			return true;
+		i++;
 	}
 	return false;
 }
 
 void Peer::addRoute(const net::TransportSocketEndpoint& route) {
-	m_transportroutes.push_front(route.toProtobuf());
+	getAllRoutes().push_front(route.toProtobuf().SerializeAsString());
 }
 
 } /* namespace peer */

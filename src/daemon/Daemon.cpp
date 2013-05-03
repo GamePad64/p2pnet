@@ -19,14 +19,12 @@
 namespace p2pnet {
 
 Daemon::Daemon() : m_handler_crypto(m_netdb_storage),
-		m_lpd_udpv4(config, m_socket_udpv4, *m_netdb_storage),
-		m_lpd_udpv6(config, m_socket_udpv6, *m_netdb_storage){
-	m_netdb_storage = new databases::BMapNetDBStorage();
+		m_lpd_udpv4(config, m_socket_udpv4, m_netdb_storage),
+		m_lpd_udpv6(config, m_socket_udpv6, m_netdb_storage){
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 }
 Daemon::~Daemon() {
 	delete m_pk_storage;
-	delete m_netdb_storage;
 }
 
 void Daemon::run(){

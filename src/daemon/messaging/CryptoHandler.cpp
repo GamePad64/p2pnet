@@ -20,9 +20,7 @@
 namespace p2pnet {
 namespace messaging {
 
-CryptoHandler::CryptoHandler(databases::NetDBStorage* netdb_storage) {
-	m_netdb_storage = netdb_storage;
-}
+CryptoHandler::CryptoHandler(databases::NetDBStorage& netdb_storage) : m_netdb_storage(netdb_storage) {}
 CryptoHandler::~CryptoHandler() {
 }
 

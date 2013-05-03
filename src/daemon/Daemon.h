@@ -32,7 +32,7 @@ class Daemon {
 public:
 	Config config;
 
-	databases::NetDBStorage* m_netdb_storage;
+	databases::StdMapNetDBStorage m_netdb_storage;
 	databases::PersonalKeyStorage* m_pk_storage;
 
 	net::UDPTransportSocket m_socket_udpv4;
