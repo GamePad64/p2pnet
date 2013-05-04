@@ -65,13 +65,13 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 
 		peer::TH th = peer::TH::compute(message.src_pubkey());
 
-		if(m_netdb_storage.hasPeer(th)){
+		if(! m_netdb_storage.hasPeer(th)){
 			std::clog << "[" << getServiceName() << "] Discovered peer: " << th.toBase58() << std::endl;
 		}
 
 		peer::Peer& peer_recv = m_netdb_storage.getPeer(th);
 
-		if( peer_recv.hasRoute(endpoint) ){
+		if(! peer_recv.hasRoute(endpoint) ){
 			peer_recv.addRoute(endpoint);
 		}//else{
 			/*
