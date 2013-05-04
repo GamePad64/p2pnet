@@ -64,18 +64,18 @@ private:
 	 * Set of pointers to TransportSocketListener, like an array from GoF.
 	 * These will be updated of a message is sent or received on this socket.
 	 */
-	std::set<TransportSocketListener*> m_listenerlist;
+	std::list<TransportSocketListener*> m_listenerlist;
 public:
 	/**
 	 * Adds listener to list to be updated on send/receive events.
 	 * @param listener Pointer to TransportSocketListener.
 	 */
-	void addListener(TransportSocketListener* listener){m_listenerlist.insert(listener);};
+	void addListener(TransportSocketListener* listener){m_listenerlist.push_back(listener);};
 	/**
 	 * Prevents listener from updating by this socket.
 	 * @param listener
 	 */
-	void removeListener(TransportSocketListener* listener){m_listenerlist.erase(listener);};
+	void removeListener(TransportSocketListener* listener){m_listenerlist.remove(listener);};
 	void updateOnReceive(MessageBundle bundle);
 	void updateOnSend(MessageBundle bundle);
 };
