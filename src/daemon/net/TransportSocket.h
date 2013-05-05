@@ -18,7 +18,7 @@
 #include "TransportSocketLink.h"
 
 #include <string>
-#include <set>
+#include <list>
 #include <memory>
 
 namespace p2pnet {
