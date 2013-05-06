@@ -30,8 +30,8 @@ message p2pMessage {
 			ONION = 1;
 
 			// Key exchange cryptographic messages.
-			KEY_EXCHANGE = 2;
-			AGREEMENT = 3;
+			KEY_EXCHANGE = 2;	// Not encrypted
+			AGREEMENT = 3;	// Not encrypted
 		}
 
 		optional MessageType message_type = 1 [default = DATA];
@@ -41,6 +41,7 @@ message p2pMessage {
 		message KeyExchangePart {
 			required bytes src_pubkey = 1;
 			required bytes signature = 2;
+			optional bool response_expected = 3 [default = false];
 		}
 
 		message AgreementPart {

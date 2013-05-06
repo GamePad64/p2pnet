@@ -1,4 +1,4 @@
-P2PNet Distributed Services
+P2PNet Distributed Services {#mainpage}
 ===========================
 
 What is P2PNet?

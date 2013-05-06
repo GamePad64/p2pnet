@@ -15,15 +15,25 @@
 #ifndef MESSAGESOCKET_H_
 #define MESSAGESOCKET_H_
 
+#include "../databases/PersonalKeyStorage.h"
+#include "MessageGenerator.h"
+#include "../net/TransportSocketListener.h"
+
 namespace p2pnet {
 namespace messaging {
 
-class MessageSocket {
+class MessageSocket : public net::TransportSocketListener {
 	databases::PersonalKeyStorage* m_pks;
 	MessageGenerator m_generator;
+
+	bool handleCrypto();
 public:
 	MessageSocket();
 	virtual ~MessageSocket();
+
+	// TransportSocketListener functions.
+	virtual void receivedMessage(net::MessageBundle message_bundle);
+	virtual void sentMessage(net::MessageBundle message_bundle);
 
 
 };

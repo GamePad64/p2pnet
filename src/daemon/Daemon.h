@@ -35,10 +35,12 @@ public:
 	databases::StdMapNetDBStorage m_netdb_storage;
 	databases::PersonalKeyStorage* m_pk_storage;
 
-	net::UDPTransportSocket m_socket_udpv4;
-	net::UDPTransportSocket m_socket_udpv6;
+	// TransportSocket
+	net::UDPTransportSocket m_transport_socket_udpv4;
+	net::UDPTransportSocket m_transport_socket_udpv6;
 
-	messaging::CryptoHandler m_handler_crypto;
+	// MessageSocket
+	messaging::MessageSocket m_message_socket;
 
 	net::lpd::UDPLPDv4 m_lpd_udpv4;
 	net::lpd::UDPLPDv6 m_lpd_udpv6;

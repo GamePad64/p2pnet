@@ -28,6 +28,12 @@ std::string MessageGenerator::prepareForCRC32(const protocol::p2pMessage& messag
 	return message.header().SerializeAsString() + message.payload().SerializeAsString();
 }
 
+bool MessageGenerator::checkMessageCRC32(protocol::p2pMessage message){
+	auto crc32_real = crypto::computeCRC32(prepareForCRC32(message));
+	auto crc32_message = message.crc32();
+	return (crc32_real == crc32_message);
+}
+
 protocol::p2pMessage MessageGenerator::generateMessage(const protocol::p2pMessage_Header& header,
 		const protocol::p2pMessage_Payload& payload) {
 	protocol::p2pMessage message;

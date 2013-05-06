@@ -25,5 +25,26 @@ MessageSocket::~MessageSocket() {
 	// TODO Auto-generated destructor stub
 }
 
+void MessageSocket::receivedMessage(net::MessageBundle message_bundle) {
+	protocol::p2pMessage message_orig, message_new;
+	message_orig.ParseFromString(message_bundle.message);
+
+	message_new = message_orig;
+
+	if(! m_generator.checkMessageCRC32(message_orig)){
+		std::clog << "[MessageSocket] Rejected message: CRC-32 mismatch." << std::endl;
+		return;	// Drop!
+	}
+
+	if(message_orig.payload().message_type() == protocol::p2pMessage_Payload_MessageType_KEY_EXCHANGE ||
+			message_orig.payload().message_type() == protocol::p2pMessage_Payload_MessageType_AGREEMENT){
+
+	}
+
+}
+
+void MessageSocket::sentMessage(net::MessageBundle message_bundle) {
+}
+
 } /* namespace messaging */
 } /* namespace p2pnet */

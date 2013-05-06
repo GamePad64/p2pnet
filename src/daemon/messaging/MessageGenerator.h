@@ -37,6 +37,8 @@ public:
 	MessageGenerator();
 	virtual ~MessageGenerator();
 
+	bool checkMessageCRC32(protocol::p2pMessage message);
+
 	/**
 	 * This generates message ready to be sent over p2p tunnel.
 	 * This version can be used when we are relaying a message or sending a message by ourselves.

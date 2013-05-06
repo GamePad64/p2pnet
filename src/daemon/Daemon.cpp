@@ -19,8 +19,8 @@
 namespace p2pnet {
 
 Daemon::Daemon() : m_handler_crypto(m_netdb_storage),
-		m_lpd_udpv4(config, m_socket_udpv4, m_netdb_storage),
-		m_lpd_udpv6(config, m_socket_udpv6, m_netdb_storage){
+		m_lpd_udpv4(config, m_transport_socket_udpv4, m_netdb_storage),
+		m_lpd_udpv6(config, m_transport_socket_udpv6, m_netdb_storage){
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 }
 Daemon::~Daemon() {
@@ -37,13 +37,13 @@ void Daemon::initializeSockets() {
 	if(config.getConfig().get("net.sockets.udpv4.enable", true)){
 		try {
 			unsigned short int port_v4 = config.getConfig().get("net.sockets.udpv4.port", 2185);
-			m_socket_udpv4.bindLocalIPv4(port_v4);
+			m_transport_socket_udpv4.bindLocalIPv4(port_v4);
 
 			// Here we add listeners to sockets. Basically, when we expand our protocol, we should add new listeners.
-			m_socket_udpv4.addListener(&m_handler_crypto);
+			m_transport_socket_udpv4.addListener(&m_handler_crypto);
 
 			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv4.bind", "0.0.0.0"), port_v4);
-			m_socket_udpv4.asyncReceiveFrom(endpoint);
+			m_transport_socket_udpv4.asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv4 UDP socket. Exception caught: " << e.what() << std::endl;
 		}
@@ -52,13 +52,13 @@ void Daemon::initializeSockets() {
 	if(config.getConfig().get("net.sockets.udpv6.enable", true)){
 		try {
 			unsigned short int port_v6 = config.getConfig().get("net.sockets.udpv6.port", 2185);
-			m_socket_udpv6.bindLocalIPv6(port_v6);
+			m_transport_socket_udpv6.bindLocalIPv6(port_v6);
 
 
-			m_socket_udpv6.addListener(&m_handler_crypto);
+			m_transport_socket_udpv6.addListener(&m_handler_crypto);
 
 			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), port_v6);
-			m_socket_udpv6.asyncReceiveFrom(endpoint);
+			m_transport_socket_udpv6.asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv6 UDP socket. Exception caught: " << e.what() << std::endl;
 		}
