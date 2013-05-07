@@ -19,7 +19,7 @@
 #include "AsioIOService.h"
 #include "databases/MapNetDBStorage.h"
 #include "databases/PersonalKeyStorage.h"
-#include "messaging/CryptoHandler.h"
+#include "messaging/MessageSocket.h"
 #include "net/udp/UDPTransportSocket.h"
 #include "net/lpd/UDPLPDv4.h"
 #include "net/lpd/UDPLPDv6.h"
@@ -27,8 +27,9 @@
 namespace p2pnet {
 
 class Daemon {
-	void initializeSockets();
-	void runLPD();
+	void initTransportSockets();
+	void initMessageSocket();
+	void initLPD();
 public:
 	Config config;
 
@@ -41,6 +42,9 @@ public:
 
 	// MessageSocket
 	messaging::MessageSocket m_message_socket;
+
+	// MessageHandler
+	messaging::handlers::MessageHandler crc32_handler;
 
 	net::lpd::UDPLPDv4 m_lpd_udpv4;
 	net::lpd::UDPLPDv6 m_lpd_udpv6;

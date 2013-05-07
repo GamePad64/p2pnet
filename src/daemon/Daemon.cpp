@@ -18,8 +18,7 @@
 
 namespace p2pnet {
 
-Daemon::Daemon() : m_handler_crypto(m_netdb_storage),
-		m_lpd_udpv4(config, m_transport_socket_udpv4, m_netdb_storage),
+Daemon::Daemon() : m_lpd_udpv4(config, m_transport_socket_udpv4, m_netdb_storage),
 		m_lpd_udpv6(config, m_transport_socket_udpv6, m_netdb_storage){
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 }
@@ -28,19 +27,20 @@ Daemon::~Daemon() {
 }
 
 void Daemon::run(){
-	this->initializeSockets();
-	this->runLPD();
+	this->initTransportSockets();
+	this->initMessageSocket();
+	this->initLPD();
 	AsioIOService::getIOService().run();
 }
 
-void Daemon::initializeSockets() {
+void Daemon::initTransportSockets() {
 	if(config.getConfig().get("net.sockets.udpv4.enable", true)){
 		try {
 			unsigned short int port_v4 = config.getConfig().get("net.sockets.udpv4.port", 2185);
 			m_transport_socket_udpv4.bindLocalIPv4(port_v4);
 
 			// Here we add listeners to sockets. Basically, when we expand our protocol, we should add new listeners.
-			m_transport_socket_udpv4.addListener(&m_handler_crypto);
+			m_transport_socket_udpv4.addListener(&m_message_socket);
 
 			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv4.bind", "0.0.0.0"), port_v4);
 			m_transport_socket_udpv4.asyncReceiveFrom(endpoint);
@@ -55,7 +55,7 @@ void Daemon::initializeSockets() {
 			m_transport_socket_udpv6.bindLocalIPv6(port_v6);
 
 
-			m_transport_socket_udpv6.addListener(&m_handler_crypto);
+			m_transport_socket_udpv6.addListener(&m_message_socket);
 
 			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), port_v6);
 			m_transport_socket_udpv6.asyncReceiveFrom(endpoint);
@@ -65,7 +65,11 @@ void Daemon::initializeSockets() {
 	}
 }
 
-void Daemon::runLPD() {
+void Daemon::initMessageSocket(){
+	m_message_socket.addHandler(&crc32_handler);
+}
+
+void Daemon::initLPD() {
 	m_lpd_udpv4.startReceive();
 	m_lpd_udpv6.startReceive();
 

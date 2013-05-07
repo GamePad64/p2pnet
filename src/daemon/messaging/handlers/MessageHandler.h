@@ -27,6 +27,7 @@ class MessageSocket;
 class MessageHandler {
 protected:
 	MessageSocket* m_socket_ptr;
+	databases::PersonalKeyStorage* m_pks;
 
 	struct MessageProps {
 		/**
@@ -55,7 +56,10 @@ protected:
 
 	MessageGenerator m_generator;
 public:
-	MessageHandler(MessageSocket* socket_ptr){m_socket_ptr = socket_ptr;}
+	MessageHandler(MessageSocket* socket_ptr){
+		m_socket_ptr = socket_ptr;
+		m_pks = databases::PersonalKeyStorage::getInstance();
+	}
 	virtual ~MessageHandler(){}
 
 	virtual void processReceivedMessage(protocol::p2pMessage& message, MessageProps& message_props){}
