@@ -12,8 +12,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESSAGESOCKET_H_
-#define MESSAGESOCKET_H_
+#ifndef TRANSPORTSOCKET_H_
+#define TRANSPORTSOCKET_H_
 
 #include "TransportSocketLink.h"
 
@@ -82,4 +82,4 @@ public:
 
 } /* namespace net */
 } /* namespace p2pnet */
-#endif /* MESSAGESOCKET_H_ */
+#endif /* TRANSPORTSOCKET_H_ */
