@@ -15,9 +15,12 @@
 #ifndef MESSAGESOCKET_H_
 #define MESSAGESOCKET_H_
 
+#include "MessageHandler.h"
+
 #include "../databases/PersonalKeyStorage.h"
 #include "MessageGenerator.h"
 #include "../net/TransportSocketListener.h"
+#include <list>
 
 namespace p2pnet {
 namespace messaging {
@@ -26,7 +29,9 @@ class MessageSocket : public net::TransportSocketListener {
 	databases::PersonalKeyStorage* m_pks;
 	MessageGenerator m_generator;
 
-	bool handleCrypto();
+	std::list<handlers::MessageHandler*> m_handler_list;
+
+	void processReceivedMessage(protocol::p2pMessage message);
 public:
 	MessageSocket();
 	virtual ~MessageSocket();
@@ -35,7 +40,8 @@ public:
 	virtual void receivedMessage(net::MessageBundle message_bundle);
 	virtual void sentMessage(net::MessageBundle message_bundle);
 
-
+	void addHandler(handlers::MessageHandler* handler_ptr);
+	void removeHandler(handlers::MessageHandler* handler_ptr);
 };
 
 } /* namespace messaging */

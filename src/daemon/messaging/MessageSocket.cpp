@@ -13,6 +13,7 @@
  */
 
 #include "MessageSocket.h"
+#include <iostream>
 
 namespace p2pnet {
 namespace messaging {
@@ -21,29 +22,40 @@ MessageSocket::MessageSocket() {
 	m_pks = databases::PersonalKeyStorage::getInstance();
 }
 
-MessageSocket::~MessageSocket() {
-	// TODO Auto-generated destructor stub
-}
+MessageSocket::~MessageSocket() {}
 
 void MessageSocket::receivedMessage(net::MessageBundle message_bundle) {
-	protocol::p2pMessage message_orig, message_new;
-	message_orig.ParseFromString(message_bundle.message);
+	protocol::p2pMessage message;
+	message.ParseFromString(message_bundle.message);
 
-	message_new = message_orig;
+	// TODO: Add this TransportSocketLink to database.
 
-	if(! m_generator.checkMessageCRC32(message_orig)){
-		std::clog << "[MessageSocket] Rejected message: CRC-32 mismatch." << std::endl;
-		return;	// Drop!
-	}
-
-	if(message_orig.payload().message_type() == protocol::p2pMessage_Payload_MessageType_KEY_EXCHANGE ||
-			message_orig.payload().message_type() == protocol::p2pMessage_Payload_MessageType_AGREEMENT){
-
-	}
-
+	processReceivedMessage(message);
 }
 
 void MessageSocket::sentMessage(net::MessageBundle message_bundle) {
+}
+
+void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
+	handlers::MessageHandler::MessageProps message_props;
+	message_props.repeat = false;
+
+	do {
+		for(auto handler : m_handler_list){
+			handler->processReceivedMessage(message, message_props);
+			if(message_props.skip){
+				break;
+			}
+		}
+	} while(message_props.repeat);
+}
+
+void MessageSocket::addHandler(handlers::MessageHandler* handler_ptr) {
+	m_handler_list.push_back(handler_ptr);
+}
+
+void MessageSocket::removeHandler(handlers::MessageHandler* handler_ptr) {
+	m_handler_list.remove(handler_ptr);
 }
 
 } /* namespace messaging */
