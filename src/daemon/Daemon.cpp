@@ -25,7 +25,7 @@ Daemon::Daemon() : crc32_handler(&m_message_socket),
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 }
 Daemon::~Daemon() {
-	delete m_pk_storage;
+	databases::PersonalKeyStorage::clear();
 }
 
 void Daemon::run(){

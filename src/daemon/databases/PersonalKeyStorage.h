@@ -17,25 +17,17 @@
 
 #include "../../common/crypto/PrivateKeyDSA.h"
 #include "../peer/TH.h"
+#include "../Singleton.h"
 
 namespace p2pnet {
 namespace databases {
 
-class PersonalKeyStorage {
+class PersonalKeyStorage : public Singleton<PersonalKeyStorage>{
 	crypto::PrivateKeyDSA* my_private_key;
 	peer::TH* my_transport_hash;
 
-protected:
-	PersonalKeyStorage();
-
 public:
-	static PersonalKeyStorage* getInstance(){
-		static PersonalKeyStorage* instance;
-		if(!instance){
-			instance = new PersonalKeyStorage();
-		}
-		return instance;
-	}
+	PersonalKeyStorage();
 	virtual ~PersonalKeyStorage();
 
 	void regenerateKeys();
