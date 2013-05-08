@@ -21,7 +21,7 @@ namespace p2pnet {
 namespace messaging {
 namespace handlers {
 
-class RelayHandler : MessageHandler {
+class RelayHandler : public MessageHandler {
 public:
 	RelayHandler(MessageSocket* socket_ptr);
 	virtual ~RelayHandler();

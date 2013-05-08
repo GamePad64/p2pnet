@@ -19,6 +19,7 @@
 namespace p2pnet {
 
 Daemon::Daemon() : crc32_handler(&m_message_socket),
+		relay_handler(&m_message_socket),
 		m_lpd_udpv4(config, m_transport_socket_udpv4, m_netdb_storage),
 		m_lpd_udpv6(config, m_transport_socket_udpv6, m_netdb_storage){
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
@@ -68,6 +69,7 @@ void Daemon::initTransportSockets() {
 
 void Daemon::initMessageSocket(){
 	m_message_socket.addHandler(&crc32_handler);
+	m_message_socket.addHandler(&relay_handler);
 }
 
 void Daemon::initLPD() {

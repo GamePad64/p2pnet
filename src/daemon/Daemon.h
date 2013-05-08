@@ -19,7 +19,11 @@
 #include "AsioIOService.h"
 #include "databases/MapNetDBStorage.h"
 #include "databases/PersonalKeyStorage.h"
+
 #include "messaging/MessageSocket.h"
+#include "messaging/handlers/CRC32Handler.h"
+#include "messaging/handlers/RelayHandler.h"
+
 #include "net/udp/UDPTransportSocket.h"
 #include "net/lpd/UDPLPDv4.h"
 #include "net/lpd/UDPLPDv6.h"
@@ -44,7 +48,8 @@ public:
 	messaging::MessageSocket m_message_socket;
 
 	// MessageHandler
-	messaging::handlers::MessageHandler crc32_handler;
+	messaging::handlers::CRC32Handler crc32_handler;
+	messaging::handlers::RelayHandler relay_handler;
 
 	net::lpd::UDPLPDv4 m_lpd_udpv4;
 	net::lpd::UDPLPDv6 m_lpd_udpv6;
