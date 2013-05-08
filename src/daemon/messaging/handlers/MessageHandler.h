@@ -16,20 +16,31 @@
 #define MESSAGEHANDLER_H_
 
 #include "../../protobuf/Protocol.pb.h"
+#include "../../databases/PersonalKeyStorage.h"
+#include "../MessageGenerator.h"
 #include <memory>
 
 namespace p2pnet {
 namespace messaging {
-namespace handlers {
 
 class MessageSocket;
+
+namespace handlers {
 
 class MessageHandler {
 protected:
 	MessageSocket* m_socket_ptr;
 	databases::PersonalKeyStorage* m_pks;
 
-	struct MessageProps {
+	MessageGenerator m_generator;
+public:
+	MessageHandler(MessageSocket* socket_ptr){
+		m_socket_ptr = socket_ptr;
+		m_pks = databases::PersonalKeyStorage::getInstance();
+	}
+	virtual ~MessageHandler(){}
+
+	struct MessageState {
 		/**
 		 * bool changed;
 		 * Message contents were changed previously.
@@ -54,16 +65,8 @@ protected:
 		bool skip;
 	};
 
-	MessageGenerator m_generator;
-public:
-	MessageHandler(MessageSocket* socket_ptr){
-		m_socket_ptr = socket_ptr;
-		m_pks = databases::PersonalKeyStorage::getInstance();
-	}
-	virtual ~MessageHandler(){}
-
-	virtual void processReceivedMessage(protocol::p2pMessage& message, MessageProps& message_props){}
-	virtual void processSentMessage(protocol::p2pMessage& message, MessageProps& message_props){}	// Well, not used usually.
+	virtual void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_props){}
+	virtual void processSentMessage(protocol::p2pMessage& message, MessageState& message_props){}	// Well, not used usually.
 };
 
 } /* namespace handlers */

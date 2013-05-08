@@ -70,7 +70,7 @@ protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangePayload() {
 	protocol::p2pMessage_Payload payload;
 	protocol::p2pMessage_Payload_KeyExchangePart key_exchange;
 
-	payload.set_message_type(protocol::p2pMessage_Payload_MessageType_KEY_EXCHANGE);
+	payload.set_message_type(payload.KEY_EXCHANGE);
 
 	key_exchange.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
 	key_exchange.set_signature(pks->getMyPrivateKey().sign(pks->getMyPublicKey().toBinaryString()));// OPTIMIZE: cache this message, or we will sign new message every time we receive request.

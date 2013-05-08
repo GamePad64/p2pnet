@@ -13,6 +13,7 @@
  */
 
 #include "CRC32Handler.h"
+#include <iostream>
 
 namespace p2pnet {
 namespace messaging {
@@ -21,7 +22,7 @@ namespace handlers {
 CRC32Handler::CRC32Handler(MessageSocket* socket_ptr) : MessageHandler(socket_ptr) {}
 CRC32Handler::~CRC32Handler() {}
 
-void CRC32Handler::processReceivedMessage(protocol::p2pMessage& message, MessageProps& message_props) {
+void CRC32Handler::processReceivedMessage(protocol::p2pMessage& message, MessageState& message_props) {
 	if (!message_props.changed && !m_generator.checkMessageCRC32(message)) {
 		std::clog << "[CRC32Handler] Rejected message: CRC-32 mismatch." << std::endl;
 
@@ -30,7 +31,7 @@ void CRC32Handler::processReceivedMessage(protocol::p2pMessage& message, Message
 	}
 }
 
-void CRC32Handler::processSentMessage(protocol::p2pMessage& message, MessageProps& message_props) {
+void CRC32Handler::processSentMessage(protocol::p2pMessage& message, MessageState& message_props) {
 }
 
 } /* namespace handlers */

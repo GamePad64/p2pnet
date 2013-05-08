@@ -15,7 +15,7 @@
 #ifndef MESSAGESOCKET_H_
 #define MESSAGESOCKET_H_
 
-#include "MessageHandler.h"
+#include "handlers/MessageHandler.h"
 
 #include "../databases/PersonalKeyStorage.h"
 #include "MessageGenerator.h"

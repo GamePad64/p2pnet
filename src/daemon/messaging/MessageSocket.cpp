@@ -37,7 +37,7 @@ void MessageSocket::sentMessage(net::MessageBundle message_bundle) {
 }
 
 void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
-	handlers::MessageHandler::MessageProps message_props;
+	handlers::MessageHandler::MessageState message_props;
 	message_props.repeat = false;
 
 	do {

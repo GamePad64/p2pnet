@@ -26,8 +26,8 @@ public:
 	RelayHandler(MessageSocket* socket_ptr);
 	virtual ~RelayHandler();
 
-	void processReceivedMessage(protocol::p2pMessage& message, MessageProps& message_props);
-	void processSentMessage(protocol::p2pMessage& message, MessageProps& message_props);
+	void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_props);
+	void processSentMessage(protocol::p2pMessage& message, MessageState& message_props);
 };
 
 } /* namespace handlers */

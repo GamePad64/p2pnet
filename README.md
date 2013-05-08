@@ -11,7 +11,7 @@ Features
 - Searching for devices in your local network. It is called *Local Peer Discovery* in Bittorrent. It works using UDP multicasts.
     
     IPv4 multicast address: 239.192.152.144:28915.  
-    IPv6 multicast address: [ff08::BD02]:28915.
+    IPv6 multicast address: [ff08::BD02]:28915
 
 - *Distributed Hash Table* is used for NetDB storage in distributed network. We use Kademlia DHT.
 - *Onion (garlic) routing*. It is a technology often used to protect client and server privacy. Server and client build heavily encrypted tunnels so client cannot find out server's IP and vice versa. This technology is used in Tor and I2P.
