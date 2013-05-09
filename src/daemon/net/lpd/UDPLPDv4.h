@@ -22,13 +22,13 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-class UDPLPDv4: public p2pnet::net::lpd::UDPLPD {
+class UDPLPDv4: public UDPLPD {
 	const unsigned int m_default_timer_seconds = 10;
 	std::string m_default_bind_address = "0.0.0.0";
 	std::string m_default_target_address = "239.192.152.144";
 	unsigned short m_default_target_port = 28915;
 public:
-	UDPLPDv4(Config& config, net::UDPTransportSocket& udp_socket, databases::NetDBStorage& netdb_storage);
+	UDPLPDv4(Config& config, net::UDPTransportSocket& udp_socket);
 	virtual ~UDPLPDv4();
 
 	unsigned short getUDPPort();

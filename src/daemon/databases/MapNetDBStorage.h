@@ -17,9 +17,8 @@
 
 #include <map>
 #include <boost/unordered_map.hpp>
-#include <forward_list>
 #include <cpp-btree/safe_btree_map.h>
-#include "NetDBStorage.h"
+#include "AbstractNetDBStorage.h"
 #include "../Singleton.h"
 
 namespace p2pnet {
@@ -35,7 +34,7 @@ namespace databases {
  * This map version consists of two maps.
  */
 template< typename peermap_t >
-class MapNetDBStorage : public NetDBStorage, public Singleton< MapNetDBStorage<peermap_t> > {
+class MapNetDBStorage : public AbstractNetDBStorage, public Singleton< MapNetDBStorage<peermap_t> > {
 
 private:
 	peermap_t m_peermap;

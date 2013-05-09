@@ -15,25 +15,22 @@
 #ifndef NETDBSTORAGE_H_
 #define NETDBSTORAGE_H_
 
-#include "../peer/Peer.h"
-#include <list>
+#include "MapNetDBStorage.h"
 
 namespace p2pnet {
 namespace databases {
 
-class NetDBStorage {
-public:
-	NetDBStorage();
-	virtual ~NetDBStorage();
+#if (STDNETDBSTORAGE)
+typedef StdMapNetDBStorage NetDBStorage;
+#elif (UNORDEREDNETDBSTORAGE)
+typedef UnorderedMapNetDBStorage NetDBStorage;
+#elif (BMAPNETDBSTORAGE)
+typedef BMapNetDBStorage NetDBStorage;
+#else
+typedef UnorderedMapNetDBStorage NetDBStorage;
+#endif
 
-	typedef std::list<crypto::Hash> hashlist_t;
-	virtual hashlist_t getAllHashes() = 0;
+}
+}
 
-	// Public key database
-	virtual bool hasPeer(const crypto::Hash& peer_th) = 0;
-	virtual peer::Peer& getPeer(crypto::Hash& peer_th) = 0;
-};
-
-} /* namespace databases */
-} /* namespace p2pnet */
 #endif /* NETDBSTORAGE_H_ */

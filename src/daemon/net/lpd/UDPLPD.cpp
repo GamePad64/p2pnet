@@ -24,11 +24,12 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-UDPLPD::UDPLPD(Config& config, net::UDPTransportSocket& udp_socket, databases::NetDBStorage& netdb_storage) :
+UDPLPD::UDPLPD(Config& config, net::UDPTransportSocket& udp_socket) :
 		m_config(config), m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), m_lpd_socket(
-				m_io_service), m_udp_socket(udp_socket), m_netdb_storage(netdb_storage) {
+				m_io_service), m_udp_socket(udp_socket) {
 	m_target_port = 0;
 	m_timer_seconds = 0;
+
 }
 
 UDPLPD::~UDPLPD() {
@@ -65,11 +66,11 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 
 		peer::TH th = peer::TH::compute(message.src_pubkey());
 
-		if(! m_netdb_storage.hasPeer(th)){
+		if(! databases::NetDBStorage::getInstance()->hasPeer(th)){
 			std::clog << "[" << getServiceName() << "] Discovered peer: " << th.toBase58() << std::endl;
 		}
 
-		peer::Peer& peer_recv = m_netdb_storage.getPeer(th);
+		peer::Peer& peer_recv = databases::NetDBStorage::getInstance()->getPeer(th);
 
 		if(! peer_recv.hasRoute(endpoint) ){
 			peer_recv.addRoute(endpoint);

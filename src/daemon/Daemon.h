@@ -17,7 +17,7 @@
 
 #include "../common/Config.h"
 #include "AsioIOService.h"
-#include "databases/MapNetDBStorage.h"
+#include "databases/NetDBStorage.h"
 #include "databases/PersonalKeyStorage.h"
 
 #include "messaging/MessageSocket.h"
@@ -37,7 +37,7 @@ class Daemon {
 public:
 	Config config;
 
-	databases::StdMapNetDBStorage m_netdb_storage;
+	databases::NetDBStorage* m_netdb_storage;
 	databases::PersonalKeyStorage* m_pk_storage;
 
 	// TransportSocket

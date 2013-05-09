@@ -20,11 +20,13 @@ namespace p2pnet {
 
 Daemon::Daemon() : crc32_handler(&m_message_socket),
 		relay_handler(&m_message_socket),
-		m_lpd_udpv4(config, m_transport_socket_udpv4, m_netdb_storage),
-		m_lpd_udpv6(config, m_transport_socket_udpv6, m_netdb_storage){
+		m_lpd_udpv4(config, m_transport_socket_udpv4),
+		m_lpd_udpv6(config, m_transport_socket_udpv6){
+	m_netdb_storage = databases::NetDBStorage::getInstance();
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 }
 Daemon::~Daemon() {
+	databases::NetDBStorage::clear();
 	databases::PersonalKeyStorage::clear();
 }
 

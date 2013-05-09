@@ -12,25 +12,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURRENTNETDBSTORAGE_H_
-#define CURRENTNETDBSTORAGE_H_
+#ifndef ABSTRACTNETDBSTORAGE_H_
+#define ABSTRACTNETDBSTORAGE_H_
 
-#include "MapNetDBStorage.h"
+#include "../peer/Peer.h"
+#include <list>
 
 namespace p2pnet {
 namespace databases {
 
-#if (STDNETDBSTORAGE)
-typedef StdMapNetDBStorage CurrentNetDBStorage;
-#elif (UNORDEREDNETDBSTORAGE)
-typedef UnorderedMapNetDBStorage CurrentNetDBStorage;
-#elif (BMAPNETDBSTORAGE)
-typedef BMapNetDBStorage CurrentNetDBStorage;
-#else
-typedef UnorderedMapNetDBStorage CurrentNetDBStorage;
-#endif
+class AbstractNetDBStorage {
+public:
+	AbstractNetDBStorage(){};
+	virtual ~AbstractNetDBStorage(){};
 
-}
-}
+	typedef std::list<crypto::Hash> hashlist_t;
+	virtual hashlist_t getAllHashes() = 0;
 
-#endif /* CURRENTNETDBSTORAGE_H_ */
+	// Public key database
+	virtual bool hasPeer(const crypto::Hash& peer_th) = 0;
+	virtual peer::Peer& getPeer(crypto::Hash& peer_th) = 0;
+};
+
+} /* namespace databases */
+} /* namespace p2pnet */
+#endif /* ABSTRACTNETDBSTORAGE_H_ */

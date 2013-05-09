@@ -30,7 +30,7 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-class UDPLPD: public p2pnet::net::lpd::GenericLPD {
+class UDPLPD: public GenericLPD {
 	void waitBeforeSend();
 	/**
 	 * This function is invoked on receiving packets. It must perform necessary checks for packet integrity.
@@ -78,9 +78,8 @@ protected:
 	 * Message, that we are going to send is stored here.
 	 */
 
-	databases::NetDBStorage& m_netdb_storage;
 public:
-	UDPLPD(Config& config, net::UDPTransportSocket& udp_socket, databases::NetDBStorage& netdb_storage);
+	UDPLPD(Config& config, net::UDPTransportSocket& udp_socket);
 	virtual ~UDPLPD();
 
 	void run();
