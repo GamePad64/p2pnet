@@ -16,9 +16,11 @@
 #define MAPNETDBSTORAGE_H_
 
 #include <map>
+#include <boost/unordered_map.hpp>
 #include <forward_list>
 #include <cpp-btree/safe_btree_map.h>
 #include "NetDBStorage.h"
+#include "../Singleton.h"
 
 namespace p2pnet {
 namespace databases {
@@ -33,7 +35,7 @@ namespace databases {
  * This map version consists of two maps.
  */
 template< typename peermap_t >
-class MapNetDBStorage : public NetDBStorage {
+class MapNetDBStorage : public NetDBStorage, public Singleton< MapNetDBStorage<peermap_t> > {
 
 private:
 	peermap_t m_peermap;
@@ -53,6 +55,7 @@ public:
 };
 
 typedef MapNetDBStorage< std::map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > StdMapNetDBStorage;
+typedef MapNetDBStorage< boost::unordered_map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > UnorderedMapNetDBStorage;
 typedef MapNetDBStorage< btree::safe_btree_map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > BMapNetDBStorage;
 
 } /* namespace databases */
