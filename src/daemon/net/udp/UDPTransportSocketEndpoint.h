@@ -53,8 +53,8 @@ public:
 		TransportSocketEndpoint::pointer copy = std::make_shared<UDPTransportSocketEndpoint>(UDPTransportSocketEndpoint(*this));
 		return copy;
 	}
-	virtual TransportSocketEndpoint_type getEndpointType() const {
-		return TransportSocketEndpoint_type::UDP;
+	virtual TransportSocketEndpoint_s::Type getEndpointType() const {
+		return TransportSocketEndpoint_s::UDP;
 	}
 
 	virtual TransportSocketEndpoint_s toProtobuf() const ;

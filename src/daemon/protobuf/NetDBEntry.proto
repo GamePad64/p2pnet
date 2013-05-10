@@ -15,19 +15,14 @@
 syntax = "proto2";
 package p2pnet.net;
 
-enum TransportSocketEndpoint_type {
-	UDP = 0;
-	RELAY = 1;
-}
-
 message TransportSocketEndpoint_s {
-	required TransportSocketEndpoint_type type = 1 [default = UDP];
+	enum Type {
+		UDP = 0;
+		RELAY = 1;
+	}
+
+	optional Type type = 1 [default = UDP];
 	optional string ip = 2;
 	optional uint32 port = 3;
 	optional bytes th = 4;
-}
-
-message PeerRoute_s {
-	repeated bytes endpoint_relay = 1;
-	repeated bytes endpoint_udp = 2;
 }

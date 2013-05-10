@@ -21,7 +21,7 @@
 namespace p2pnet {
 namespace relay {
 
-class RelayTransportSocketEndpoint: public p2pnet::net::TransportSocketEndpoint {
+class RelayTransportSocketEndpoint: public net::TransportSocketEndpoint {
 	crypto::Hash m_relay_th;
 public:
 	virtual ~RelayTransportSocketEndpoint();
@@ -35,8 +35,8 @@ public:
 		TransportSocketEndpoint::pointer copy = std::make_shared<RelayTransportSocketEndpoint>(RelayTransportSocketEndpoint(*this));
 		return copy;
 	}
-	virtual net::TransportSocketEndpoint_type getEndpointType() const {
-		return net::TransportSocketEndpoint_type::RELAY;
+	virtual net::TransportSocketEndpoint_s::Type getEndpointType() const {
+		return net::TransportSocketEndpoint_s::RELAY;
 	}
 
 	virtual net::TransportSocketEndpoint_s toProtobuf() const;

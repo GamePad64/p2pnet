@@ -17,8 +17,6 @@
 // Child classes
 #include "udp/UDPTransportSocketEndpoint.h"
 #include "../relay/RelayTransportSocketEndpoint.h"
-// Serialized representation
-#include "../protobuf/TransportSocketEndpoint_s.pb.h"
 // Standard headers
 #include <memory>
 
@@ -28,10 +26,10 @@ namespace net {
 TransportSocketEndpoint::pointer TransportSocketEndpoint::fromProtobuf(TransportSocketEndpoint_s tse_s){
 	TransportSocketEndpoint::pointer tse_ptr;
 	switch(tse_s.type()){
-	case TransportSocketEndpoint_type::UDP:
+	case TransportSocketEndpoint_s::UDP:
 		tse_ptr = std::make_shared<UDPTransportSocketEndpoint>(tse_s);
 		break;
-	case TransportSocketEndpoint_type::RELAY:
+	case TransportSocketEndpoint_s::RELAY:
 		tse_ptr = std::make_shared<relay::RelayTransportSocketEndpoint>(tse_s);
 		break;
 	default:

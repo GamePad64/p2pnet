@@ -13,7 +13,6 @@
  */
 
 #include "UDPTransportSocketEndpoint.h"
-#include "../../protobuf/TransportSocketEndpoint_s.pb.h"
 #include <sstream>
 
 namespace p2pnet {
@@ -58,7 +57,7 @@ UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string ip, UDPTransp
 
 TransportSocketEndpoint_s UDPTransportSocketEndpoint::toProtobuf() const {
 	TransportSocketEndpoint_s tse_s;
-	tse_s.set_type(TransportSocketEndpoint_type::UDP);
+	tse_s.set_type(tse_s.UDP);
 	tse_s.set_ip(getIP());
 	tse_s.set_port(getPort());
 	return tse_s;
