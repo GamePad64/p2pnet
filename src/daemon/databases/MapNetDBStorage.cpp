@@ -13,6 +13,8 @@
  */
 
 #include "MapNetDBStorage.h"
+#include <ctime>
+#include <stdint.h>
 
 namespace p2pnet {
 namespace databases {
@@ -25,26 +27,41 @@ MapNetDBStorage< peermap_t >::~MapNetDBStorage() {
 }
 
 template< typename peermap_t >
-bool MapNetDBStorage< peermap_t >::hasPeer(const peer::TH& peer_th) {
+bool MapNetDBStorage< peermap_t >::hasEntry(const peer::TH& peer_th) {
 	return m_peermap.count(peer_th.toBinaryVector()) != 0;
 }
 
 template< typename peermap_t >
-peer::Peer& MapNetDBStorage< peermap_t >::getPeer(peer::TH& peer_th) {
+NetDBEntry& MapNetDBStorage< peermap_t >::getEntry(const peer::TH& peer_th) {
 	crypto::Hash::binary_vector_t th_v = peer_th.toBinaryVector();
 
-	if (hasPeer(peer_th)) {
-		return *(m_peermap[th_v]);
-	}
-
-	m_peermap[th_v] = peer::Peer::pointer(new peer::Peer(peer_th));
-
-	return *(m_peermap[th_v]);
+	return m_peermap[th_v];
 }
 
-template class MapNetDBStorage< std::map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > ;
-template class MapNetDBStorage< boost::unordered_map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > ;
-template class MapNetDBStorage< btree::safe_btree_map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > ;
+template< typename peermap_t >
+bool MapNetDBStorage< peermap_t >::hasRouteToPeer(const peer::TH& peer_th, const TransportSocketEndpoint_s& peer_tse_s){
+	NetDBEntry& entry = getEntry(peer_th);
+	for(auto& timed_tse : entry.tse_s()){
+		if(timed_tse.tse_s().SerializeAsString() == peer_tse_s.SerializeAsString())
+			return true;
+	}
+	return false;
+}
+
+template< typename peermap_t >
+void MapNetDBStorage< peermap_t >::bumpRouteToPeer(const peer::TH& peer_th, const TransportSocketEndpoint_s& peer_tse_s){
+	NetDBEntry& entry = getEntry(peer_th);
+	for(auto timed_tse = entry.mutable_tse_s()->begin(); timed_tse != entry.mutable_tse_s()->end(); timed_tse++){
+		if(timed_tse->tse_s().SerializeAsString() == peer_tse_s.SerializeAsString()){
+			timed_tse->set_last_usage((google::protobuf::int64)std::time(0));
+			break;
+		}
+	}
+}
+
+template class MapNetDBStorage< std::map< crypto::Hash::binary_vector_t, NetDBEntry > > ;
+template class MapNetDBStorage< boost::unordered_map< crypto::Hash::binary_vector_t, NetDBEntry > > ;
+template class MapNetDBStorage< btree::safe_btree_map< crypto::Hash::binary_vector_t, NetDBEntry > > ;
 
 } /* namespace databases */
 } /* namespace p2pnet */

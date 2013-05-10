@@ -55,15 +55,15 @@ UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(std::string ip, UDPTransp
 	this->setPort(port);
 };
 
-TransportSocketEndpoint_s UDPTransportSocketEndpoint::toProtobuf() const {
-	TransportSocketEndpoint_s tse_s;
+databases::TransportSocketEndpoint_s UDPTransportSocketEndpoint::toProtobuf() const {
+	databases::TransportSocketEndpoint_s tse_s;
 	tse_s.set_type(tse_s.UDP);
 	tse_s.set_ip(getIP());
 	tse_s.set_port(getPort());
 	return tse_s;
 }
 
-UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(TransportSocketEndpoint_s tse_s) {
+UDPTransportSocketEndpoint::UDPTransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s) {
 	setIP(tse_s.ip());
 	setPort(tse_s.port());
 }

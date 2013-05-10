@@ -24,7 +24,7 @@ namespace net {
 
 using namespace boost::asio::ip;
 
-class UDPTransportSocketEndpoint: public p2pnet::net::TransportSocketEndpoint {
+class UDPTransportSocketEndpoint: public TransportSocketEndpoint {
 	friend class UDPTransportSocket;
 private:
 	udp::endpoint& getEndpoint();
@@ -53,12 +53,12 @@ public:
 		TransportSocketEndpoint::pointer copy = std::make_shared<UDPTransportSocketEndpoint>(UDPTransportSocketEndpoint(*this));
 		return copy;
 	}
-	virtual TransportSocketEndpoint_s::Type getEndpointType() const {
-		return TransportSocketEndpoint_s::UDP;
+	virtual databases::TransportSocketEndpoint_s::Type getEndpointType() const {
+		return databases::TransportSocketEndpoint_s::UDP;
 	}
 
-	virtual TransportSocketEndpoint_s toProtobuf() const ;
-	UDPTransportSocketEndpoint(TransportSocketEndpoint_s tse_s);
+	virtual databases::TransportSocketEndpoint_s toProtobuf() const ;
+	UDPTransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s);
 
 	virtual std::string toHRString();
 };

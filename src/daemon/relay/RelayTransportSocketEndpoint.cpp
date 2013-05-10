@@ -34,15 +34,15 @@ RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(crypto::Hash relay_th
 		m_relay_th(relay_th) {
 }
 
-net::TransportSocketEndpoint_s RelayTransportSocketEndpoint::toProtobuf() const {
-	net::TransportSocketEndpoint_s tse_s;
-	tse_s.set_type(net::TransportSocketEndpoint_s::RELAY);
+databases::TransportSocketEndpoint_s RelayTransportSocketEndpoint::toProtobuf() const {
+	databases::TransportSocketEndpoint_s tse_s;
+	tse_s.set_type(databases::TransportSocketEndpoint_s::RELAY);
 
 	tse_s.set_th(m_relay_th.toBinaryString());
 	return tse_s;
 }
 
-RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(net::TransportSocketEndpoint_s tse_s) :
+RelayTransportSocketEndpoint::RelayTransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s) :
 		m_relay_th(crypto::Hash::fromBinaryString(tse_s.th())) {
 }
 

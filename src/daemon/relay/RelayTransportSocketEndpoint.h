@@ -35,12 +35,12 @@ public:
 		TransportSocketEndpoint::pointer copy = std::make_shared<RelayTransportSocketEndpoint>(RelayTransportSocketEndpoint(*this));
 		return copy;
 	}
-	virtual net::TransportSocketEndpoint_s::Type getEndpointType() const {
-		return net::TransportSocketEndpoint_s::RELAY;
+	virtual databases::TransportSocketEndpoint_s::Type getEndpointType() const {
+		return databases::TransportSocketEndpoint_s::RELAY;
 	}
 
-	virtual net::TransportSocketEndpoint_s toProtobuf() const;
-	RelayTransportSocketEndpoint(net::TransportSocketEndpoint_s tse_s);
+	virtual databases::TransportSocketEndpoint_s toProtobuf() const;
+	RelayTransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s);
 
 	virtual std::string toHRString();
 };

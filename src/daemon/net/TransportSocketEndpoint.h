@@ -30,10 +30,10 @@ public:
 	typedef std::shared_ptr<TransportSocketEndpoint> pointer;
 
 	virtual pointer yieldCopyPtr() const = 0;
-	virtual TransportSocketEndpoint_s_Type getEndpointType() const = 0;
+	virtual databases::TransportSocketEndpoint_s_Type getEndpointType() const = 0;
 
-	static pointer fromProtobuf(TransportSocketEndpoint_s tse_s);
-	virtual TransportSocketEndpoint_s toProtobuf() const = 0;
+	static pointer fromProtobuf(databases::TransportSocketEndpoint_s tse_s);
+	virtual databases::TransportSocketEndpoint_s toProtobuf() const = 0;
 
 	static pointer fromString(std::string endpoint_s);
 	std::string toString() const {return toProtobuf().SerializeAsString();};

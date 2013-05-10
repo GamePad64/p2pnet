@@ -31,7 +31,7 @@ namespace databases {
  *  - It is stored only in RAM
  * It will be replaced with SQLite database soon.
  *
- * This map version consists of two maps.
+ * This map version consists of three maps.
  */
 template< typename peermap_t >
 class MapNetDBStorage : public AbstractNetDBStorage, public Singleton< MapNetDBStorage<peermap_t> > {
@@ -48,14 +48,16 @@ public:
 		return m_hashes;
 	}
 
-	// Routing database
-	bool hasPeer(const peer::TH& peer_th);
-	peer::Peer& getPeer(peer::TH& peer_th);
+	bool hasEntry(const peer::TH& peer_th);
+	NetDBEntry& getEntry(const peer::TH& peer_th);
+
+	bool hasRouteToPeer(const peer::TH& peer_th, const TransportSocketEndpoint_s& peer_tse_s);
+	void bumpRouteToPeer(const peer::TH& peer_th, const TransportSocketEndpoint_s& peer_tse_s);
 };
 
-typedef MapNetDBStorage< std::map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > StdMapNetDBStorage;
-typedef MapNetDBStorage< boost::unordered_map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > UnorderedMapNetDBStorage;
-typedef MapNetDBStorage< btree::safe_btree_map< crypto::Hash::binary_vector_t, peer::Peer::pointer > > BMapNetDBStorage;
+typedef MapNetDBStorage< std::map< crypto::Hash::binary_vector_t, NetDBEntry > > StdMapNetDBStorage;
+typedef MapNetDBStorage< boost::unordered_map< crypto::Hash::binary_vector_t, NetDBEntry > > UnorderedMapNetDBStorage;
+typedef MapNetDBStorage< btree::safe_btree_map< crypto::Hash::binary_vector_t, NetDBEntry > > BMapNetDBStorage;
 
 } /* namespace databases */
 } /* namespace p2pnet */

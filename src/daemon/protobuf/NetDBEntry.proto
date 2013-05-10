@@ -13,7 +13,7 @@
  */
 
 syntax = "proto2";
-package p2pnet.net;
+package p2pnet.databases;
 
 message TransportSocketEndpoint_s {
 	enum Type {
@@ -22,7 +22,24 @@ message TransportSocketEndpoint_s {
 	}
 
 	optional Type type = 1 [default = UDP];
-	optional string ip = 2;
-	optional uint32 port = 3;
-	optional bytes th = 4;
+
+	optional string ip = 3;
+	optional uint32 port = 4;
+	optional bytes th = 5;
+}
+
+message TimedTSE {
+	required TransportSocketEndpoint_s tse_s = 1;
+	optional int64 last_usage = 2;	// Unix timesatamp. int64 because of Y2038.
+}
+
+message NetDBEntry {
+	optional bytes ecdsa_public_key = 1;
+	optional bytes ecdh_private_key = 2;
+	optional bytes aes_key = 3;
+
+	repeated TimedTSE tse_s = 4;
+
+	optional bool local = 16 [default = false];
+	optional bool dht = 17 [default = false];
 }

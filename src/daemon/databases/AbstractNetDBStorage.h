@@ -15,7 +15,8 @@
 #ifndef ABSTRACTNETDBSTORAGE_H_
 #define ABSTRACTNETDBSTORAGE_H_
 
-#include "../peer/Peer.h"
+#include "../peer/TH.h"
+#include "../protobuf/NetDBEntry.pb.h"
 #include <list>
 
 namespace p2pnet {
@@ -26,12 +27,14 @@ public:
 	AbstractNetDBStorage(){};
 	virtual ~AbstractNetDBStorage(){};
 
-	typedef std::list<crypto::Hash> hashlist_t;
+	typedef std::list<peer::TH> hashlist_t;
 	virtual hashlist_t getAllHashes() = 0;
 
-	// Public key database
-	virtual bool hasPeer(const crypto::Hash& peer_th) = 0;
-	virtual peer::Peer& getPeer(crypto::Hash& peer_th) = 0;
+	virtual bool hasEntry(const peer::TH& peer_th) = 0;
+	virtual NetDBEntry& getEntry(const peer::TH& peer_th) = 0;
+
+	virtual bool hasRouteToPeer(const peer::TH& peer_th, const TransportSocketEndpoint_s& peer_tse_s) = 0;
+	virtual void bumpRouteToPeer(const peer::TH& peer_th, const TransportSocketEndpoint_s& peer_tse_s) = 0;
 };
 
 } /* namespace databases */

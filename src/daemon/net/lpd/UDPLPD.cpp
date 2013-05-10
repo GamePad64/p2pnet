@@ -19,6 +19,7 @@
 #include "../../databases/PersonalKeyStorage.h"
 #include "../../messaging/MessageGenerator.h"
 #include "../../peer/TH.h"
+#include <ctime>
 
 namespace p2pnet {
 namespace net {
@@ -66,21 +67,23 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 
 		peer::TH th = peer::TH::compute(message.src_pubkey());
 
-		if(! databases::NetDBStorage::getInstance()->hasPeer(th)){
+		if(! databases::NetDBStorage::getInstance()->hasEntry(th)){
 			std::clog << "[" << getServiceName() << "] Discovered peer: " << th.toBase58() << std::endl;
 		}
 
-		peer::Peer& peer_recv = databases::NetDBStorage::getInstance()->getPeer(th);
+		databases::NetDBEntry& peer_recv = databases::NetDBStorage::getInstance()->getEntry(th);
 
-		if(! peer_recv.hasRoute(endpoint) ){
-			peer_recv.addRoute(endpoint);
-		}//else{
+		if(! databases::NetDBStorage::getInstance()->hasRouteToPeer(th, endpoint.toProtobuf()) ){
+			databases::TimedTSE* timed_tse = peer_recv.mutable_tse_s()->Add();
+			*(timed_tse->mutable_tse_s()) = endpoint.toProtobuf();
+			timed_tse->set_last_usage((google::protobuf::int64)std::time(0));
+		}else{
 			/*
 			 * This function should be called when we want to "bump" selected route,
 			 * so it is set to preferred.
 			 */
-		//	peer_recv.bumpRoute(endpoint);
-		//}
+			databases::NetDBStorage::getInstance()->bumpRouteToPeer(th, endpoint.toProtobuf());
+		}
 
 		sendKeyExchangeMessage(endpoint, th);
 	} else {

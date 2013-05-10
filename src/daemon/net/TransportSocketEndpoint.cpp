@@ -23,13 +23,13 @@
 namespace p2pnet {
 namespace net {
 
-TransportSocketEndpoint::pointer TransportSocketEndpoint::fromProtobuf(TransportSocketEndpoint_s tse_s){
+TransportSocketEndpoint::pointer TransportSocketEndpoint::fromProtobuf(databases::TransportSocketEndpoint_s tse_s){
 	TransportSocketEndpoint::pointer tse_ptr;
 	switch(tse_s.type()){
-	case TransportSocketEndpoint_s::UDP:
+	case databases::TransportSocketEndpoint_s::UDP:
 		tse_ptr = std::make_shared<UDPTransportSocketEndpoint>(tse_s);
 		break;
-	case TransportSocketEndpoint_s::RELAY:
+	case databases::TransportSocketEndpoint_s::RELAY:
 		tse_ptr = std::make_shared<relay::RelayTransportSocketEndpoint>(tse_s);
 		break;
 	default:
@@ -39,7 +39,7 @@ TransportSocketEndpoint::pointer TransportSocketEndpoint::fromProtobuf(Transport
 };
 
 TransportSocketEndpoint::pointer TransportSocketEndpoint::fromString(std::string endpoint_s){
-	TransportSocketEndpoint_s tse_s;
+	databases::TransportSocketEndpoint_s tse_s;
 	tse_s.ParseFromString(endpoint_s);
 	return fromProtobuf(tse_s);
 };
