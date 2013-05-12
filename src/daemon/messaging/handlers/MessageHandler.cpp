@@ -12,27 +12,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RELAYHANDLER_H_
-#define RELAYHANDLER_H_
-
 #include "MessageHandler.h"
+#include <iostream>
 
 namespace p2pnet {
 namespace messaging {
 namespace handlers {
 
-class RelayHandler : public MessageHandler {
-protected:
-	std::string getHandlerName();
-public:
-	RelayHandler(MessageSocket* socket_ptr);
-	virtual ~RelayHandler();
+std::string MessageHandler::getHandlerName(){
+	return "MessageHandler";
+}
 
-	void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state);
-	void processSentMessage(protocol::p2pMessage& message, MessageState& message_state);
-};
+void MessageHandler::reject(std::string reason, MessageState& message_state) {
+	std::clog << "[" << getHandlerName() << "] Rejected message: " << reason << std::endl;
 
-} /* namespace handlers */
-} /* namespace messaging */
-} /* namespace p2pnet */
-#endif /* RELAYHANDLER_H_ */
+	message_state.repeat = false;
+	message_state.skip = true;
+}
+
+}
+}
+}

@@ -22,16 +22,20 @@ namespace handlers {
 RelayHandler::RelayHandler(MessageSocket* socket_ptr) : MessageHandler(socket_ptr) {}
 RelayHandler::~RelayHandler() {}
 
-void RelayHandler::processReceivedMessage(protocol::p2pMessage& message, MessageState& message_props) {
+std::string RelayHandler::getHandlerName() {
+	return "RelayHandler";
+}
+
+void RelayHandler::processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state) {
 	if (message.header().has_dest_th()
 			&& message.header().dest_th() != m_pks->getMyTransportHash().toBinaryString()){
 		// TODO Relay.
 		std::clog << "[RelayHandler] Relay message received. Not implemented yet." << std::endl;
-		message_props.skip = true;
+		message_state.skip = true;
 	}
 }
 
-void RelayHandler::processSentMessage(protocol::p2pMessage& message, MessageState& message_props) {
+void RelayHandler::processSentMessage(protocol::p2pMessage& message, MessageState& message_state) {
 
 }
 

@@ -22,13 +22,13 @@ namespace handlers {
 CRC32Handler::CRC32Handler(MessageSocket* socket_ptr) : MessageHandler(socket_ptr) {}
 CRC32Handler::~CRC32Handler() {}
 
-void CRC32Handler::processReceivedMessage(protocol::p2pMessage& message, MessageState& message_props) {
-	if (!message_props.changed && !m_generator.checkMessageCRC32(message)) {
-		std::clog << "[CRC32Handler] Rejected message: CRC-32 mismatch." << std::endl;
+std::string CRC32Handler::getHandlerName() {
+	return "CRC32Handler";
+}
 
-		message_props.repeat = false;
-		message_props.skip = true;
-	}
+void CRC32Handler::processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state) {
+	if (!message_state.changed && !m_generator.checkMessageCRC32(message))
+		reject("CRC-32 mismatch", message_state);
 }
 
 void CRC32Handler::processSentMessage(protocol::p2pMessage& message, MessageState& message_props) {

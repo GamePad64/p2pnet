@@ -22,12 +22,14 @@ namespace messaging {
 namespace handlers {
 
 class CRC32Handler : public MessageHandler {
+protected:
+	std::string getHandlerName();
 public:
 	CRC32Handler(MessageSocket* socket_ptr);
 	virtual ~CRC32Handler();
 
-	void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_props);
-	void processSentMessage(protocol::p2pMessage& message, MessageState& message_props);
+	void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state);
+	void processSentMessage(protocol::p2pMessage& message, MessageState& message_state);
 };
 
 } /* namespace handlers */

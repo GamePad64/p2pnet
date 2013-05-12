@@ -28,18 +28,7 @@ class MessageSocket;
 namespace handlers {
 
 class MessageHandler {
-protected:
-	MessageSocket* m_socket_ptr;
-	databases::PersonalKeyStorage* m_pks;
-
-	MessageGenerator m_generator;
 public:
-	MessageHandler(MessageSocket* socket_ptr){
-		m_socket_ptr = socket_ptr;
-		m_pks = databases::PersonalKeyStorage::getInstance();
-	}
-	virtual ~MessageHandler(){}
-
 	struct MessageState {
 		/**
 		 * bool changed;
@@ -64,9 +53,23 @@ public:
 		 */
 		bool skip;
 	};
+protected:
+	MessageSocket* m_socket_ptr;
+	databases::PersonalKeyStorage* m_pks;
 
-	virtual void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_props){}
-	virtual void processSentMessage(protocol::p2pMessage& message, MessageState& message_props){}	// Well, not used usually.
+	MessageGenerator m_generator;
+
+	virtual std::string getHandlerName();
+	void reject(std::string reason, MessageState& message_state);
+public:
+	MessageHandler(MessageSocket* socket_ptr){
+		m_socket_ptr = socket_ptr;
+		m_pks = databases::PersonalKeyStorage::getInstance();
+	}
+	virtual ~MessageHandler(){}
+
+	virtual void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state){}
+	virtual void processSentMessage(protocol::p2pMessage& message, MessageState& message_state){}	// Well, not used usually.
 };
 
 } /* namespace handlers */
