@@ -24,7 +24,7 @@ RelayHandler::~RelayHandler() {}
 
 void RelayHandler::processReceivedMessage(protocol::p2pMessage& message, MessageState& message_props) {
 	if (message.header().has_dest_th()
-			|| message.header().dest_th() != m_pks->getMyTransportHash().toBinaryString()){
+			&& message.header().dest_th() != m_pks->getMyTransportHash().toBinaryString()){
 		// TODO Relay.
 		std::clog << "[RelayHandler] Relay message received. Not implemented yet." << std::endl;
 		message_props.skip = true;
