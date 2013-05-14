@@ -33,13 +33,6 @@ private:
 	binary_vector_t hash;
 	static Botan::Keccak_1600 hasher;
 
-	friend class PublicKeyDSA;
-	friend class PrivateKeyDSA;
-	/**
-	 * This function returns hashing algorithm name as Botan library does. It is needed for internal encryption operations.
-	 * @return
-	 */
-	static std::string getAlgoName();
 protected:
 	Hash(const binary_vector_t serialized_vector);
 public:
@@ -53,6 +46,12 @@ public:
 	}
 
 	unsigned short computeDistance(Hash rhash);
+
+	/**
+	 * This function returns hashing algorithm name as Botan library does. It is needed for internal encryption operations.
+	 * @return
+	 */
+	static std::string getAlgoName();
 };
 
 } /* namespace crypto */

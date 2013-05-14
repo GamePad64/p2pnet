@@ -20,7 +20,7 @@
 namespace p2pnet {
 namespace crypto {
 
-const std::string curve = "secp256r1";
+const std::string dsa_curve = "secp256r1";
 
 class PrivateKeyDSA : virtual public MathString<PrivateKeyDSA> {
 	Botan::ECDSA_PrivateKey key_private;

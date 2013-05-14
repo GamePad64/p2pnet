@@ -43,7 +43,7 @@ PrivateKeyDSA::~PrivateKeyDSA() {}
 PrivateKeyDSA PrivateKeyDSA::generate(){
 	Botan::AutoSeeded_RNG rng;
 
-	Botan::ECDSA_PrivateKey botan_key(rng, Botan::EC_Group(curve));
+	Botan::ECDSA_PrivateKey botan_key(rng, Botan::EC_Group(dsa_curve));
 	return PrivateKeyDSA(botan_key);
 }
 
