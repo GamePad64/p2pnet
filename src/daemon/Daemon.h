@@ -41,8 +41,8 @@ public:
 	databases::PersonalKeyStorage* m_pk_storage;
 
 	// TransportSocket
-	net::UDPTransportSocket m_transport_socket_udpv4;
-	net::UDPTransportSocket m_transport_socket_udpv6;
+	net::UDPTransportSocket* m_transport_socket_udpv4;
+	net::UDPTransportSocket* m_transport_socket_udpv6;
 
 	// MessageSocket
 	messaging::MessageSocket m_message_socket;
@@ -51,8 +51,8 @@ public:
 	messaging::handlers::CRC32Handler crc32_handler;
 	messaging::handlers::RelayHandler relay_handler;
 
-	net::lpd::UDPLPDv4 m_lpd_udpv4;
-	net::lpd::UDPLPDv6 m_lpd_udpv6;
+	net::lpd::UDPLPDv4* m_lpd_udpv4;
+	net::lpd::UDPLPDv6* m_lpd_udpv6;
 
 	Daemon();
 	virtual ~Daemon();

@@ -19,15 +19,23 @@
 namespace p2pnet {
 
 Daemon::Daemon() : crc32_handler(&m_message_socket),
-		relay_handler(&m_message_socket),
-		m_lpd_udpv4(config, m_transport_socket_udpv4),
-		m_lpd_udpv6(config, m_transport_socket_udpv6){
+		relay_handler(&m_message_socket){
 	m_netdb_storage = databases::NetDBStorage::getInstance();
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 }
 Daemon::~Daemon() {
 	databases::NetDBStorage::clear();
 	databases::PersonalKeyStorage::clear();
+
+	if(m_transport_socket_udpv4)
+		delete m_transport_socket_udpv4;
+	if(m_transport_socket_udpv6)
+		delete m_transport_socket_udpv6;
+
+	if(m_lpd_udpv4)
+		delete m_lpd_udpv4;
+	if(m_lpd_udpv6)
+		delete m_lpd_udpv6;
 }
 
 void Daemon::run(){
@@ -40,14 +48,16 @@ void Daemon::run(){
 void Daemon::initTransportSockets() {
 	if(config.getConfig().get("net.sockets.udpv4.enable", true)){
 		try {
+			m_transport_socket_udpv4 = new net::UDPTransportSocket();
+
 			unsigned short int port_v4 = config.getConfig().get("net.sockets.udpv4.port", 2185);
-			m_transport_socket_udpv4.bindLocalIPv4(port_v4);
+			m_transport_socket_udpv4->bindLocalIPv4(port_v4);
 
 			// Here we add listeners to sockets. Basically, when we expand our protocol, we should add new listeners.
-			m_transport_socket_udpv4.addListener(&m_message_socket);
+			m_transport_socket_udpv4->addListener(&m_message_socket);
 
 			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv4.bind", "0.0.0.0"), port_v4);
-			m_transport_socket_udpv4.asyncReceiveFrom(endpoint);
+			m_transport_socket_udpv4->asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv4 UDP socket. Exception caught: " << e.what() << std::endl;
 		}
@@ -55,14 +65,16 @@ void Daemon::initTransportSockets() {
 
 	if(config.getConfig().get("net.sockets.udpv6.enable", true)){
 		try {
+			m_transport_socket_udpv6 = new net::UDPTransportSocket();
+
 			unsigned short int port_v6 = config.getConfig().get("net.sockets.udpv6.port", 2185);
-			m_transport_socket_udpv6.bindLocalIPv6(port_v6);
+			m_transport_socket_udpv6->bindLocalIPv6(port_v6);
 
 
-			m_transport_socket_udpv6.addListener(&m_message_socket);
+			m_transport_socket_udpv6->addListener(&m_message_socket);
 
 			net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), port_v6);
-			m_transport_socket_udpv6.asyncReceiveFrom(endpoint);
+			m_transport_socket_udpv6->asyncReceiveFrom(endpoint);
 		} catch(boost::system::system_error& e) {
 			std::clog << "[Daemon] Unable to initialize IPv6 UDP socket. Exception caught: " << e.what() << std::endl;
 		}
@@ -75,11 +87,21 @@ void Daemon::initMessageSocket(){
 }
 
 void Daemon::initLPD() {
-	m_lpd_udpv4.startReceive();
-	m_lpd_udpv6.startReceive();
+	try{
+		m_lpd_udpv4 = new net::lpd::UDPLPDv4(config, *m_transport_socket_udpv4);
+		m_lpd_udpv4->startReceive();
+		m_lpd_udpv4->startSend();
+	} catch(boost::system::system_error& e) {
+		std::clog << "[Daemon] Unable to initialize IPv4 UDP multicast LPD. Exception caught: " << e.what() << std::endl;
+	}
 
-	m_lpd_udpv4.startSend();
-	m_lpd_udpv6.startSend();
+	try{
+		m_lpd_udpv6 = new net::lpd::UDPLPDv6(config, *m_transport_socket_udpv6);
+		m_lpd_udpv6->startReceive();
+		m_lpd_udpv6->startSend();
+	} catch(boost::system::system_error& e) {
+		std::clog << "[Daemon] Unable to initialize IPv6 UDP multicast LPD. Exception caught: " << e.what() << std::endl;
+	}
 }
 
 } /* namespace p2pnet */
