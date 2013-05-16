@@ -27,7 +27,7 @@ namespace messaging {
 
 class MessageSocket : public net::TransportSocketListener {
 	databases::PersonalKeyStorage* m_pks;
-	MessageGenerator m_generator;
+
 
 	std::list<handlers::MessageHandler*> m_handler_list;
 

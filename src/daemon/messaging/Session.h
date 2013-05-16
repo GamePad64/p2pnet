@@ -12,33 +12,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-syntax = "proto2";
-package p2pnet.databases;
+#ifndef SESSION_H_
+#define SESSION_H_
 
-message TransportSocketEndpoint_s {
-	enum Type {
-		UDP = 0;
-		RELAY = 1;
-	}
+#include "../peer/TH.h"
+#include "../../common/crypto/ECDH.h"
+#include "../protobuf/NetDBEntry.pb.h"
+#include <string>
+#include <memory>
 
-	optional Type type = 1 [default = UDP];
+namespace p2pnet {
+namespace messaging {
 
-	optional string ip = 3;
-	optional uint32 port = 4;
-	optional bytes th = 5;
-}
+class Session {
+	Session(peer::TH th);
+public:
+	virtual ~Session();
 
-message TimedTSE {
-	required TransportSocketEndpoint_s tse_s = 1;
-	optional int64 last_usage = 2;	// Unix timesatamp. int64 because of Y2038.
-}
+	typedef std::shared_ptr<Session> pointer;
 
-message NetDBEntry {
-	optional bytes ecdsa_public_key = 1;
-	optional bytes aes_key = 2;
+	databases::NetDBEntry& m_netdb_entry;
+	databases::NetDBEntry& getNetDBEntry();
 
-	repeated TimedTSE tse_s = 4;
+	crypto::ECDH* m_ecdh_private_key;
+	const crypto::ECDH& renewECDHPrivateKey();
+	const crypto::ECDH& getECDHPrivateKey();
+};
 
-	optional bool local = 16 [default = false];
-	optional bool dht = 17 [default = false];
-}
+} /* namespace messaging */
+} /* namespace p2pnet */
+#endif /* SESSION_H_ */
