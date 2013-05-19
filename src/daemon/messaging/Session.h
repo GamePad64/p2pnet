@@ -26,15 +26,16 @@ namespace messaging {
 
 class Session {
 	Session(peer::TH th);
+
+	databases::NetDBEntry& m_netdb_entry;
+	crypto::ECDH* m_ecdh_private_key;
 public:
 	virtual ~Session();
 
 	typedef std::shared_ptr<Session> pointer;
 
-	databases::NetDBEntry& m_netdb_entry;
 	databases::NetDBEntry& getNetDBEntry();
 
-	crypto::ECDH* m_ecdh_private_key;
 	const crypto::ECDH& renewECDHPrivateKey();
 	const crypto::ECDH& getECDHPrivateKey();
 };
