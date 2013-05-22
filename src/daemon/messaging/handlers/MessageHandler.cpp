@@ -23,11 +23,17 @@ std::string MessageHandler::getHandlerName(){
 	return "MessageHandler";
 }
 
-void MessageHandler::reject(std::string reason, MessageState& message_state) {
-	std::clog << "[" << getHandlerName() << "] Rejected message: " << reason << std::endl;
-
+void MessageHandler::complete(MessageState& message_state) {
 	message_state.repeat = false;
 	message_state.skip = true;
+}
+
+void MessageHandler::reject(Reason reason) {
+	throw(new RejectException(reason));
+}
+
+void MessageHandler::reject(Reason reason, std::string comment) {
+	throw(new RejectException(reason, comment));
 }
 
 }

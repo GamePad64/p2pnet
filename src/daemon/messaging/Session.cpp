@@ -18,7 +18,7 @@
 namespace p2pnet {
 namespace messaging {
 
-Session::Session(peer::TH th) : m_netdb_entry(databases::NetDBStorage::getInstance()[th]),
+Session::Session(peer::TH th) : m_netdb_entry(databases::NetDBStorage::getInstance()->getEntry(th)),
 		m_ecdh_private_key(NULL) {
 }
 

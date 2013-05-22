@@ -21,8 +21,6 @@
 #include "databases/PersonalKeyStorage.h"
 
 #include "messaging/MessageSocket.h"
-#include "messaging/handlers/CRC32Handler.h"
-#include "messaging/handlers/RelayHandler.h"
 
 #include "net/udp/UDPTransportSocket.h"
 #include "net/lpd/UDPLPDv4.h"
@@ -46,10 +44,6 @@ public:
 
 	// MessageSocket
 	messaging::MessageSocket m_message_socket;
-
-	// MessageHandler
-	messaging::handlers::CRC32Handler crc32_handler;
-	messaging::handlers::RelayHandler relay_handler;
 
 	net::lpd::UDPLPDv4* m_lpd_udpv4;
 	net::lpd::UDPLPDv6* m_lpd_udpv6;

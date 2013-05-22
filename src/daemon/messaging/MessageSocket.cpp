@@ -24,6 +24,10 @@ MessageSocket::MessageSocket() {
 
 MessageSocket::~MessageSocket() {}
 
+void MessageSocket::reject(Reason reason) {
+	throw(new RejectException(reason));
+}
+
 void MessageSocket::receivedMessage(net::MessageBundle message_bundle) {
 	protocol::p2pMessage message;
 	message.ParseFromString(message_bundle.message);
@@ -37,17 +41,28 @@ void MessageSocket::sentMessage(net::MessageBundle message_bundle) {
 }
 
 void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
-	handlers::MessageHandler::MessageState message_props;
+	try {
+		MessageGenerator m_generator;
+		if (!m_generator.checkMessageCRC32(message))
+			reject(Reason::CRC_MISMATCH);
 
-	do {
-		message_props.repeat = false;
-		for(auto handler : m_handler_list){
-			handler->processReceivedMessage(message, message_props);
-			if(message_props.skip){
-				break;
+		Session::pointer session_ptr = m_sessionmap[message.header().src_th()];
+
+		handlers::MessageHandler::MessageState message_props;
+
+		do {
+			message_props.repeat = false;
+			for(auto handler : m_handler_list){
+				handler->processReceivedMessage(message, message_props, session_ptr);
+				if(message_props.skip){
+					break;
+				}
 			}
-		}
-	} while(message_props.repeat);
+		} while(message_props.repeat);
+	} catch(RejectException *e) {
+		std::clog << e->what();
+		delete e;
+	}
 }
 
 void MessageSocket::addHandler(handlers::MessageHandler* handler_ptr) {

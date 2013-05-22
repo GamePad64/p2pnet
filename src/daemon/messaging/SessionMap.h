@@ -26,13 +26,13 @@ namespace p2pnet {
 namespace messaging {
 
 #if (STDMAPSESSION)
-typedef std::map<peer::TH, Session::pointer> SessionMap;
+typedef std::map<std::vector<std::string, Session::pointer> SessionMap;
 #elif (UNORDEREDMAPSESSION)
-typedef boost::unordered_map<peer::TH, Session::pointer> SessionMap;
+typedef boost::unordered_map<std::string, Session::pointer> SessionMap;
 #elif (BMAPSESSION)
-typedef btree::safe_btree_map<peer::TH, Session::pointer> SessionMap;
+typedef btree::safe_btree_map<std::string, Session::pointer> SessionMap;
 #else
-typedef boost::unordered_map<peer::TH, Session::pointer> SessionMap;
+typedef std::map<std::string, Session::pointer> SessionMap;
 #endif
 
 } /* namespace messaging */

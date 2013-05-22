@@ -18,9 +18,7 @@ namespace p2pnet {
 namespace messaging {
 namespace handlers {
 
-AgreementHandler::AgreementHandler(MessageSocket* socket_ptr) : MessageHandler(socket_ptr) {
-	m_netdb_storage = databases::NetDBStorage::getInstance();
-}
+AgreementHandler::AgreementHandler(MessageSocket* socket_ptr) : MessageHandler(socket_ptr) {}
 AgreementHandler::~AgreementHandler() {}
 
 std::string AgreementHandler::getHandlerName() {

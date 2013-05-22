@@ -18,6 +18,9 @@
 #include "../../protobuf/Protocol.pb.h"
 #include "../../databases/PersonalKeyStorage.h"
 #include "../MessageGenerator.h"
+#include "../Session.h"
+#include "../RejectException.h"
+#include "../../databases/NetDBStorage.h"
 #include <memory>
 
 namespace p2pnet {
@@ -56,20 +59,25 @@ public:
 protected:
 	MessageSocket* m_socket_ptr;
 	databases::PersonalKeyStorage* m_pks;
+	databases::NetDBStorage* m_netdb_storage;
 
 	MessageGenerator m_generator;
 
 	virtual std::string getHandlerName();
-	void reject(std::string reason, MessageState& message_state);
+	void complete(MessageState& message_state);
+
+	void reject(Reason reason);
+	void reject(Reason reason, std::string comment);
 public:
 	MessageHandler(MessageSocket* socket_ptr){
 		m_socket_ptr = socket_ptr;
 		m_pks = databases::PersonalKeyStorage::getInstance();
+		m_netdb_storage = databases::NetDBStorage::getInstance();
 	}
 	virtual ~MessageHandler(){}
 
-	virtual void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state){}
-	virtual void processSentMessage(protocol::p2pMessage& message, MessageState& message_state){}	// Well, not used usually.
+	virtual void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state, Session::pointer session_ptr){}
+	virtual void processSentMessage(protocol::p2pMessage& message, MessageState& message_state, Session::pointer session_ptr){}	// Well, not used usually.
 };
 
 } /* namespace handlers */

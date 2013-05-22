@@ -17,8 +17,11 @@
 
 #include "handlers/MessageHandler.h"
 
-#include "../databases/PersonalKeyStorage.h"
+#include "RejectException.h"
 #include "MessageGenerator.h"
+#include "SessionMap.h"
+
+#include "../databases/PersonalKeyStorage.h"
 #include "../net/TransportSocketListener.h"
 #include <list>
 
@@ -28,8 +31,10 @@ namespace messaging {
 class MessageSocket : public net::TransportSocketListener {
 	databases::PersonalKeyStorage* m_pks;
 
+	void reject(Reason reason);
 
 	std::list<handlers::MessageHandler*> m_handler_list;
+	SessionMap m_sessionmap;
 
 	void processReceivedMessage(protocol::p2pMessage message);
 public:

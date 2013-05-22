@@ -12,27 +12,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CRC32HANDLER_H_
-#define CRC32HANDLER_H_
+#ifndef REJECTEXCEPTION_H_
+#define REJECTEXCEPTION_H_
 
-#include "MessageHandler.h"
+#include <exception>
+#include <string>
 
 namespace p2pnet {
 namespace messaging {
-namespace handlers {
 
-class CRC32Handler : public MessageHandler {
-protected:
-	std::string getHandlerName();
-public:
-	CRC32Handler(MessageSocket* socket_ptr);
-	virtual ~CRC32Handler();
-
-	void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state);
-	void processSentMessage(protocol::p2pMessage& message, MessageState& message_state);
+enum Reason {
+	CUSTOM,
+	CRC_MISMATCH,
+	KEY_INVALID
 };
 
-} /* namespace handlers */
+class RejectException {
+	std::string m_comment;
+	Reason m_reason;
+public:
+	RejectException(Reason reason);
+	RejectException(std::string custom_reason);
+	RejectException(Reason reason, std::string comment);
+
+	std::string what() const;
+};
+
 } /* namespace messaging */
 } /* namespace p2pnet */
-#endif /* CRC32HANDLER_H_ */
+#endif /* REJECTEXCEPTION_H_ */
