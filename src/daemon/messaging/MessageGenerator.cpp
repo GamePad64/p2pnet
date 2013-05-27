@@ -79,9 +79,18 @@ protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangePayload() {
 	return payload;
 }
 
-protocol::p2pMessage_Payload MessageGenerator::generateAgreementPayload() {
-	//protocol::p2pMessage_Payload payload;
-	//payload.set_message_type(protocol::p2p);
+protocol::p2pMessage_Payload MessageGenerator::generateAgreementPayload(std::string ecdh_pubkey) {
+	protocol::p2pMessage_Payload payload;
+	protocol::p2pMessage_Payload_AgreementPart agreement;
+
+	payload.set_message_type(payload.AGREEMENT);
+
+	agreement.set_src_ecdh_pubkey(ecdh_pubkey);
+	agreement.set_signature(pks->getMyPrivateKey().sign(ecdh_pubkey));
+
+	payload.set_serialized_payload(agreement.SerializeAsString());
+
+	return payload;
 }
 
 } /* namespace messaging */

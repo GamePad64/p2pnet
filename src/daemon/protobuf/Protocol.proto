@@ -46,6 +46,7 @@ message p2pMessage {
 
 		message AgreementPart {
 			required bytes src_ecdh_pubkey = 1;	// My own ECDH public key (just generated)
+			required bytes signature = 2;
 		}
 
 		optional bytes serialized_payload = 2;

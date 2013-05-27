@@ -43,7 +43,13 @@ void KeyExchangeHandler::processReceivedMessage(protocol::p2pMessage& message, M
 
 		// So, public key is a valid ECDSA key, source TH matches Hash(Public Key) and public key is signed by its owner,
 		// Now we know, that this message is genuine.
-		// TODO: Generate ECDH key, if there is no such in NetDBStorage.
+		// So, we need to generate new ECDH key, if there is no such in Session.
+		crypto::ECDH ecdh = session_ptr->getECDHPrivateKey();
+		// Then derive public key from it.
+		std::string ecdh_pubkey = ecdh.derivePublicKey();
+		// And then send this public key to another peer. This part is signed by ECDSA key.
+		protocol::p2pMessage_Payload payload = m_generator.generateAgreementPayload(ecdh_pubkey);
+		protocol::p2pMessage message = m_generator.generateMessage(crypto::Hash::compute(src_pubkey), payload);
 	}
 }
 

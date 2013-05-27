@@ -63,7 +63,7 @@ public:
 
 	// Payload generators
 	protocol::p2pMessage_Payload generateKeyExchangePayload();
-	protocol::p2pMessage_Payload generateAgreementPayload();
+	protocol::p2pMessage_Payload generateAgreementPayload(std::string ecdh_pubkey);
 };
 
 } /* namespace messaging */
