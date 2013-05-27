@@ -17,6 +17,7 @@
 //#include "base64.h"
 #include <sstream>
 #include <iomanip>
+#include <deque>
 
 namespace p2pnet {
 namespace crypto {
@@ -66,6 +67,21 @@ unsigned short Hash::computeDistance(Hash rhash) {
 	}
 
 	return distance;
+}
+
+std::vector<unsigned char> Hash::operator^(const Hash& lhash) const {
+	std::deque<unsigned char> result_v;
+	binary_vector_t this_v = this->toBinaryVector();
+	binary_vector_t left_v = lhash.toBinaryVector();
+
+	auto this_i = this_v.begin();
+	auto left_i = left_v.begin();
+	while( (this_i != this_v.end()) && (left_i != left_v.end()) ){
+		result_v.push_back( (*this_i) ^ (*left_i) );
+		this_i++;
+		left_i++;
+	}
+	return ( std::vector<unsigned char>(result_v.begin(), result_v.end()) );
 }
 
 } /* namespace crypto */
