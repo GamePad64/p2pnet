@@ -12,6 +12,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "handlers/RelayHandler.h"
+#include "handlers/KeyExchangeHandler.h"
+#include "handlers/AgreementHandler.h"
+
 #include "MessageSocket.h"
 #include <iostream>
 
@@ -20,9 +24,20 @@ namespace messaging {
 
 MessageSocket::MessageSocket() {
 	m_pks = databases::PersonalKeyStorage::getInstance();
+
+	// Adding (and allocating!) active handlers.
+	this->addHandler(new handlers::RelayHandler(this));
+	this->addHandler(new handlers::KeyExchangeHandler(this));
+	this->addHandler(new handlers::AgreementHandler(this));
 }
 
-MessageSocket::~MessageSocket() {}
+MessageSocket::~MessageSocket() {
+	for(handlers::MessageHandler* &i : m_handler_list){
+		// Deallocating active handlers.
+		delete i;
+	}
+	// They will be removed by m_handler_list destructor.
+}
 
 void MessageSocket::reject(Reason reason) {
 	throw(new RejectException(reason));

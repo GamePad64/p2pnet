@@ -29,13 +29,14 @@ namespace p2pnet {
 namespace messaging {
 
 class MessageSocket : public net::TransportSocketListener {
-	databases::PersonalKeyStorage* m_pks;
-
-	void reject(Reason reason);
-
+	// Active handlers
 	std::list<handlers::MessageHandler*> m_handler_list;
+
+	// Other stuff
+	databases::PersonalKeyStorage* m_pks;
 	SessionMap m_sessionmap;
 
+	void reject(Reason reason);
 	void processReceivedMessage(protocol::p2pMessage message);
 public:
 	MessageSocket();
