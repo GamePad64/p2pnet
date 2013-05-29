@@ -98,8 +98,7 @@ void UDPLPD::sendKeyExchangeMessage(net::UDPTransportSocketEndpoint& endpoint, c
 	messaging::MessageGenerator generator;
 	auto message = generator.generateMessage(dest_th, generator.generateKeyExchangePayload());
 
-	m_udp_socket.hereSendTo(endpoint, message.SerializeAsString());
-	std::clog << "[" << getServiceName() << "] Sent agreement request to " << endpoint.getIP() << std::endl;
+	m_udp_socket.asyncSendTo(endpoint, message.SerializeAsString());
 }
 
 messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
