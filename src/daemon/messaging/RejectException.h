@@ -30,10 +30,11 @@ enum Reason {
 class RejectException {
 	std::string m_comment;
 	Reason m_reason;
+	std::string m_component;
 public:
-	RejectException(Reason reason);
-	RejectException(std::string custom_reason);
-	RejectException(Reason reason, std::string comment);
+	RejectException(Reason reason, std::string component);
+	RejectException(std::string custom_reason, std::string component);
+	RejectException(Reason reason, std::string comment, std::string component);
 
 	std::string what() const;
 };

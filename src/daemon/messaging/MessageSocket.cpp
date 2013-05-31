@@ -40,7 +40,7 @@ MessageSocket::~MessageSocket() {
 }
 
 void MessageSocket::reject(Reason reason) {
-	throw(new RejectException(reason));
+	throw(new RejectException(reason, "MessageSocket"));
 }
 
 void MessageSocket::receivedMessage(net::MessageBundle message_bundle) {

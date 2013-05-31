@@ -29,11 +29,11 @@ void MessageHandler::complete(MessageState& message_state) {
 }
 
 void MessageHandler::reject(Reason reason) {
-	throw(new RejectException(reason));
+	throw(new RejectException(reason, getHandlerName()));
 }
 
 void MessageHandler::reject(Reason reason, std::string comment) {
-	throw(new RejectException(reason, comment));
+	throw(new RejectException(reason, comment, getHandlerName()));
 }
 
 }

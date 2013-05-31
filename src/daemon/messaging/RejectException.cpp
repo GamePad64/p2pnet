@@ -19,17 +19,23 @@
 namespace p2pnet {
 namespace messaging {
 
-RejectException::RejectException(Reason reason) : m_reason(reason) {}
+RejectException::RejectException(Reason reason, std::string component) :
+		m_reason(reason),
+		m_component(component) {}
 
-RejectException::RejectException(std::string custom_reason) : m_comment(custom_reason), m_reason(Reason::CUSTOM) {
-}
+RejectException::RejectException(std::string custom_reason, std::string component) :
+		m_comment(custom_reason),
+		m_reason(Reason::CUSTOM),
+		m_component(component) {}
 
-RejectException::RejectException(Reason reason, std::string comment) : m_comment(comment), m_reason(reason) {
-}
+RejectException::RejectException(Reason reason, std::string comment, std::string component) :
+		m_comment(comment),
+		m_reason(reason),
+		m_component(component) {}
 
 std::string p2pnet::messaging::RejectException::what() const {
 	std::ostringstream what;
-	what << "[MessageSocket] (EE) Rejected";
+	what << "[" << m_component << "] (EE) Rejected";
 	if(m_reason != CUSTOM){
 		what << ". ";
 		switch(m_reason){
