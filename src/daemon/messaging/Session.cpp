@@ -30,6 +30,10 @@ databases::NetDBEntry& Session::getNetDBEntry() {
 	return m_netdb_entry;
 }
 
+bool Session::hasECDHPrivateKey() const {
+	return (bool)m_ecdh_private_key;
+}
+
 const crypto::ECDH& Session::renewECDHPrivateKey() {
 	delete m_ecdh_private_key;
 	m_ecdh_private_key = new crypto::ECDH(crypto::ECDH::generate());
@@ -41,6 +45,13 @@ const crypto::ECDH& Session::getECDHPrivateKey() {
 		return *m_ecdh_private_key;
 	}
 	return renewECDHPrivateKey();
+}
+
+void Session::sendKeyExchangeMessage() {
+
+}
+
+void Session::sendAgreementMessage() {
 }
 
 } /* namespace messaging */

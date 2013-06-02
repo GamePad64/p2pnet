@@ -18,6 +18,7 @@
 #include "../peer/TH.h"
 #include "Session.h"
 
+#include "../Singleton.h"
 #include <map>
 #include <boost/unordered_map.hpp>
 #include <cpp-btree/safe_btree_map.h>
@@ -26,7 +27,7 @@ namespace p2pnet {
 namespace messaging {
 
 #if (STDMAPSESSION)
-typedef std::map<std::vector<std::string, Session::pointer> SessionMap;
+typedef std::map<std::string, Session::pointer> SessionMap;
 #elif (UNORDEREDMAPSESSION)
 typedef boost::unordered_map<std::string, Session::pointer> SessionMap;
 #elif (BMAPSESSION)
@@ -34,6 +35,8 @@ typedef btree::safe_btree_map<std::string, Session::pointer> SessionMap;
 #else
 typedef std::map<std::string, Session::pointer> SessionMap;
 #endif
+
+typedef Singleton<SessionMap> SessionStorage;
 
 } /* namespace messaging */
 } /* namespace p2pnet */

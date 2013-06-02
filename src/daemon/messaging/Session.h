@@ -29,15 +29,27 @@ class Session {
 
 	databases::NetDBEntry& m_netdb_entry;
 	crypto::ECDH* m_ecdh_private_key;
+
+	// Agreement message reception mark. It may be fake (MitM attack, for example).
+	bool agreement_received;
+	std::string agreement_ecdh_public;	// This public key's signature is not checked!
+	std::string agreement_signature;
+
 public:
 	virtual ~Session();
 
 	typedef std::shared_ptr<Session> pointer;
 
+	// Accessors
 	databases::NetDBEntry& getNetDBEntry();
 
+	bool hasECDHPrivateKey() const;
 	const crypto::ECDH& renewECDHPrivateKey();
 	const crypto::ECDH& getECDHPrivateKey();
+
+	// Senders
+	void sendKeyExchangeMessage();
+	void sendAgreementMessage();
 };
 
 } /* namespace messaging */
