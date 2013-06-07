@@ -18,6 +18,7 @@
 #include "../../protobuf/Protocol.pb.h"
 #include "../../databases/PersonalKeyStorage.h"
 #include "../../messaging/MessageGenerator.h"
+#include "../../messaging/SessionMap.h"
 #include "../../peer/TH.h"
 #include <ctime>
 
@@ -30,7 +31,6 @@ UDPLPD::UDPLPD(Config& config, net::UDPTransportSocket& udp_socket) :
 				m_io_service), m_udp_socket(udp_socket) {
 	m_target_port = 0;
 	m_timer_seconds = 0;
-
 }
 
 UDPLPD::~UDPLPD() {
@@ -48,31 +48,45 @@ void UDPLPD::waitBeforeSend() {
 	m_timer.async_wait(boost::bind(&UDPLPD::send, this));
 }
 
-void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > asio_endpoint, char* recv_buffer) {
-	// We received message, continue receiving others
-	receive();
+bool UDPLPD::reject(messaging::Reason reason) {
+	throw(new messaging::RejectException(reason, getComponentName()));
+}
 
+bool UDPLPD::reject(messaging::Reason reason, std::string comment) {
+	throw(new messaging::RejectException(reason, comment, getComponentName()));
+}
+
+void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > asio_endpoint, char* recv_buffer) {
 	// Create Protocol Buffer message
 	messaging::protocol::UDPLPDMessage message;
 	message.ParseFromString(std::string(recv_buffer, bytes));
 	// EXCEPTION: Corrupted packet! UDP protobuf message has required fields and can throw exception if the message is incomplete.
+	delete[] recv_buffer;
 
-	std::clog << "[" << getServiceName() << "] Local <- " << asio_endpoint->address().to_string() << ":"
+	std::clog << "[" << getComponentName() << "] Local <- " << asio_endpoint->address().to_string() << ":"
 			<< message.port() << std::endl;
 
-	if (checkLPDMessage(message)) {
-		// Converting Boost::asio endpoint representation to string, so we could pass it as an argument to our network backend.
-		std::string received_address = asio_endpoint->address().to_string();
-		net::UDPTransportSocketEndpoint endpoint(received_address, message.port());
+	crypto::PublicKeyDSA pubkey = crypto::PublicKeyDSA::fromBinaryString(message.src_pubkey());
+
+	try {
+		if(!pubkey.validate())
+			reject(messaging::Reason::KEY_INVALID, "Public key is inconsistent");
+		if(!pubkey.verify(message.src_pubkey(), message.signature()))
+			reject(messaging::Reason::KEY_INVALID, "Signature is invalid");
+		/*
+		 * Summary: We received a message, which contains TransportSocketEndpoint (well, we can create it from this message)
+		 */
 
 		peer::TH th = peer::TH::compute(message.src_pubkey());
 
 		if(! databases::NetDBStorage::getInstance()->hasEntry(th)){
-			std::clog << "[" << getServiceName() << "] Discovered peer: " << th.toBase58() << std::endl;
+			std::clog << "[" << getComponentName() << "] Discovered peer: " << th.toBase58() << std::endl;
 		}
 
 		databases::NetDBEntry& peer_recv = databases::NetDBStorage::getInstance()->getEntry(th);
 
+		// Converting Boost::asio endpoint representation to string, so we could pass it as an argument to our network backend.
+		net::UDPTransportSocketEndpoint endpoint(asio_endpoint->address().to_string(), message.port());
 		if(! databases::NetDBStorage::getInstance()->hasRouteToPeer(th, endpoint.toProtobuf()) ){
 			databases::TimedTSE* timed_tse = peer_recv.mutable_tse_s()->Add();
 			*(timed_tse->mutable_tse_s()) = endpoint.toProtobuf();
@@ -85,20 +99,15 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 			databases::NetDBStorage::getInstance()->bumpRouteToPeer(th, endpoint.toProtobuf());
 		}
 
-		sendKeyExchangeMessage(endpoint, th);
-	} else {
-		// This packet is fake (or, maybe, corrupted)
-		std::clog << "[" << getServiceName() << "] Packet rejected." << std::endl;
+		auto session_ptr = (*messaging::SessionStorage::getInstance())[th.toBinaryString()];
+		session_ptr->sendConnectionMessage();
+	} catch(messaging::RejectException *e) {
+		std::clog << e->what();
+		delete e;
 	}
 
-	delete[] recv_buffer;
-}
-
-void UDPLPD::sendKeyExchangeMessage(net::UDPTransportSocketEndpoint& endpoint, const peer::TH& dest_th){
-	messaging::MessageGenerator generator;
-	auto message = generator.generateMessage(dest_th, generator.generateKeyExchangePayload());
-
-	m_udp_socket.asyncSendTo(endpoint, message.SerializeAsString());
+	// We received message, continue receiving others
+	receive();
 }
 
 messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
@@ -116,14 +125,8 @@ messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
 	return message;
 }
 
-bool UDPLPD::checkLPDMessage(const messaging::protocol::UDPLPDMessage& message){
-	crypto::PublicKeyDSA pubkey = crypto::PublicKeyDSA::fromBinaryString(message.src_pubkey());
-
-	return pubkey.validate() && pubkey.verify(message.src_pubkey(), message.signature());
-}
-
 void UDPLPD::send() {
-	std::clog << "[" << getServiceName() << "] Local -> " << m_target_address.to_string() << ":" << m_target_port
+	std::clog << "[" << getComponentName() << "] Local -> " << m_target_address.to_string() << ":" << m_target_port
 			<< std::endl;
 	m_lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()),
 			ip::udp::endpoint(m_target_address, m_target_port), boost::bind(&UDPLPD::waitBeforeSend, this));
@@ -138,13 +141,13 @@ void UDPLPD::receive() {
 }
 
 void UDPLPD::startSend() {
-	std::clog << "[" << getServiceName() << "] Started sending broadcasts to: " << m_target_address << ":"
+	std::clog << "[" << getComponentName() << "] Started sending broadcasts to: " << m_target_address << ":"
 			<< m_target_port << std::endl;
 	send();
 }
 
 void UDPLPD::startReceive() {
-	std::clog << "[" << getServiceName() << "] Started receiving broadcasts from: " << m_target_address << ":"
+	std::clog << "[" << getComponentName() << "] Started receiving broadcasts from: " << m_target_address << ":"
 			<< m_target_port << std::endl;
 	receive();
 }

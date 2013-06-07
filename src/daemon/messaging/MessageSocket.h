@@ -34,7 +34,6 @@ class MessageSocket : public net::TransportSocketListener {
 
 	// Other stuff
 	databases::PersonalKeyStorage* m_pks;
-	SessionMap m_sessionmap;
 
 	void reject(Reason reason);
 	void processReceivedMessage(protocol::p2pMessage message);

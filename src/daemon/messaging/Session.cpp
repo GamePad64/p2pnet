@@ -18,7 +18,7 @@
 namespace p2pnet {
 namespace messaging {
 
-Session::Session(peer::TH th) : m_netdb_entry(databases::NetDBStorage::getInstance()->getEntry(th)),
+Session::Session(peer::TH th) : m_th(th), m_netdb_entry(databases::NetDBStorage::getInstance()->getEntry(th)),
 		m_ecdh_private_key(NULL) {
 }
 
@@ -52,6 +52,13 @@ void Session::sendKeyExchangeMessage() {
 }
 
 void Session::sendAgreementMessage() {
+}
+
+void Session::sendConnectionMessage() {
+	protocol::p2pMessage_Payload payload = m_generator.generateConnectionPayload(getECDHPrivateKey().derivePublicKey());
+
+	auto pks = databases::PersonalKeyStorage::getInstance();
+	auto message = m_generator.generateMessage(pks->getMyTransportHash(), m_th, payload);
 }
 
 } /* namespace messaging */

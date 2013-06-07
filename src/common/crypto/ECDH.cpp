@@ -44,7 +44,7 @@ ECDH ECDH::generate() {
 	return ECDH(botan_key);
 }
 
-std::string ECDH::deriveSymmetricKey(size_t key_length, std::string other_pubkey, std::string session_param) {
+std::string ECDH::deriveSymmetricKey(size_t key_length, std::string other_pubkey, std::string session_param) const {
 	Botan::PK_Key_Agreement key_agreement(key_private, "KDF2(" + Hash::getAlgoName() + ")");
 
 	std::vector<Botan::byte> other_pubkey_v(other_pubkey.begin(), other_pubkey.end());
@@ -52,7 +52,7 @@ std::string ECDH::deriveSymmetricKey(size_t key_length, std::string other_pubkey
 	return key_agreement.derive_key(key_length, other_pubkey_v, session_param).as_string();
 }
 
-std::string ECDH::derivePublicKey() {
+std::string ECDH::derivePublicKey() const {
 	std::vector<Botan::byte> key_public_v = key_private.public_value();
 	return std::string(key_public_v.begin(), key_public_v.end());
 }

@@ -17,8 +17,10 @@
 
 #include "../common/Config.h"
 #include "AsioIOService.h"
+
 #include "databases/NetDBStorage.h"
 #include "databases/PersonalKeyStorage.h"
+#include "messaging/SessionMap.h"
 
 #include "messaging/MessageSocket.h"
 
@@ -37,6 +39,7 @@ public:
 
 	databases::NetDBStorage* m_netdb_storage;
 	databases::PersonalKeyStorage* m_pk_storage;
+	messaging::SessionMap* m_sessionmap;
 
 	// TransportSocket
 	net::UDPTransportSocket* m_transport_socket_udpv4;

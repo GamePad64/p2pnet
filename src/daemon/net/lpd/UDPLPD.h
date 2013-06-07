@@ -20,6 +20,7 @@
 #include "../../databases/NetDBStorage.h"
 #include "../../protobuf/Protocol.pb.h"
 #include "../udp/UDPTransportSocket.h"
+#include "../../messaging/RejectException.h"
 #include <boost/asio.hpp>
 #include <string>
 #include <memory>
@@ -32,20 +33,20 @@ namespace lpd {
 
 class UDPLPD: public GenericLPD {
 	void waitBeforeSend();
+
+	bool reject(messaging::Reason);
+	bool reject(messaging::Reason, std::string comment);
 	/**
 	 * This function is invoked on receiving packets. It must perform necessary checks for packet integrity.
 	 * Its arguments are from asio::socket, as it works as callback.
 	 */
 	void processReceived(size_t bytes, std::shared_ptr<ip::udp::endpoint> endpoint, char* recv_buffer);
 
-	void sendKeyExchangeMessage(net::UDPTransportSocketEndpoint& endpoint, const peer::TH& dest_th);
-
 	/**
 	 * Message to be sent to UDP multicast.
 	 * @return Protobuf structure, ready to be serialized.
 	 */
 	messaging::protocol::UDPLPDMessage generateLPDMessage();
-	bool checkLPDMessage(const messaging::protocol::UDPLPDMessage& message);
 
 protected:
 	Config& m_config;
@@ -86,7 +87,7 @@ public:
 
 	virtual void readConfig() = 0;
 	virtual void initSocket() = 0;
-	virtual std::string getServiceName(){
+	virtual std::string getComponentName(){
 		return "UDPLPD";
 	}
 

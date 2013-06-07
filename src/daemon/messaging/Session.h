@@ -18,6 +18,7 @@
 #include "../peer/TH.h"
 #include "../../common/crypto/ECDH.h"
 #include "../protobuf/NetDBEntry.pb.h"
+#include "MessageGenerator.h"
 #include <string>
 #include <memory>
 
@@ -25,9 +26,9 @@ namespace p2pnet {
 namespace messaging {
 
 class Session {
-	Session(peer::TH th);
-
 	databases::NetDBEntry& m_netdb_entry;
+
+	peer::TH m_th;
 	crypto::ECDH* m_ecdh_private_key;
 
 	// Agreement message reception mark. It may be fake (MitM attack, for example).
@@ -35,7 +36,9 @@ class Session {
 	std::string agreement_ecdh_public;	// This public key's signature is not checked!
 	std::string agreement_signature;
 
+	MessageGenerator m_generator;
 public:
+	Session(peer::TH th);
 	virtual ~Session();
 
 	typedef std::shared_ptr<Session> pointer;
@@ -50,6 +53,7 @@ public:
 	// Senders
 	void sendKeyExchangeMessage();
 	void sendAgreementMessage();
+	void sendConnectionMessage();
 };
 
 } /* namespace messaging */

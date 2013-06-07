@@ -61,7 +61,8 @@ void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
 		if (!m_generator.checkMessageCRC32(message))
 			reject(Reason::CRC_MISMATCH);
 
-		Session::pointer session_ptr = m_sessionmap[message.header().src_th()];
+		auto sessionmap = SessionStorage::getInstance();
+		Session::pointer session_ptr = (*sessionmap)[message.header().src_th()];
 
 		handlers::MessageHandler::MessageState message_props;
 

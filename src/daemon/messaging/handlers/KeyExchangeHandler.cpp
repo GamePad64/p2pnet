@@ -54,7 +54,10 @@ void KeyExchangeHandler::processReceivedMessage(protocol::p2pMessage& message, M
 }
 
 void KeyExchangeHandler::processSentMessage(protocol::p2pMessage& message, MessageState& message_state, Session::pointer session_ptr) {
-	std::clog << "[" << getHandlerName() << "] Sent Key Exchange request to " << peer::TH::fromBinaryString(message.header().dest_th()).toBase58() << std::endl;
+	protocol::p2pMessage_Payload payload = message.payload();
+	if(payload.message_type() == payload.KEY_EXCHANGE){
+		std::clog << "[" << getHandlerName() << "] Sent Key Exchange message to " << peer::TH::fromBinaryString(message.header().dest_th()).toBase58() << std::endl;
+	}
 }
 
 } /* namespace handlers */

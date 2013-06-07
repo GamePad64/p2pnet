@@ -27,8 +27,8 @@ public:
 	AgreementHandler(MessageSocket* socket_ptr);
 	virtual ~AgreementHandler();
 
-	void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state);
-	void processSentMessage(protocol::p2pMessage& message, MessageState& message_state);
+	void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state, Session::pointer session_ptr);
+	void processSentMessage(protocol::p2pMessage& message, MessageState& message_state, Session::pointer session_ptr);
 };
 
 } /* namespace handlers */

@@ -35,7 +35,7 @@ public:
 
 	virtual void readConfig();
 	virtual void initSocket();
-	virtual std::string getServiceName(){
+	virtual std::string getComponentName(){
 		return "UDPLPDv4";
 	}
 };

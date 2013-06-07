@@ -36,8 +36,8 @@ public:
 
 	static ECDH generate();
 
-	std::string deriveSymmetricKey(size_t key_length, std::string other_pubkey, std::string session_param);
-	std::string derivePublicKey();
+	std::string deriveSymmetricKey(size_t key_length, std::string other_pubkey, std::string session_param) const;
+	std::string derivePublicKey() const;
 
 	virtual const binary_vector_t toBinaryVector() const;
 };

@@ -93,5 +93,22 @@ protocol::p2pMessage_Payload MessageGenerator::generateAgreementPayload(std::str
 	return payload;
 }
 
+protocol::p2pMessage_Payload MessageGenerator::generateConnectionPayload(std::string ecdh_pubkey) {
+	protocol::p2pMessage_Payload payload;
+	protocol::p2pMessage_Payload_ConnectionPart part;
+
+	payload.set_message_type(payload.CONNECTION);
+
+	auto my_ecdsa_private_key = pks->getMyPrivateKey();
+
+	part.set_src_ecdsa_pubkey(my_ecdsa_private_key.derivePublicKey().toBinaryString());
+	part.set_src_ecdh_pubkey(ecdh_pubkey);
+	part.set_signature(my_ecdsa_private_key.sign( (part.src_ecdsa_pubkey()) + (part.src_ecdh_pubkey()) ));
+
+	payload.set_serialized_payload(part.SerializeAsString());
+
+	return payload;
+}
+
 } /* namespace messaging */
 } /* namespace p2pnet */

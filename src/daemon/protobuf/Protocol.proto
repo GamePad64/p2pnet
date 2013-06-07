@@ -32,6 +32,7 @@ message p2pMessage {
 			// Key exchange cryptographic messages.
 			KEY_EXCHANGE = 2;	// Not encrypted
 			AGREEMENT = 3;	// Not encrypted
+			CONNECTION = 4;	// Not encrypted, but there is no need of encryption. ECDH and ECDSA are used.
 		}
 
 		optional MessageType message_type = 1 [default = DATA];
@@ -48,6 +49,20 @@ message p2pMessage {
 			required bytes src_ecdh_pubkey = 1;	// My own ECDH public key (just generated)
 			required bytes signature = 2;
 			optional bool response_expected = 3 [default = false];	// It means "I haven't your ECDH public key, send me one."
+		}
+
+		/*
+		 * This payload is used, when we know remote public key and we want to establish the connection.
+		 * So, it consists of our ECDSA public key (our identity, in other words) and of ECDH public key,
+		 * specially generated for use in connection to [dest_th]. So, the remote will get our ECDSA key (it can derive
+		 * our TH, check src_th) and ECDH key.
+		 *
+		 * We expect AgreementPart as the answer.
+		 */
+		message ConnectionPart {
+			required bytes src_ecdsa_pubkey = 1;	// Our ECDSA key.
+			required bytes src_ecdh_pubkey = 2;	// This connection ECDH key.
+			required bytes signature = 3;	// The signature of (src_ecdsa_pubkey + src_ecdh_pubkey) using our ECDSA key.
 		}
 
 		optional bytes serialized_payload = 2;

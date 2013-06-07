@@ -21,10 +21,12 @@ namespace p2pnet {
 Daemon::Daemon() {
 	m_netdb_storage = databases::NetDBStorage::getInstance();
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
+	m_sessionmap = messaging::SessionStorage::getInstance();
 }
 Daemon::~Daemon() {
 	databases::NetDBStorage::clear();
 	databases::PersonalKeyStorage::clear();
+	messaging::SessionStorage::clear();
 
 	if(m_transport_socket_udpv4)
 		delete m_transport_socket_udpv4;
