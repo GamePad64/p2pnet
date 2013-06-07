@@ -1,0 +1,14 @@
+language: cpp
+compiler:
+  - gcc
+  - clang
+before_script:
+  - sudo apt-get update
+  - sudo apt-get install ccache
+script:
+  - cd D_linamd64
+  - make all
+branches:
+  only:
+    - master
+
