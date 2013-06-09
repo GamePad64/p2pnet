@@ -79,21 +79,7 @@ protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangePayload() {
 	return payload;
 }
 
-protocol::p2pMessage_Payload MessageGenerator::generateAgreementPayload(std::string ecdh_pubkey) {
-	protocol::p2pMessage_Payload payload;
-	protocol::p2pMessage_Payload_AgreementPart agreement;
-
-	payload.set_message_type(payload.AGREEMENT);
-
-	agreement.set_src_ecdh_pubkey(ecdh_pubkey);
-	agreement.set_signature(pks->getMyPrivateKey().sign(ecdh_pubkey));
-
-	payload.set_serialized_payload(agreement.SerializeAsString());
-
-	return payload;
-}
-
-protocol::p2pMessage_Payload MessageGenerator::generateConnectionPayload(std::string ecdh_pubkey) {
+protocol::p2pMessage_Payload MessageGenerator::generateConnectionPayload(std::string ecdh_pubkey, bool response) {
 	protocol::p2pMessage_Payload payload;
 	protocol::p2pMessage_Payload_ConnectionPart part;
 
@@ -101,9 +87,14 @@ protocol::p2pMessage_Payload MessageGenerator::generateConnectionPayload(std::st
 
 	auto my_ecdsa_private_key = pks->getMyPrivateKey();
 
-	part.set_src_ecdsa_pubkey(my_ecdsa_private_key.derivePublicKey().toBinaryString());
 	part.set_src_ecdh_pubkey(ecdh_pubkey);
-	part.set_signature(my_ecdsa_private_key.sign( (part.src_ecdsa_pubkey()) + (part.src_ecdh_pubkey()) ));
+
+	if(!response){
+		part.set_src_ecdsa_pubkey(my_ecdsa_private_key.derivePublicKey().toBinaryString());
+		part.set_signature(my_ecdsa_private_key.sign( (part.src_ecdsa_pubkey()) + (part.src_ecdh_pubkey()) ));
+	}else{
+		part.set_signature(my_ecdsa_private_key.sign( part.src_ecdh_pubkey() ));
+	}
 
 	payload.set_serialized_payload(part.SerializeAsString());
 

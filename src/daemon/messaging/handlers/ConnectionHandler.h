@@ -12,20 +12,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AGREEMENTHANDLER_H_
-#define AGREEMENTHANDLER_H_
+#ifndef CONNECTIONHANDLER_H_
+#define CONNECTIONHANDLER_H_
 
 #include "MessageHandler.h"
+#include "../../databases/NetDBStorage.h"
 
 namespace p2pnet {
 namespace messaging {
 namespace handlers {
 
-class AgreementHandler : public p2pnet::messaging::handlers::MessageHandler {
+class ConnectionHandler : public p2pnet::messaging::handlers::MessageHandler {
+	databases::NetDBStorage* m_netdb_storage;
 	std::string getHandlerName();
 public:
-	AgreementHandler(MessageSocket* socket_ptr);
-	virtual ~AgreementHandler();
+	ConnectionHandler(MessageSocket* socket_ptr);
+	virtual ~ConnectionHandler();
 
 	void processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state, Session::pointer session_ptr);
 	void processSentMessage(protocol::p2pMessage& message, MessageState& message_state, Session::pointer session_ptr);
@@ -34,4 +36,4 @@ public:
 } /* namespace handlers */
 } /* namespace messaging */
 } /* namespace p2pnet */
-#endif /* AGREEMENTHANDLER_H_ */
+#endif /* CONNECTIONHANDLER_H_ */

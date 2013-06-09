@@ -26,29 +26,27 @@ message p2pMessage {
 	message Payload {
 		// MessageType section.
 		enum MessageType {
-			DATA = 0;
-			ONION = 1;
+			// RSA encrypted message type. serialized_payload must contain serialized Payload type.
+			ENCRYPTED = 0;
+			DATA = 1;
+			ONION = 2;
 
 			// Key exchange cryptographic messages.
-			KEY_EXCHANGE = 2;	// Not encrypted
-			AGREEMENT = 3;	// Not encrypted
-			CONNECTION = 4;	// Not encrypted, but there is no need of encryption. ECDH and ECDSA are used.
+			KEY_REQUEST = 3;	// Not encrypted.
+			CONNECTION = 4;	// Encrypted using ECDSA.
 		}
 
-		optional MessageType message_type = 1 [default = DATA];
+		optional MessageType message_type = 1 [default = ENCRYPTED];
 
 		// End of MessageType section.
 
-		message KeyExchangePart {
+		/*
+		 * This payload is used when we know only TH. So, we need to get remote public key.
+		 */
+		message KeyRequestPart {
 			required bytes src_pubkey = 1;
 			required bytes signature = 2;
 			optional bool response_expected = 3 [default = false];	// It means "I haven't your ECDSA public key, send me one.
-		}
-
-		message AgreementPart {
-			required bytes src_ecdh_pubkey = 1;	// My own ECDH public key (just generated)
-			required bytes signature = 2;
-			optional bool response_expected = 3 [default = false];	// It means "I haven't your ECDH public key, send me one."
 		}
 
 		/*
@@ -57,7 +55,7 @@ message p2pMessage {
 		 * specially generated for use in connection to [dest_th]. So, the remote will get our ECDSA key (it can derive
 		 * our TH, check src_th) and ECDH key.
 		 *
-		 * We expect AgreementPart as the answer.
+		 * We expect ConnectionPart without [src_ecdsa_pubkey] as the answer.
 		 */
 		message ConnectionPart {
 			required bytes src_ecdsa_pubkey = 1;	// Our ECDSA key.
