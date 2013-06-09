@@ -45,6 +45,9 @@ std::string p2pnet::messaging::RejectException::what() const {
 		case KEY_INVALID:
 			what << "Public key failure";
 			break;
+		case KEY_INVALID:
+			what << "Protobuf parse error";
+			break;
 		default:;
 		}
 	}

@@ -24,7 +24,8 @@ namespace messaging {
 enum Reason {
 	CUSTOM,
 	CRC_MISMATCH,
-	KEY_INVALID
+	KEY_INVALID,
+	PARSE_ERROR
 };
 
 class RejectException {
