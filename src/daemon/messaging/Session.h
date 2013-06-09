@@ -26,9 +26,9 @@ namespace p2pnet {
 namespace messaging {
 
 class Session {
+	peer::TH m_th;
 	databases::NetDBEntry& m_netdb_entry;
 
-	peer::TH m_th;
 	crypto::ECDH* m_ecdh_private_key;
 
 	// Agreement message reception mark. It may be fake (MitM attack, for example).
