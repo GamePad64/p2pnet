@@ -14,7 +14,7 @@
 
 #include "handlers/RelayHandler.h"
 #include "handlers/KeyExchangeHandler.h"
-#include "handlers/AgreementHandler.h"
+#include "handlers/ConnectionHandler.h"
 
 #include "MessageSocket.h"
 #include <iostream>
@@ -28,7 +28,7 @@ MessageSocket::MessageSocket() {
 	// Adding (and allocating!) active handlers.
 	this->addHandler(new handlers::RelayHandler(this));
 	this->addHandler(new handlers::KeyExchangeHandler(this));
-	this->addHandler(new handlers::AgreementHandler(this));
+	this->addHandler(new handlers::ConnectionHandler(this));
 }
 
 MessageSocket::~MessageSocket() {

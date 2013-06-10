@@ -51,9 +51,6 @@ void Session::sendKeyExchangeMessage() {
 
 }
 
-void Session::sendAgreementMessage() {
-}
-
 void Session::sendConnectionMessage() {
 	protocol::p2pMessage_Payload payload = m_generator.generateConnectionPayload(getECDHPrivateKey().derivePublicKey());
 

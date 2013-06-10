@@ -48,8 +48,8 @@ void KeyExchangeHandler::processReceivedMessage(protocol::p2pMessage& message, M
 		// Then derive public key from it.
 		std::string ecdh_pubkey = ecdh.derivePublicKey();
 		// And then send this public key to another peer. This part is signed by ECDSA key.
-		protocol::p2pMessage_Payload payload = m_generator.generateAgreementPayload(ecdh_pubkey);
-		protocol::p2pMessage message = m_generator.generateMessage(crypto::Hash::compute(src_pubkey), payload);
+		//protocol::p2pMessage_Payload payload = m_generator.generateAgreementPayload(ecdh_pubkey);
+		//protocol::p2pMessage message = m_generator.generateMessage(crypto::Hash::compute(src_pubkey), payload);
 	}
 }
 

@@ -52,7 +52,6 @@ public:
 
 	// Senders
 	void sendKeyExchangeMessage();
-	void sendAgreementMessage();
 	void sendConnectionMessage();
 };
 
