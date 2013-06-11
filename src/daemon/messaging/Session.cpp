@@ -20,6 +20,7 @@ namespace messaging {
 
 Session::Session(peer::TH th) : m_th(th), m_netdb_entry(databases::NetDBStorage::getInstance()->getEntry(th)),
 		m_ecdh_private_key(NULL) {
+	agreement_received = false;
 }
 
 Session::~Session() {

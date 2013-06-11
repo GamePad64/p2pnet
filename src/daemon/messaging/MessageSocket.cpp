@@ -68,6 +68,7 @@ void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
 
 		do {
 			message_props.repeat = false;
+			message_props.skip = false;
 			for(auto handler : m_handler_list){
 				handler->processReceivedMessage(message, message_props, session_ptr);
 				if(message_props.skip){
