@@ -16,6 +16,7 @@
 #define SINGLETON_H_
 
 namespace p2pnet {
+namespace abstract {
 
 template <class T>
 class Singleton {
@@ -37,5 +38,6 @@ public:
 	virtual ~Singleton(){};
 };
 
+} /* namespace abstract */
 } /* namespace p2pnet */
 #endif /* SINGLETON_H_ */

@@ -17,12 +17,12 @@
 
 #include "../../common/crypto/PrivateKeyDSA.h"
 #include "../peer/TH.h"
-#include "../Singleton.h"
+#include "../abstract/Singleton.h"
 
 namespace p2pnet {
 namespace databases {
 
-class PersonalKeyStorage : public Singleton<PersonalKeyStorage>{
+class PersonalKeyStorage : public abstract::Singleton<PersonalKeyStorage>{
 	crypto::PrivateKeyDSA* my_private_key;
 	peer::TH* my_transport_hash;
 
