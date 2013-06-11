@@ -68,14 +68,14 @@ protocol::p2pMessage MessageGenerator::generateMessage(const peer::TH& dest_th,
 // Payload generators
 protocol::p2pMessage_Payload MessageGenerator::generateKeyExchangePayload() {
 	protocol::p2pMessage_Payload payload;
-	protocol::p2pMessage_Payload_KeyExchangePart key_exchange;
+	protocol::p2pMessage_Payload_KeyRequestPart part;
 
-	payload.set_message_type(payload.KEY_EXCHANGE);
+	payload.set_message_type(payload.KEY_REQUEST);
 
-	key_exchange.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
-	key_exchange.set_signature(pks->getMyPrivateKey().sign(pks->getMyPublicKey().toBinaryString()));// OPTIMIZE: cache this message, or we will sign new message every time we receive request.
+	part.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
+	part.set_signature(pks->getMyPrivateKey().sign(pks->getMyPublicKey().toBinaryString()));// OPTIMIZE: cache this message, or we will sign new message every time we receive request.
 
-	payload.set_serialized_payload(key_exchange.SerializeAsString());
+	payload.set_serialized_payload(part.SerializeAsString());
 	return payload;
 }
 

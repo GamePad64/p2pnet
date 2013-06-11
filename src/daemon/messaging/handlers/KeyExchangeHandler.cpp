@@ -28,8 +28,8 @@ std::string KeyExchangeHandler::getHandlerName() {
 }
 
 void KeyExchangeHandler::processReceivedMessage(protocol::p2pMessage& message, MessageState& message_state, Session::pointer session_ptr) {
-	protocol::p2pMessage_Payload payload = message.payload();
-	if(payload.message_type() == payload.KEY_EXCHANGE){
+/*	protocol::p2pMessage_Payload payload = message.payload();
+	if(payload.message_type() == payload.KEY_REQUEST){
 		protocol::p2pMessage_Payload_KeyExchangePart deserialized_payload;
 		deserialized_payload.ParseFromString(payload.serialized_payload());
 
@@ -51,11 +51,11 @@ void KeyExchangeHandler::processReceivedMessage(protocol::p2pMessage& message, M
 		//protocol::p2pMessage_Payload payload = m_generator.generateAgreementPayload(ecdh_pubkey);
 		//protocol::p2pMessage message = m_generator.generateMessage(crypto::Hash::compute(src_pubkey), payload);
 	}
-}
+*/}
 
 void KeyExchangeHandler::processSentMessage(protocol::p2pMessage& message, MessageState& message_state, Session::pointer session_ptr) {
 	protocol::p2pMessage_Payload payload = message.payload();
-	if(payload.message_type() == payload.KEY_EXCHANGE){
+	if(payload.message_type() == payload.KEY_REQUEST){
 		std::clog << "[" << getHandlerName() << "] Sent Key Exchange message to " << peer::TH::fromBinaryString(message.header().dest_th()).toBase58() << std::endl;
 	}
 }
