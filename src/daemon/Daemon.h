@@ -42,8 +42,7 @@ public:
 	messaging::SessionMap* m_sessionmap;
 
 	// TransportSocket
-	net::UDPTransportSocket* m_transport_socket_udpv4;
-	net::UDPTransportSocket* m_transport_socket_udpv6;
+	net::UDPTransportSocket* m_transport_socket_udp;
 
 	// MessageSocket
 	messaging::MessageSocket m_message_socket;

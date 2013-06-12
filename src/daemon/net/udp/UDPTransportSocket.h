@@ -42,6 +42,7 @@ public:
 
 	void openIPv4();
 	void openIPv6();
+	void openAll();
 	/*!
 	 * Opens the socket, sets it to IPv4, binds on all available network interfaces and sets MTU = IPv4_MTU
 	 * @param port
@@ -52,6 +53,7 @@ public:
 	 * @param port
 	 */
 	void bindLocalIPv6(UDPTransportSocketEndpoint::port_t port);
+	void bindLocalAll(UDPTransportSocketEndpoint::port_t port);
 
 	//Inherited from TransportSocket
 	using TransportSocket::asyncReceiveFrom;
