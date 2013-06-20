@@ -23,22 +23,33 @@ namespace p2pnet {
 namespace net {
 
 class TransportSocketEndpoint {
+	TransportInterfaceEndpoint::pointer interface_endpoint;
 public:
 	TransportSocketEndpoint(){};
-	virtual ~TransportSocketEndpoint(){};
+	~TransportSocketEndpoint(){};
 
-	typedef std::shared_ptr<TransportSocketEndpoint> pointer;
+	uint32_t getInterfaceID() const;
+	TransportInterface* getInterfaceByID(uint32_t id){
+		return TransportSocket::getInstance()->getInterfaceByID(id);
+	}
 
-	virtual pointer yieldCopyPtr() const = 0;
-	virtual databases::TransportSocketEndpoint_s_Type getEndpointType() const = 0;
+	/*
+	 * Serialization
+	 */
+	void fromProtobuf(databases::TransportSocketEndpoint_s tse_s) = 0;
+	databases::TransportSocketEndpoint_s toProtobuf() const = 0;
+	TransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s);
 
-	static pointer fromProtobuf(databases::TransportSocketEndpoint_s tse_s);
-	virtual databases::TransportSocketEndpoint_s toProtobuf() const = 0;
+	void fromBinaryString(std::string binary_string);
+	inline std::string toBinaryString() const {
+		return toProtobuf().SerializeAsString();
+	}
 
-	static pointer fromString(std::string endpoint_s);
-	std::string toString() const {return toProtobuf().SerializeAsString();};
-
-	virtual std::string toHRString() = 0;
+	/*
+	 * Readable strings.
+	 */
+	std::string toReadableString() const = 0;
+	void fromReadableString(std::string readable_string) const = 0;
 };
 
 } /* namespace net */

@@ -37,6 +37,7 @@ public:
 	 */
 	virtual void fromProtobuf(databases::TransportSocketEndpoint_s tse_s) = 0;
 	virtual databases::TransportSocketEndpoint_s toProtobuf() const = 0;
+	TransportInterfaceEndpoint(databases::TransportSocketEndpoint_s tse_s);
 
 	void fromBinaryString(std::string binary_string){
 		databases::TransportSocketEndpoint_s tse_s;

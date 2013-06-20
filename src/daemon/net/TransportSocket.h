@@ -27,9 +27,11 @@ namespace net {
 class TransportSocketListener;
 class TransportSocketEndpoint;
 
-class TransportSocket {
+class TransportSocket : abstract::Singleton<TransportSocket> {
 protected:
 	size_t max_packet_length;
+
+	std::vector<TransportInterface> interfaces;
 
 	/**
 	 * Creates MessageBundle for passing it to TransportSocketListeners.
@@ -40,6 +42,8 @@ protected:
 	MessageBundle createMessageBundle(const std::string message, TransportSocketEndpoint::pointer endpoint);
 public:
 	virtual ~TransportSocket();
+
+	TransportInterface* getInterfaceByID(uint32_t id);
 
 	virtual void asyncReceiveFrom(TransportSocketEndpoint::pointer endpoint_p) = 0;
 	void asyncReceiveFrom(const TransportSocketEndpoint& endpoint);
