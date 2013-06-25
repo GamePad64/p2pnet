@@ -15,11 +15,13 @@
 #ifndef TRANSPORTSOCKET_H_
 #define TRANSPORTSOCKET_H_
 
-#include "TransportSocketLink.h"
-
+#include "TransportInterface.h"
 #include <string>
 #include <list>
 #include <memory>
+#include <vector>
+#include <map>
+#include "../abstract/Singleton.h"
 
 namespace p2pnet {
 namespace net {
@@ -29,47 +31,23 @@ class TransportSocketEndpoint;
 
 class TransportSocket : abstract::Singleton<TransportSocket> {
 protected:
-	size_t max_packet_length;
-
 	std::vector<TransportInterface> interfaces;
+	std::map<std::string, TransportInterface> readable_strings_prefixes;
 
-	/**
-	 * Creates MessageBundle for passing it to TransportSocketListeners.
-	 * @param message Message (probably, in serialized Protocol Buffers format)
-	 * @param endpoint
-	 * @return
-	 */
-	MessageBundle createMessageBundle(const std::string message, TransportSocketEndpoint::pointer endpoint);
-public:
-	virtual ~TransportSocket();
-
-	TransportInterface* getInterfaceByID(uint32_t id);
-
-	virtual void asyncReceiveFrom(TransportSocketEndpoint::pointer endpoint_p) = 0;
-	void asyncReceiveFrom(const TransportSocketEndpoint& endpoint);
-	virtual void asyncSendTo(TransportSocketEndpoint::pointer endpoint_p, const std::string& data) = 0;
-	void asyncSendTo(const TransportSocketEndpoint& endpoint, const std::string& data);
-
-	virtual void waitReceiveFrom(TransportSocketEndpoint::pointer endpoint_p) = 0;
-	void waitReceiveFrom(const TransportSocketEndpoint& endpoint);
-	virtual void waitSendTo(TransportSocketEndpoint::pointer endpoint_p, const std::string& data) = 0;
-	void waitSendTo(const TransportSocketEndpoint& endpoint, const std::string& data);
-
-	virtual MessageBundle hereReceiveFrom(TransportSocketEndpoint::pointer endpoint_p) = 0;
-	MessageBundle hereReceiveFrom(TransportSocketEndpoint& endpoint);
-	virtual void hereSendTo(TransportSocketEndpoint::pointer endpoint_p, const std::string& data) = 0;
-	void hereSendTo(TransportSocketEndpoint& endpoint, const std::string& data);
-
-	size_t getMaxPacketLength() const {return max_packet_length;};
-
-	// Classic GoF Observer pattern.
-private:
 	/**
 	 * Set of pointers to TransportSocketListener, like an array from GoF.
 	 * These will be updated of a message is sent or received on this socket.
 	 */
 	std::list<TransportSocketListener*> m_listenerlist;
 public:
+	virtual ~TransportSocket();
+
+	typedef std::tuple<TransportInterfaceEndpoint::pointer, std::string> Callback;
+
+	TransportInterface* getInterfaceByID(uint32_t id);
+	void registerInterface(TransportInterface* interface);
+
+	// All data I/O is processed using classic GoF Observer pattern.
 	/**
 	 * Adds listener to list to be updated on send/receive events.
 	 * @param listener Pointer to TransportSocketListener.

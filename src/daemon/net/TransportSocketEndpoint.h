@@ -18,6 +18,7 @@
 #include <string>
 #include <memory>
 #include "../protobuf/NetDBEntry.pb.h"
+#include "TransportInterface.h"
 
 namespace p2pnet {
 namespace net {
@@ -28,28 +29,35 @@ public:
 	TransportSocketEndpoint(){};
 	~TransportSocketEndpoint(){};
 
-	uint32_t getInterfaceID() const;
-	TransportInterface* getInterfaceByID(uint32_t id){
-		return TransportSocket::getInstance()->getInterfaceByID(id);
+	explicit operator bool(){
+		return bool(interface_endpoint);
 	}
+
+	uint32_t getInterfaceID() const {
+		return bool(interface_endpoint) ? interface_endpoint->getInterfaceID() : 0;
+	}
+	TransportInterface* getInterfaceByID(uint32_t id);
 
 	/*
 	 * Serialization
 	 */
-	void fromProtobuf(databases::TransportSocketEndpoint_s tse_s) = 0;
-	databases::TransportSocketEndpoint_s toProtobuf() const = 0;
+	void fromProtobuf(databases::TransportSocketEndpoint_s tse_s);
+	databases::TransportSocketEndpoint_s toProtobuf() const;
 	TransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s);
 
+	/*
+	 * Binary strings serialization. Uses protobuf (look up! ^_^)
+	 */
 	void fromBinaryString(std::string binary_string);
 	inline std::string toBinaryString() const {
 		return toProtobuf().SerializeAsString();
 	}
 
 	/*
-	 * Readable strings.
+	 * Human readable strings operation.
 	 */
-	std::string toReadableString() const = 0;
-	void fromReadableString(std::string readable_string) const = 0;
+	std::string toReadableString() const;
+	void fromReadableString(std::string readable_string) const;
 };
 
 } /* namespace net */

@@ -23,26 +23,43 @@
 namespace p2pnet {
 namespace net {
 
-uint32_t TransportSocketEndpoint::getInterfaceID() const {
-	return bool(interface_endpoint) ? interface_endpoint->getInterfaceID() : 0;
+TransportInterface* TransportSocketEndpoint::getInterfaceByID(uint32_t id) {
+	return TransportSocket::getInstance()->getInterfaceByID(id);
 }
 
+// Protobuf part
 void TransportSocketEndpoint::fromProtobuf(databases::TransportSocketEndpoint_s tse_s){
-	TransportSocketEndpoint::pointer tse_ptr;
+	uint32_t iface_id = tse_s;
+	auto new_interface_endpoint = getInterfaceByID(iface_id)->createEndpoint();
+	new_interface_endpoint->fromProtobuf(tse_s);
 
+	interface_endpoint = new_interface_endpoint;
 };
 
-TransportSocketEndpoint::pointer TransportSocketEndpoint::fromString(std::string endpoint_s){
-	databases::TransportSocketEndpoint_s tse_s;
-	tse_s.ParseFromString(endpoint_s);
-	return fromProtobuf(tse_s);
-};
+databases::TransportSocketEndpoint_s TransportSocketEndpoint::toProtobuf() const {
+	return interface_endpoint->toProtobuf();
+}
 
 TransportSocketEndpoint::TransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s) {
 	fromProtobuf(tse_s);
 }
 
+// Binary strings part
 void TransportSocketEndpoint::fromBinaryString(std::string binary_string) {
+	databases::TransportSocketEndpoint_s tse_s;
+	tse_s.ParseFromString(binary_string);
+	fromProtobuf(tse_s);
+}
+
+// Readable strings part
+// Well, a complicated part. It is complicated not because string concatenation :D, but
+// because of concept. We must keep in mind that human readable strings are generated here.
+std::string TransportSocketEndpoint::toReadableString() const {
+	unsigned int iface_id = interface_endpoint->getInterfaceID();
+	TransportInterface* iface = getInterfaceByID(iface_id);
+}
+
+void TransportSocketEndpoint::fromReadableString(std::string readable_string) const {
 }
 
 } /* namespace net */

@@ -18,6 +18,7 @@
 #include "../protobuf/NetDBEntry.pb.h"
 #include <memory>
 #include <stdint.h>
+#include <tuple>
 
 namespace p2pnet {
 namespace net {
@@ -66,7 +67,7 @@ public:
 	 * TransportSocket registration information
 	 */
 	virtual uint32_t getInterfaceID() const {return 0;}
-	virtual std::string getInterfaceShortName() const = 0;
+	virtual std::string getInterfacePrefix() const = 0;
 
 	inline bool checkEndpoint(const TransportInterfaceEndpoint::const_pointer endpoint) const {
 		return (getInterfaceID() == endpoint->getInterfaceID());
