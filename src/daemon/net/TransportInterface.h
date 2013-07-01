@@ -53,7 +53,12 @@ public:
 	 * Readable strings.
 	 */
 	virtual std::string toReadableString() const = 0;
-	virtual void fromReadableString(std::string readable_string) const = 0;
+	virtual void fromReadableString(std::string readable_string) = 0;
+};
+
+struct TransportInterfaceCallback {
+	TransportInterfaceEndpoint::const_pointer endpoint;
+	std::string data;
 };
 
 class TransportInterface {
@@ -78,7 +83,7 @@ public:
 	 */
 	virtual void asyncReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint_p) = 0;
 	virtual void waitReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint_p) = 0;
-	virtual std::tuple<TransportInterfaceEndpoint::pointer, std::string> hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint_p) = 0;
+	virtual TransportInterfaceCallback hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint_p) = 0;
 
 	virtual void asyncSendTo(TransportInterfaceEndpoint::const_pointer endpoint_p, const std::string& data) = 0;
 	virtual void waitSendTo(TransportInterfaceEndpoint::const_pointer endpoint_p, const std::string& data) = 0;

@@ -16,7 +16,7 @@
 #define UDPTRANSPORTSOCKET_H_
 
 #include "../TransportSocket.h"
-#include "UDPTransportSocketEndpoint.h"
+#include "UDPTransportInterfaceEndpoint.h"
 #include <boost/asio.hpp>
 #include <memory>
 
@@ -56,19 +56,16 @@ public:
 	void bindLocalAll(UDPTransportSocketEndpoint::port_t port);
 
 	//Inherited from TransportSocket
-	using TransportSocket::asyncReceiveFrom;
 	virtual void asyncReceiveFrom(TransportSocketEndpoint::pointer endpoint);
-	using TransportSocket::asyncSendTo;
+	virtual void waitReceiveFrom(TransportSocketEndpoint::pointer endpoint);
+	virtual TransportInterfaceCallback hereReceiveFrom(TransportSocketEndpoint::pointer endpoint);
+
 	virtual void asyncSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data);
 
-	using TransportSocket::waitReceiveFrom;
-	virtual void waitReceiveFrom(TransportSocketEndpoint::pointer endpoint);
-	using TransportSocket::waitSendTo;
+
 	virtual void waitSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data);
 
-	using TransportSocket::hereReceiveFrom;
-	virtual MessageBundle hereReceiveFrom(TransportSocketEndpoint::pointer endpoint);
-	using TransportSocket::hereSendTo;
+
 	virtual void hereSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data);
 };
 

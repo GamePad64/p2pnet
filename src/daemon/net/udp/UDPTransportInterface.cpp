@@ -13,7 +13,7 @@
  */
 
 #include "../TransportSocketListener.h"
-#include "UDPTransportSocket.h"
+#include "UDPTransportInterface.h"
 #include "../../AsioIOService.h"
 #include <boost/bind.hpp>
 #include <string>
@@ -55,17 +55,14 @@ void UDPTransportSocket::sentMessageHandler(char* buffer, size_t bytes_sent,
 
 void UDPTransportSocket::openIPv4() {
 	m_socket.open(ip::udp::endpoint::protocol_type::v4());
-	max_packet_length = IPv4_MTU;
 }
 
 void UDPTransportSocket::openIPv6() {
 	m_socket.open(ip::udp::endpoint::protocol_type::v6());
-	max_packet_length = IPv6_MTU;
 }
 
 void UDPTransportSocket::openAll() {
 	m_socket.open(ip::udp::endpoint::protocol_type::v6());
-	max_packet_length = IPv6_MTU;
 }
 
 void UDPTransportSocket::bindLocalIPv4(
@@ -73,8 +70,6 @@ void UDPTransportSocket::bindLocalIPv4(
 	ip::udp::endpoint local_ipv4(ip::address_v4::from_string("0.0.0.0"), port);
 	m_socket.open(local_ipv4.protocol());
 	m_socket.bind(local_ipv4);
-
-	max_packet_length = IPv4_MTU;
 }
 
 void UDPTransportSocket::bindLocalIPv6(
@@ -83,8 +78,6 @@ void UDPTransportSocket::bindLocalIPv6(
 	m_socket.open(local_ipv6.protocol());
 	m_socket.set_option(boost::asio::ip::v6_only(true));
 	m_socket.bind(local_ipv6);
-
-	max_packet_length = IPv6_MTU;
 }
 
 void UDPTransportSocket::bindLocalAll(
@@ -92,8 +85,6 @@ void UDPTransportSocket::bindLocalAll(
 	ip::udp::endpoint local_ipv6(ip::address_v6::from_string("0::0"), port);
 	m_socket.open(local_ipv6.protocol());
 	m_socket.bind(local_ipv6);
-
-	max_packet_length = IPv6_MTU;
 }
 
 //Inherited from TransportSocket

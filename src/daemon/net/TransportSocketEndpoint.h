@@ -25,9 +25,18 @@ namespace net {
 
 class TransportSocketEndpoint {
 	TransportInterfaceEndpoint::pointer interface_endpoint;
+	/**
+	 * Creates new endpoint instance using specified interface ID.
+	 * @param id
+	 */
+	void resetEndpointByID(uint32_t id);
 public:
 	TransportSocketEndpoint(){};
+	TransportSocketEndpoint(const TransportSocketEndpoint& tse);
 	~TransportSocketEndpoint(){};
+
+	// Operators
+	void operator =(const TransportSocketEndpoint& tse);
 
 	explicit operator bool(){
 		return bool(interface_endpoint);
@@ -56,8 +65,8 @@ public:
 	/*
 	 * Human readable strings operation.
 	 */
-	std::string toReadableString() const;
 	void fromReadableString(std::string readable_string) const;
+	std::string toReadableString() const;
 };
 
 } /* namespace net */

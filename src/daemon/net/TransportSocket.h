@@ -31,8 +31,8 @@ class TransportSocketEndpoint;
 
 class TransportSocket : abstract::Singleton<TransportSocket> {
 protected:
-	std::vector<TransportInterface> interfaces;
-	std::map<std::string, TransportInterface> readable_strings_prefixes;
+	std::vector<TransportInterface*> interfaces;
+	std::map<std::string, TransportInterface*> readable_strings_prefixes;
 
 	/**
 	 * Set of pointers to TransportSocketListener, like an array from GoF.
@@ -45,6 +45,7 @@ public:
 	typedef std::tuple<TransportInterfaceEndpoint::pointer, std::string> Callback;
 
 	TransportInterface* getInterfaceByID(uint32_t id);
+	TransportInterface* getInterfaceByPrefix(std::string prefix);
 	void registerInterface(TransportInterface* interface);
 
 	// All data I/O is processed using classic GoF Observer pattern.
@@ -58,8 +59,16 @@ public:
 	 * @param listener
 	 */
 	void removeListener(TransportSocketListener* listener){m_listenerlist.remove(listener);};
-	void updateOnReceive(MessageBundle bundle);
-	void updateOnSend(MessageBundle bundle);
+	void updateOnReceive(TransportInterfaceCallback callback);
+	void updateOnSend(TransportInterfaceCallback callback);
+
+	virtual void asyncReceiveFrom(TransportSocketEndpoint endpoint) = 0;
+	virtual void waitReceiveFrom(TransportSocketEndpoint endpoint) = 0;
+	virtual TransportInterfaceCallback hereReceiveFrom(TransportSocketEndpoint endpoint) = 0;
+
+	virtual void asyncSendTo(TransportSocketEndpoint endpoint, const std::string& data) = 0;
+	virtual void waitSendTo(TransportSocketEndpoint endpoint, const std::string& data) = 0;
+	virtual void hereSendTo(TransportSocketEndpoint endpoint, const std::string& data) = 0;
 };
 
 } /* namespace net */

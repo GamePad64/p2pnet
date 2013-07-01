@@ -15,7 +15,7 @@
 #ifndef UDPTRANSPORTSOCKETENDPOINT_H_
 #define UDPTRANSPORTSOCKETENDPOINT_H_
 
-#include "../TransportSocketEndpoint.h"
+#include "../TransportInterface.h"
 #include <memory>
 #include <boost/asio.hpp>
 
@@ -24,18 +24,16 @@ namespace net {
 
 using namespace boost::asio::ip;
 
-class UDPTransportSocketEndpoint: public TransportSocketEndpoint {
-	friend class UDPTransportSocket;
+class UDPTransportInterfaceEndpoint: public TransportInterfaceEndpoint {
+	friend class UDPTransportInterface;
 private:
 	udp::endpoint& getEndpoint();
 	void setEndpoint(const udp::endpoint& endpoint);
 protected:
 	udp::endpoint asio_endpoint;
 public:
-	UDPTransportSocketEndpoint();
-	virtual ~UDPTransportSocketEndpoint();
-
-	typedef std::shared_ptr<UDPTransportSocketEndpoint> udp_pointer;
+	UDPTransportInterfaceEndpoint();
+	virtual ~UDPTransportInterfaceEndpoint();
 
 	bool isIPv4();
 	bool isIPv6();
@@ -46,21 +44,16 @@ public:
 	typedef unsigned short int port_t;
 	port_t getPort() const;
 	void setPort(port_t port);
-	UDPTransportSocketEndpoint(std::string ip, port_t port);
+	UDPTransportInterfaceEndpoint(std::string ip, port_t port);
 
 	// Inherited from TransportSocketEndpoint
-	virtual TransportSocketEndpoint::pointer yieldCopyPtr() const {
-		TransportSocketEndpoint::pointer copy = std::make_shared<UDPTransportSocketEndpoint>(UDPTransportSocketEndpoint(*this));
-		return copy;
-	}
-	virtual databases::TransportSocketEndpoint_s::Type getEndpointType() const {
-		return databases::TransportSocketEndpoint_s::UDP;
-	}
+	virtual uint32_t getInterfaceID(){return 1;}
 
-	virtual databases::TransportSocketEndpoint_s toProtobuf() const ;
-	UDPTransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s);
+	virtual void fromProtobuf(databases::TransportSocketEndpoint_s tse_s);
+	virtual databases::TransportSocketEndpoint_s toProtobuf() const;
 
-	virtual std::string toHRString();
+	virtual std::string toReadableString() const;
+	virtual void fromReadableString(std::string readable_string);
 };
 
 } /* namespace net */

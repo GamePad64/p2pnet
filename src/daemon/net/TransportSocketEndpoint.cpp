@@ -14,26 +14,34 @@
 
 // Base class
 #include "TransportSocketEndpoint.h"
-// Child classes
-#include "udp/UDPTransportSocketEndpoint.h"
-#include "../relay/RelayTransportSocketEndpoint.h"
 // Standard headers
 #include <memory>
+#include <sstream>
 
 namespace p2pnet {
 namespace net {
 
-TransportInterface* TransportSocketEndpoint::getInterfaceByID(uint32_t id) {
-	return TransportSocket::getInstance()->getInterfaceByID(id);
+// Constructors
+TransportSocketEndpoint::TransportSocketEndpoint(const TransportSocketEndpoint& tse) {
+}
+
+void TransportSocketEndpoint::resetEndpointByID(uint32_t id) {
+	interface_endpoint = TransportSocket::getInstance()->
+			getInterfaceByID(id)->
+			createEndpoint();
+}
+
+// Operators
+void TransportSocketEndpoint::operator =(const TransportSocketEndpoint& tse) {
+	auto id = tse.interface_endpoint->getInterfaceID();
+	resetEndpointByID(id);
+	*interface_endpoint = *(tse.interface_endpoint);
 }
 
 // Protobuf part
 void TransportSocketEndpoint::fromProtobuf(databases::TransportSocketEndpoint_s tse_s){
-	uint32_t iface_id = tse_s;
-	auto new_interface_endpoint = getInterfaceByID(iface_id)->createEndpoint();
-	new_interface_endpoint->fromProtobuf(tse_s);
-
-	interface_endpoint = new_interface_endpoint;
+	resetEndpointByID(tse_s.interface_id());
+	interface_endpoint->fromProtobuf(tse_s);
 };
 
 databases::TransportSocketEndpoint_s TransportSocketEndpoint::toProtobuf() const {
@@ -54,12 +62,25 @@ void TransportSocketEndpoint::fromBinaryString(std::string binary_string) {
 // Readable strings part
 // Well, a complicated part. It is complicated not because string concatenation :D, but
 // because of concept. We must keep in mind that human readable strings are generated here.
+const char readable_delim = ":";
+
 std::string TransportSocketEndpoint::toReadableString() const {
-	unsigned int iface_id = interface_endpoint->getInterfaceID();
-	TransportInterface* iface = getInterfaceByID(iface_id);
+	auto interface = TransportSocket::getInstance()->getInterfaceByID(interface_endpoint->getInterfaceID());
+	std::string readable_string = interface->getInterfacePrefix();
+	readable_string += readable_delim;
+	readable_string += interface_endpoint->toReadableString();
+	return readable_string;
 }
 
 void TransportSocketEndpoint::fromReadableString(std::string readable_string) const {
+	std::stringstream ss(readable_string);
+	std::string prefix, readable_part;
+	std::getline(ss, prefix, readable_delim);
+	std::getline(ss, readable_part);
+
+	auto interface = TransportSocket::getInstance()->getInterfaceByPrefix(prefix);
+	resetEndpointByID(interface->getInterfaceID());
+	interface_endpoint->fromReadableString(readable_part);
 }
 
 } /* namespace net */

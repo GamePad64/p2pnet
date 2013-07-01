@@ -24,20 +24,24 @@ TransportSocket::~TransportSocket(){};
 TransportInterface* TransportSocket::getInterfaceByID(uint32_t id){
 	return interfaces[id];
 }
+TransportInterface* TransportSocket::getInterfaceByPrefix(std::string prefix) {
+	return readable_strings_prefixes[prefix];
+}
+
 void TransportSocket::registerInterface(TransportInterface* interface){
 	interfaces[interface->getInterfaceID()] = interface;
 	readable_strings_prefixes[interface->getInterfacePrefix()] = interface;
 }
 
-void TransportSocket::updateOnReceive(MessageBundle bundle) {
+void TransportSocket::updateOnReceive(TransportInterfaceCallback callback) {
 	for(auto &transportsocketlistener : m_listenerlist){
-		transportsocketlistener->receivedMessage(bundle);
+		transportsocketlistener->receivedMessage(callback);
 	}
 }
 
-void TransportSocket::updateOnSend(MessageBundle bundle) {
+void TransportSocket::updateOnSend(TransportInterfaceCallback callback) {
 	for(auto &transportsocketlistener : m_listenerlist){
-		transportsocketlistener->sentMessage(bundle);
+		transportsocketlistener->sentMessage(callback);
 	}
 }
 
