@@ -25,20 +25,23 @@ using namespace boost::asio;
 namespace p2pnet {
 namespace net {
 
-class UDPTransportSocket : public p2pnet::net::TransportSocket {
-	const unsigned short IPv4_MTU = 512;
-	const unsigned short IPv6_MTU = 1024;
+class UDPTransportInterface : public p2pnet::net::TransportSocket {
+	// MTU values from http://stackoverflow.com/a/7072799
+	const unsigned short IPv4_MTU = 1438;
+	const unsigned short IPv6_MTU = 1280;
+
+	unsigned short mtu;
 
 	io_service& m_io_service;
 	ip::udp::socket m_socket;
 protected:
-	void receivedMessageHandler(const std::string& message, TransportSocketEndpoint::pointer endpoint);
-	void receivedMessageHandler(char* buffer, size_t bytes_received, TransportSocketEndpoint::pointer endpoint);
-	void sentMessageHandler(const std::string& message, TransportSocketEndpoint::pointer endpoint);
-	void sentMessageHandler(char* buffer, size_t bytes_sent, TransportSocketEndpoint::pointer endpoint);
+	void receivedMessageHandler(const std::string& message, TransportInterfaceEndpoint::pointer endpoint);
+	void receivedMessageHandler(char* buffer, size_t bytes_received, TransportInterfaceEndpoint::pointer endpoint);
+	void sentMessageHandler(const std::string& message, TransportInterfaceEndpoint::pointer endpoint);
+	void sentMessageHandler(char* buffer, size_t bytes_sent, TransportInterfaceEndpoint::pointer endpoint);
 public:
-	UDPTransportSocket();
-	virtual ~UDPTransportSocket();
+	UDPTransportInterface();
+	virtual ~UDPTransportInterface();
 
 	void openIPv4();
 	void openIPv6();
@@ -47,26 +50,22 @@ public:
 	 * Opens the socket, sets it to IPv4, binds on all available network interfaces and sets MTU = IPv4_MTU
 	 * @param port
 	 */
-	void bindLocalIPv4(UDPTransportSocketEndpoint::port_t port);
+	void bindLocalIPv4(UDPTransportInterfaceEndpoint::port_t port);
 	/*!
 	 * Opens the socket, sets it to IPv6, binds on all available network interfaces and sets MTU = IPv6_MTU
 	 * @param port
 	 */
-	void bindLocalIPv6(UDPTransportSocketEndpoint::port_t port);
-	void bindLocalAll(UDPTransportSocketEndpoint::port_t port);
+	void bindLocalIPv6(UDPTransportInterfaceEndpoint::port_t port);
+	void bindLocalAll(UDPTransportInterfaceEndpoint::port_t port);
 
 	//Inherited from TransportSocket
-	virtual void asyncReceiveFrom(TransportSocketEndpoint::pointer endpoint);
-	virtual void waitReceiveFrom(TransportSocketEndpoint::pointer endpoint);
-	virtual TransportInterfaceCallback hereReceiveFrom(TransportSocketEndpoint::pointer endpoint);
+	virtual void asyncReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
+	virtual void waitReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
+	virtual TransportInterfaceCallback hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
 
-	virtual void asyncSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data);
-
-
-	virtual void waitSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data);
-
-
-	virtual void hereSendTo(TransportSocketEndpoint::pointer endpoint, const std::string& data);
+	virtual void asyncSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data);
+	virtual void waitSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data);
+	virtual void hereSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data);
 };
 
 } /* namespace net */
