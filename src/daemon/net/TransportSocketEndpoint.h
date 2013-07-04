@@ -33,6 +33,7 @@ class TransportSocketEndpoint {
 public:
 	TransportSocketEndpoint(){};
 	TransportSocketEndpoint(const TransportSocketEndpoint& tse);
+	TransportSocketEndpoint(net::TransportInterfaceEndpoint::const_pointer interface_endpoint);
 	~TransportSocketEndpoint(){};
 
 	// Operators

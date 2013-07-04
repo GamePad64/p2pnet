@@ -65,7 +65,7 @@ public:
 	//Inherited from TransportSocket
 	virtual void asyncReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
 	virtual void waitReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
-	virtual TransportInterfaceCallback hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
+	virtual TransportSocketCallback hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
 
 	virtual void asyncSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data);
 	virtual void waitSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data);

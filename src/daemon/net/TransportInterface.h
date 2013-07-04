@@ -16,12 +16,16 @@
 #define TRANSPORTINTERFACE_H_
 
 #include "../protobuf/NetDBEntry.pb.h"
+#include "TransportSocketListener.h"
 #include <memory>
 #include <stdint.h>
 #include <tuple>
 
 namespace p2pnet {
 namespace net {
+
+class TransportSocketEndpoint;
+class TransportSocketCallback;
 
 class TransportInterfaceEndpoint {
 public:
@@ -56,11 +60,6 @@ public:
 	virtual void fromReadableString(std::string readable_string) = 0;
 };
 
-struct TransportInterfaceCallback {
-	TransportInterfaceEndpoint::const_pointer endpoint;
-	std::string data;
-};
-
 class TransportInterface {
 public:
 	TransportInterface(){};
@@ -83,7 +82,7 @@ public:
 	 */
 	virtual void asyncReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint_p) = 0;
 	virtual void waitReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint_p) = 0;
-	virtual TransportInterfaceCallback hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint_p) = 0;
+	virtual TransportSocketCallback hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint_p) = 0;
 
 	virtual void asyncSendTo(TransportInterfaceEndpoint::const_pointer endpoint_p, const std::string& data) = 0;
 	virtual void waitSendTo(TransportInterfaceEndpoint::const_pointer endpoint_p, const std::string& data) = 0;

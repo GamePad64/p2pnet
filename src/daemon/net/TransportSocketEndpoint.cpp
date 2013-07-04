@@ -24,6 +24,13 @@ namespace net {
 
 // Constructors
 TransportSocketEndpoint::TransportSocketEndpoint(const TransportSocketEndpoint& tse) {
+	*this = tse;
+}
+
+TransportSocketEndpoint::TransportSocketEndpoint(net::TransportInterfaceEndpoint::const_pointer interface_endpoint) {
+	auto id = interface_endpoint->getInterfaceID();
+	resetEndpointByID(id);
+	*(this->interface_endpoint) = *interface_endpoint;
 }
 
 void TransportSocketEndpoint::resetEndpointByID(uint32_t id) {

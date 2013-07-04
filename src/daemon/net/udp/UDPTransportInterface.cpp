@@ -34,9 +34,9 @@ UDPTransportInterface::~UDPTransportInterface() {
 
 void UDPTransportInterface::receivedMessageHandler(const std::string& message,
 		TransportInterfaceEndpoint::pointer endpoint_p) {
-	TransportInterfaceCallback callback;
+	TransportSocketCallback callback;
 	callback.data = message;
-	callback.endpoint = endpoint_p;
+	callback.endpoint = TransportSocketEndpoint(endpoint_p);
 	this->updateOnReceive(callback);
 }
 
@@ -49,9 +49,9 @@ void UDPTransportInterface::receivedMessageHandler(char* buffer,
 
 void UDPTransportInterface::sentMessageHandler(const std::string& message,
 		TransportInterfaceEndpoint::pointer endpoint_p) {
-	TransportInterfaceCallback callback;
+	TransportSocketCallback callback;
 	callback.data = message;
-	callback.endpoint = endpoint_p;
+	callback.endpoint = TransportSocketEndpoint(endpoint_p);
 	this->updateOnSend(callback);
 }
 
@@ -146,7 +146,7 @@ void UDPTransportInterface::waitSendTo(TransportInterfaceEndpoint::const_pointer
 	sentMessageHandler(data, mutable_copy_endpoint);
 }
 
-TransportInterfaceCallback UDPTransportInterface::hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint) {
+TransportSocketCallback UDPTransportInterface::hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint) {
 	std::shared_ptr<UDPTransportInterfaceEndpoint> mutable_copy_endpoint = std::make_shared<UDPTransportInterfaceEndpoint>();
 	std::shared_ptr<const UDPTransportInterfaceEndpoint> const_copy_endpoint = std::dynamic_pointer_cast<const UDPTransportInterfaceEndpoint>(endpoint);
 	*mutable_copy_endpoint = *const_copy_endpoint;
@@ -154,9 +154,9 @@ TransportInterfaceCallback UDPTransportInterface::hereReceiveFrom(TransportInter
 	char* data_received = new char[getMTU()];
 	size_t bytes_received = m_socket.receive_from(boost::asio::buffer(data_received, getMTU()), mutable_copy_endpoint->getEndpoint());
 
-	TransportInterfaceCallback callback;
+	TransportSocketCallback callback;
 	callback.data = std::string(data_received, bytes_received);
-	callback.endpoint = mutable_copy_endpoint;
+	callback.endpoint = TransportSocketEndpoint(mutable_copy_endpoint);
 
 	delete[] data_received;
 	return callback;

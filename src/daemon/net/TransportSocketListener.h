@@ -22,6 +22,8 @@
 namespace p2pnet {
 namespace net {
 
+class TransportSocketEndpoint;
+
 /**
  * TransportInterfaceCallback is data received from socket "glued" with remote endpoint.
  */
