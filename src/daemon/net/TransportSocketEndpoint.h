@@ -65,7 +65,7 @@ public:
 	/*
 	 * Human readable strings operation.
 	 */
-	void fromReadableString(std::string readable_string) const;
+	void fromReadableString(std::string readable_string);
 	std::string toReadableString() const;
 };
 

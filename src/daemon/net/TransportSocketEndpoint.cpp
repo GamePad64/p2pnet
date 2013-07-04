@@ -13,6 +13,7 @@
  */
 
 // Base class
+#include "TransportSocket.h"
 #include "TransportSocketEndpoint.h"
 // Standard headers
 #include <memory>
@@ -62,24 +63,26 @@ void TransportSocketEndpoint::fromBinaryString(std::string binary_string) {
 // Readable strings part
 // Well, a complicated part. It is complicated not because string concatenation :D, but
 // because of concept. We must keep in mind that human readable strings are generated here.
-const char readable_delim = ":";
+const char readable_delim = ':';
 
 std::string TransportSocketEndpoint::toReadableString() const {
-	auto interface = TransportSocket::getInstance()->getInterfaceByID(interface_endpoint->getInterfaceID());
+	auto interface_id = interface_endpoint->getInterfaceID();
+	auto interface = TransportSocket::getInstance()->getInterfaceByID(interface_id);
 	std::string readable_string = interface->getInterfacePrefix();
 	readable_string += readable_delim;
 	readable_string += interface_endpoint->toReadableString();
 	return readable_string;
 }
 
-void TransportSocketEndpoint::fromReadableString(std::string readable_string) const {
+void TransportSocketEndpoint::fromReadableString(std::string readable_string) {
 	std::stringstream ss(readable_string);
 	std::string prefix, readable_part;
 	std::getline(ss, prefix, readable_delim);
 	std::getline(ss, readable_part);
 
 	auto interface = TransportSocket::getInstance()->getInterfaceByPrefix(prefix);
-	resetEndpointByID(interface->getInterfaceID());
+	auto interface_id = interface->getInterfaceID();
+	resetEndpointByID(interface_id);
 	interface_endpoint->fromReadableString(readable_part);
 }
 
