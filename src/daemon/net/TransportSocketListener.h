@@ -34,8 +34,8 @@ class TransportSocketListener {
 public:
 	TransportSocketListener(){};
 	virtual ~TransportSocketListener(){};
-	virtual void receivedMessage(TransportInterfaceCallback callback) = 0;
-	virtual void sentMessage(TransportInterfaceCallback callback) = 0;
+	virtual void receivedMessage(TransportSocketCallback callback) = 0;
+	virtual void sentMessage(TransportSocketCallback callback) = 0;
 };
 } /* namespace net */
 } /* namespace p2pnet */
