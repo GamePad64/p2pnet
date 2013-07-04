@@ -47,7 +47,7 @@ public:
 	UDPTransportInterfaceEndpoint(std::string ip, port_t port);
 
 	// Inherited from TransportSocketEndpoint
-	virtual uint32_t getInterfaceID(){return 1;}
+	virtual uint32_t getInterfaceID() const {return 1;}
 
 	virtual void fromProtobuf(databases::TransportSocketEndpoint_s tse_s);
 	virtual databases::TransportSocketEndpoint_s toProtobuf() const;

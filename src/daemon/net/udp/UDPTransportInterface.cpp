@@ -101,58 +101,73 @@ void UDPTransportInterface::bindLocalAll(
 
 //Inherited from TransportSocket
 void UDPTransportInterface::asyncReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint) {
-	std::shared_ptr<UDPTransportInterfaceEndpoint> udp_endpoint = std::static_pointer_cast<UDPTransportInterfaceEndpoint>(endpoint);
+	std::shared_ptr<UDPTransportInterfaceEndpoint> mutable_copy_endpoint = std::make_shared<UDPTransportInterfaceEndpoint>();
+	std::shared_ptr<const UDPTransportInterfaceEndpoint> const_copy_endpoint = std::dynamic_pointer_cast<const UDPTransportInterfaceEndpoint>(endpoint);
+	*mutable_copy_endpoint = *const_copy_endpoint;
 
-	char* data_received = new char[getMaxPacketLength()];
+	char* data_received = new char[getMTU()];
 	m_socket.async_receive_from(
-			boost::asio::buffer(data_received, getMaxPacketLength()),
-			udp_endpoint->getEndpoint(),
+			boost::asio::buffer(data_received, getMTU()),
+			mutable_copy_endpoint->getEndpoint(),
 			boost::bind(&UDPTransportInterface::receivedMessageHandler, this, data_received,
-					boost::asio::placeholders::bytes_transferred, udp_endpoint));
+					boost::asio::placeholders::bytes_transferred, mutable_copy_endpoint));
 }
 
 void UDPTransportInterface::asyncSendTo(TransportInterfaceEndpoint::const_pointer endpoint,	const std::string& data) {
-	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
+	std::shared_ptr<UDPTransportInterfaceEndpoint> mutable_copy_endpoint = std::make_shared<UDPTransportInterfaceEndpoint>();
+	std::shared_ptr<const UDPTransportInterfaceEndpoint> const_copy_endpoint = std::dynamic_pointer_cast<const UDPTransportInterfaceEndpoint>(endpoint);
+	*mutable_copy_endpoint = *const_copy_endpoint;
 
-	char* data_sent = new char[getMaxPacketLength()];
-	m_socket.async_send_to(boost::asio::buffer(data), udp_endpoint->getEndpoint(),
-			boost::bind(&UDPTransportInterface::sentMessageHandler, this, data_sent, boost::asio::placeholders::bytes_transferred, udp_endpoint));
+	char* data_sent = new char[getMTU()];
+	m_socket.async_send_to(boost::asio::buffer(data), mutable_copy_endpoint->getEndpoint(),
+			boost::bind(&UDPTransportInterface::sentMessageHandler, this, data_sent, boost::asio::placeholders::bytes_transferred, mutable_copy_endpoint));
 }
 
 void UDPTransportInterface::waitReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint) {
-	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
+	std::shared_ptr<UDPTransportInterfaceEndpoint> mutable_copy_endpoint = std::make_shared<UDPTransportInterfaceEndpoint>();
+	std::shared_ptr<const UDPTransportInterfaceEndpoint> const_copy_endpoint = std::dynamic_pointer_cast<const UDPTransportInterfaceEndpoint>(endpoint);
+	*mutable_copy_endpoint = *const_copy_endpoint;
 
-	char* data_received = new char[getMaxPacketLength()];
+	char* data_received = new char[getMTU()];
 	size_t bytes_received = m_socket.receive_from(
-			boost::asio::buffer(data_received, getMaxPacketLength()),
-			udp_endpoint->getEndpoint());
+			boost::asio::buffer(data_received, getMTU()),
+			mutable_copy_endpoint->getEndpoint());
 
-	receivedMessageHandler(data_received, bytes_received, udp_endpoint);
+	receivedMessageHandler(data_received, bytes_received, mutable_copy_endpoint);
 }
 
 void UDPTransportInterface::waitSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data) {
-	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
+	std::shared_ptr<UDPTransportInterfaceEndpoint> mutable_copy_endpoint = std::make_shared<UDPTransportInterfaceEndpoint>();
+	std::shared_ptr<const UDPTransportInterfaceEndpoint> const_copy_endpoint = std::dynamic_pointer_cast<const UDPTransportInterfaceEndpoint>(endpoint);
+	*mutable_copy_endpoint = *const_copy_endpoint;
 
-	/*size_t bytes_sent = */m_socket.send_to(boost::asio::buffer(data), udp_endpoint->getEndpoint());
+	/*size_t bytes_sent = */m_socket.send_to(boost::asio::buffer(data), mutable_copy_endpoint->getEndpoint());
 
-	sentMessageHandler(data, udp_endpoint);
+	sentMessageHandler(data, mutable_copy_endpoint);
 }
 
-MessageBundle UDPTransportInterface::hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint) {
-	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
+TransportInterfaceCallback UDPTransportInterface::hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint) {
+	std::shared_ptr<UDPTransportInterfaceEndpoint> mutable_copy_endpoint = std::make_shared<UDPTransportInterfaceEndpoint>();
+	std::shared_ptr<const UDPTransportInterfaceEndpoint> const_copy_endpoint = std::dynamic_pointer_cast<const UDPTransportInterfaceEndpoint>(endpoint);
+	*mutable_copy_endpoint = *const_copy_endpoint;
 
-	char* data_received = new char[getMaxPacketLength()];
-	size_t bytes_received = m_socket.receive_from(boost::asio::buffer(data_received, getMaxPacketLength()), udp_endpoint->getEndpoint());
+	char* data_received = new char[getMTU()];
+	size_t bytes_received = m_socket.receive_from(boost::asio::buffer(data_received, getMTU()), mutable_copy_endpoint->getEndpoint());
 
-	MessageBundle bundle = this->createMessageBundle(std::string(data_received, bytes_received), udp_endpoint);
+	TransportInterfaceCallback callback;
+	callback.data = std::string(data_received, bytes_received);
+	callback.endpoint = mutable_copy_endpoint;
 
 	delete[] data_received;
-	return bundle;
+	return callback;
 }
 
 void UDPTransportInterface::hereSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data) {
-	UDPTransportSocketEndpoint::udp_pointer udp_endpoint = std::static_pointer_cast<UDPTransportSocketEndpoint>(endpoint);
-	m_socket.send_to(boost::asio::buffer(data), udp_endpoint->getEndpoint());
+	std::shared_ptr<UDPTransportInterfaceEndpoint> mutable_copy_endpoint = std::make_shared<UDPTransportInterfaceEndpoint>();
+	std::shared_ptr<const UDPTransportInterfaceEndpoint> const_copy_endpoint = std::dynamic_pointer_cast<const UDPTransportInterfaceEndpoint>(endpoint);
+	*mutable_copy_endpoint = *const_copy_endpoint;
+
+	m_socket.send_to(boost::asio::buffer(data), mutable_copy_endpoint->getEndpoint());
 }
 
 } /* namespace net */

@@ -43,6 +43,10 @@ public:
 	UDPTransportInterface();
 	virtual ~UDPTransportInterface();
 
+	inline unsigned short getMTU(){
+		return mtu;
+	}
+
 	void openIPv4();
 	void openIPv6();
 	void openAll();
