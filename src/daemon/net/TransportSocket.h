@@ -29,7 +29,7 @@ namespace net {
 class TransportSocketListener;
 class TransportSocketEndpoint;
 
-class TransportSocket : abstract::Singleton<TransportSocket> {
+class TransportSocket : public abstract::Singleton<TransportSocket> {
 protected:
 	std::vector<TransportInterface*> interfaces;
 	std::map<std::string, TransportInterface*> readable_strings_prefixes;
@@ -59,16 +59,16 @@ public:
 	 * @param listener
 	 */
 	void removeListener(TransportSocketListener* listener){m_listenerlist.remove(listener);};
-	void updateOnReceive(TransportInterfaceCallback callback);
-	void updateOnSend(TransportInterfaceCallback callback);
+	void updateOnReceive(TransportSocketCallback callback);
+	void updateOnSend(TransportSocketCallback callback);
 
-	virtual void asyncReceiveFrom(TransportSocketEndpoint endpoint) = 0;
-	virtual void waitReceiveFrom(TransportSocketEndpoint endpoint) = 0;
-	virtual TransportInterfaceCallback hereReceiveFrom(TransportSocketEndpoint endpoint) = 0;
+	void asyncReceiveFrom(TransportSocketEndpoint endpoint);
+	void waitReceiveFrom(TransportSocketEndpoint endpoint);
+	TransportSocketCallback hereReceiveFrom(TransportSocketEndpoint endpoint);
 
-	virtual void asyncSendTo(TransportSocketEndpoint endpoint, const std::string& data) = 0;
-	virtual void waitSendTo(TransportSocketEndpoint endpoint, const std::string& data) = 0;
-	virtual void hereSendTo(TransportSocketEndpoint endpoint, const std::string& data) = 0;
+	void asyncSendTo(TransportSocketEndpoint endpoint, const std::string& data);
+	void waitSendTo(TransportSocketEndpoint endpoint, const std::string& data);
+	void hereSendTo(TransportSocketEndpoint endpoint, const std::string& data);
 };
 
 } /* namespace net */
