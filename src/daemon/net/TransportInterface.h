@@ -19,46 +19,12 @@
 #include "TransportSocketListener.h"
 #include <memory>
 #include <stdint.h>
-#include <tuple>
 
 namespace p2pnet {
 namespace net {
 
 class TransportSocketEndpoint;
 class TransportSocketCallback;
-
-class TransportInterfaceEndpoint {
-public:
-	TransportInterfaceEndpoint(){};
-	virtual ~TransportInterfaceEndpoint(){};
-
-	typedef std::shared_ptr<TransportInterfaceEndpoint> pointer;
-	typedef std::shared_ptr<const TransportInterfaceEndpoint> const_pointer;
-
-	virtual uint32_t getInterfaceID() const {return 0;};
-
-	/*
-	 * Serialization
-	 */
-	virtual void fromProtobuf(databases::TransportSocketEndpoint_s tse_s) = 0;
-	virtual databases::TransportSocketEndpoint_s toProtobuf() const = 0;
-	TransportInterfaceEndpoint(databases::TransportSocketEndpoint_s tse_s);
-
-	void fromBinaryString(std::string binary_string){
-		databases::TransportSocketEndpoint_s tse_s;
-		tse_s.ParseFromString(binary_string);
-		fromProtobuf(tse_s);
-	}
-	inline std::string toBinaryString() const {
-		return toProtobuf().SerializeAsString();
-	}
-
-	/*
-	 * Readable strings.
-	 */
-	virtual std::string toReadableString() const = 0;
-	virtual void fromReadableString(std::string readable_string) = 0;
-};
 
 class TransportInterface {
 public:
