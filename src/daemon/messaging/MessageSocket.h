@@ -42,8 +42,8 @@ public:
 	virtual ~MessageSocket();
 
 	// TransportSocketListener functions.
-	virtual void receivedMessage(net::MessageBundle message_bundle);
-	virtual void sentMessage(net::MessageBundle message_bundle);
+	virtual void receivedMessage(net::TransportSocketCallback callback);
+	virtual void sentMessage(net::TransportSocketCallback callback);
 
 	void addHandler(handlers::MessageHandler* handler_ptr);
 	void removeHandler(handlers::MessageHandler* handler_ptr);

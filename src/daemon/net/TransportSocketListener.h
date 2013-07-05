@@ -15,27 +15,27 @@
 #ifndef TRANSPORTSOCKETLISTENER_H_
 #define TRANSPORTSOCKETLISTENER_H_
 
-#include "TransportSocketLink.h"
 #include <memory>
 #include <string>
+#include "TransportSocketEndpoint.h"
 
 namespace p2pnet {
 namespace net {
 
-class MessageBundle {
-public:
-	MessageBundle() : socket_link(0, 0){};
-	TransportSocketLink socket_link;
-
-	std::string message;
+/**
+ * TransportInterfaceCallback is data received from socket "glued" with remote endpoint.
+ */
+struct TransportSocketCallback {
+	TransportSocketEndpoint endpoint;
+	std::string data;
 };
 
 class TransportSocketListener {
 public:
 	TransportSocketListener(){};
 	virtual ~TransportSocketListener(){};
-	virtual void receivedMessage(MessageBundle message_bundle) = 0;
-	virtual void sentMessage(MessageBundle message_bundle) = 0;
+	virtual void receivedMessage(TransportSocketCallback callback) = 0;
+	virtual void sentMessage(TransportSocketCallback callback) = 0;
 };
 } /* namespace net */
 } /* namespace p2pnet */

@@ -43,16 +43,16 @@ void MessageSocket::reject(Reason reason) {
 	throw(new RejectException(reason, "MessageSocket"));
 }
 
-void MessageSocket::receivedMessage(net::MessageBundle message_bundle) {
+void MessageSocket::receivedMessage(net::TransportSocketCallback callback) {
 	protocol::p2pMessage message;
-	message.ParseFromString(message_bundle.message);
+	message.ParseFromString(callback.data);
 
 	// TODO: Add this TransportSocketLink to database.
 
 	processReceivedMessage(message);
 }
 
-void MessageSocket::sentMessage(net::MessageBundle message_bundle) {
+void MessageSocket::sentMessage(net::TransportSocketCallback callback) {
 }
 
 void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {

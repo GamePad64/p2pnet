@@ -19,7 +19,6 @@
 #include "../../../common/Config.h"
 #include "../../databases/NetDBStorage.h"
 #include "../../protobuf/Protocol.pb.h"
-#include "../udp/UDPTransportSocket.h"
 #include "../../messaging/RejectException.h"
 #include <boost/asio.hpp>
 #include <string>
@@ -67,8 +66,6 @@ protected:
 
 	//! boost::asio multicast UDP Socket
 	ip::udp::socket m_lpd_socket;
-	//! Reference to UDP socket, used for constructing TransportSocketLink
-	net::UDPTransportSocket& m_udp_socket;
 
 	ip::address m_target_address;
 	unsigned short m_target_port = 0;
@@ -80,7 +77,7 @@ protected:
 	 */
 
 public:
-	UDPLPD(Config& config, net::UDPTransportSocket& udp_socket);
+	UDPLPD(Config& config);
 	virtual ~UDPLPD();
 
 	void run();

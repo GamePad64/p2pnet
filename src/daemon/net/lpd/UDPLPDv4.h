@@ -28,7 +28,7 @@ class UDPLPDv4: public UDPLPD {
 	std::string m_default_target_address = "239.192.152.144";
 	unsigned short m_default_target_port = 28915;
 public:
-	UDPLPDv4(Config& config, net::UDPTransportSocket& udp_socket);
+	UDPLPDv4(Config& config);
 	virtual ~UDPLPDv4();
 
 	unsigned short getUDPPort();
