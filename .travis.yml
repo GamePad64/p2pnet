@@ -7,10 +7,17 @@ before_script:
   - sudo apt-get update
   - sudo apt-get dist-upgrade
   - sudo apt-get install ccache monotone libboost-all-dev g++-4.8 python-all
+  - cd contrib
+  - mkdir downloads
+  - cd downloads
   - mtn db init --db=botan.mtn
   - mtn pull --db=botan.mtn mtn.randombit.net 'net.randombit.botan'
-  - ls
   - mtn checkout --db=botan.mtn --branch=net.randombit.botan botan
+  - cd botan
+  - ./configure.py --prefix=../../
+  - make
+  - make install
+  - cd ../..
   - ls
 script:
   - ls
