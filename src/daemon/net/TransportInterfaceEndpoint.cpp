@@ -17,14 +17,7 @@
 namespace p2pnet {
 namespace net {
 
-TransportInterfaceEndpoint::TransportInterfaceEndpoint() {
-	// TODO Auto-generated constructor stub
-
-}
-
-TransportInterfaceEndpoint::TransportInterfaceEndpoint(databases::TransportSocketEndpoint_s tse_s) {
-	fromProtobuf(tse_s);
-}
+TransportInterfaceEndpoint::TransportInterfaceEndpoint() {}
 
 void TransportInterfaceEndpoint::fromBinaryString(std::string binary_string) {
 	databases::TransportSocketEndpoint_s tse_s;
@@ -36,9 +29,7 @@ std::string TransportInterfaceEndpoint::toBinaryString() const {
 	return toProtobuf().SerializeAsString();
 }
 
-TransportInterfaceEndpoint::~TransportInterfaceEndpoint() {
-	// TODO Auto-generated destructor stub
-}
+TransportInterfaceEndpoint::~TransportInterfaceEndpoint() {}
 
 } /* namespace net */
 } /* namespace p2pnet */

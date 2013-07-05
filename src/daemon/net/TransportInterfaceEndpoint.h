@@ -16,14 +16,15 @@
 #define TRANSPORTINTERFACEENDPOINT_H_
 
 #include "../protobuf/NetDBEntry.pb.h"
+#include <memory>
 
 namespace p2pnet {
 namespace net {
 
 class TransportInterfaceEndpoint {
 public:
-	TransportInterfaceEndpoint(){};
-	virtual ~TransportInterfaceEndpoint(){};
+	TransportInterfaceEndpoint();
+	virtual ~TransportInterfaceEndpoint();
 
 	typedef std::shared_ptr<TransportInterfaceEndpoint> pointer;
 	typedef std::shared_ptr<const TransportInterfaceEndpoint> const_pointer;
@@ -35,7 +36,6 @@ public:
 	 */
 	virtual void fromProtobuf(databases::TransportSocketEndpoint_s tse_s) = 0;
 	virtual databases::TransportSocketEndpoint_s toProtobuf() const = 0;
-	TransportInterfaceEndpoint(databases::TransportSocketEndpoint_s tse_s);
 
 	void fromBinaryString(std::string binary_string);
 	std::string toBinaryString() const;
