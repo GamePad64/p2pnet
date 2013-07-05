@@ -15,6 +15,7 @@
 // Base class
 #include "TransportSocket.h"
 #include "TransportSocketEndpoint.h"
+#include "TransportInterface.h"
 // Standard headers
 #include <memory>
 #include <sstream>
@@ -93,5 +94,14 @@ void TransportSocketEndpoint::fromReadableString(std::string readable_string) {
 	interface_endpoint->fromReadableString(readable_part);
 }
 
+TransportSocketEndpoint::operator bool() {
+	return bool(interface_endpoint);
+}
+
+uint32_t p2pnet::net::TransportSocketEndpoint::getInterfaceID() const {
+	return bool(interface_endpoint) ? interface_endpoint->getInterfaceID() : 0;
+}
+
 } /* namespace net */
 } /* namespace p2pnet */
+

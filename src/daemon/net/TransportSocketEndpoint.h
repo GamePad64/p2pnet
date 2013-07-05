@@ -18,7 +18,7 @@
 #include <string>
 #include <memory>
 #include "../protobuf/NetDBEntry.pb.h"
-#include "TransportInterface.h"
+#include "TransportInterfaceEndpoint.h"
 
 namespace p2pnet {
 namespace net {
@@ -39,14 +39,9 @@ public:
 	// Operators
 	void operator =(const TransportSocketEndpoint& tse);
 
-	explicit operator bool(){
-		return bool(interface_endpoint);
-	}
+	explicit operator bool();
 
-	uint32_t getInterfaceID() const {
-		return bool(interface_endpoint) ? interface_endpoint->getInterfaceID() : 0;
-	}
-	TransportInterface* getInterfaceByID(uint32_t id);
+	uint32_t getInterfaceID() const;
 
 	/*
 	 * Serialization
