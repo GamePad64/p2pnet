@@ -62,6 +62,7 @@ public:
 	void updateOnReceive(TransportSocketCallback callback);
 	void updateOnSend(TransportSocketCallback callback);
 
+	// Basically, I/O
 	void asyncReceiveFrom(TransportSocketEndpoint endpoint);
 	void waitReceiveFrom(TransportSocketEndpoint endpoint);
 	TransportSocketCallback hereReceiveFrom(TransportSocketEndpoint endpoint);

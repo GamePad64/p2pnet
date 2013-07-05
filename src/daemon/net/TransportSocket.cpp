@@ -33,13 +33,13 @@ void TransportSocket::registerInterface(TransportInterface* interface){
 	readable_strings_prefixes[interface->getInterfacePrefix()] = interface;
 }
 
-void TransportSocket::updateOnReceive(TransportInterfaceCallback callback) {
+void TransportSocket::updateOnReceive(TransportSocketCallback callback) {
 	for(auto &transportsocketlistener : m_listenerlist){
 		transportsocketlistener->receivedMessage(callback);
 	}
 }
 
-void TransportSocket::updateOnSend(TransportInterfaceCallback callback) {
+void TransportSocket::updateOnSend(TransportSocketCallback callback) {
 	for(auto &transportsocketlistener : m_listenerlist){
 		transportsocketlistener->sentMessage(callback);
 	}
