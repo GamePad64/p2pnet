@@ -24,14 +24,16 @@
 
 #include "messaging/MessageSocket.h"
 
-#include "net/udp/UDPTransportSocket.h"
+#include "net/TransportSocket.h"
+
+#include "net/udp/UDPTransportInterface.h"
 #include "net/lpd/UDPLPDv4.h"
 #include "net/lpd/UDPLPDv6.h"
 
 namespace p2pnet {
 
 class Daemon {
-	void initTransportSockets();
+	void initTransportSocket();
 	void initMessageSocket();
 	void initLPD();
 public:
@@ -41,8 +43,9 @@ public:
 	databases::PersonalKeyStorage* m_pk_storage;
 	messaging::SessionMap* m_sessionmap;
 
-	// TransportSocket
-	net::UDPTransportSocket* m_transport_socket_udp;
+	// TransportSocket with its interfaces.
+	net::TransportSocket* m_transport_socket;
+	net::UDPTransportInterface* m_udp_interface;
 
 	// MessageSocket
 	messaging::MessageSocket m_message_socket;

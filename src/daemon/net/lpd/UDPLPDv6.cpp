@@ -13,13 +13,12 @@
  */
 
 #include "UDPLPDv6.h"
-#include "../udp/UDPTransportSocketEndpoint.h"
 
 namespace p2pnet {
 namespace net {
 namespace lpd {
 
-UDPLPDv6::UDPLPDv6(Config& config, net::UDPTransportSocket& udp_socket) : UDPLPD(config, udp_socket) {
+UDPLPDv6::UDPLPDv6(Config& config) : UDPLPD(config) {
 	readConfig();
 	initSocket();
 }

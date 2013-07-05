@@ -28,7 +28,7 @@ class UDPLPDv6: public p2pnet::net::lpd::UDPLPD {
 	std::string m_default_target_address = "ff08::BD02";
 	unsigned short m_default_target_port = 28915;
 public:
-	UDPLPDv6(Config& config, net::UDPTransportSocket& udp_socket);
+	UDPLPDv6(Config& config);
 	virtual ~UDPLPDv6();
 
 	unsigned short getUDPPort();

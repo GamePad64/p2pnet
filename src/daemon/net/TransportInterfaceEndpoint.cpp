@@ -12,13 +12,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "RelayTransportSocket.h"
+#include "TransportInterfaceEndpoint.h"
 
 namespace p2pnet {
-namespace relay {
+namespace net {
 
-RelayTransportSocket::RelayTransportSocket() {}
-RelayTransportSocket::~RelayTransportSocket() {}
+TransportInterfaceEndpoint::TransportInterfaceEndpoint() {}
 
-} /* namespace relay */
+void TransportInterfaceEndpoint::fromBinaryString(std::string binary_string) {
+	databases::TransportSocketEndpoint_s tse_s;
+	tse_s.ParseFromString(binary_string);
+	fromProtobuf(tse_s);
+}
+
+std::string TransportInterfaceEndpoint::toBinaryString() const {
+	return toProtobuf().SerializeAsString();
+}
+
+TransportInterfaceEndpoint::~TransportInterfaceEndpoint() {}
+
+} /* namespace net */
 } /* namespace p2pnet */

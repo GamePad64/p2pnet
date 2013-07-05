@@ -14,7 +14,7 @@
 
 #include "UDPLPD.h"
 #include "../../AsioIOService.h"
-#include "../udp/UDPTransportSocket.h"
+#include "../udp/UDPTransportInterface.h"
 #include "../../protobuf/Protocol.pb.h"
 #include "../../databases/PersonalKeyStorage.h"
 #include "../../messaging/MessageGenerator.h"
@@ -26,9 +26,9 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-UDPLPD::UDPLPD(Config& config, net::UDPTransportSocket& udp_socket) :
+UDPLPD::UDPLPD(Config& config) :
 		m_config(config), m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), m_lpd_socket(
-				m_io_service), m_udp_socket(udp_socket) {
+				m_io_service) {
 	m_target_port = 0;
 	m_timer_seconds = 0;
 }
@@ -86,7 +86,7 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 		databases::NetDBEntry& peer_recv = databases::NetDBStorage::getInstance()->getEntry(th);
 
 		// Converting Boost::asio endpoint representation to string, so we could pass it as an argument to our network backend.
-		net::UDPTransportSocketEndpoint endpoint(asio_endpoint->address().to_string(), message.port());
+		net::UDPTransportInterfaceEndpoint endpoint(asio_endpoint->address().to_string(), message.port());
 		if(! databases::NetDBStorage::getInstance()->hasRouteToPeer(th, endpoint.toProtobuf()) ){
 			databases::TimedTSE* timed_tse = peer_recv.mutable_tse_s()->Add();
 			*(timed_tse->mutable_tse_s()) = endpoint.toProtobuf();

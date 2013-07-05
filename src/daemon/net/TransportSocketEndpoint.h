@@ -18,27 +18,51 @@
 #include <string>
 #include <memory>
 #include "../protobuf/NetDBEntry.pb.h"
+#include "TransportInterfaceEndpoint.h"
 
 namespace p2pnet {
 namespace net {
 
 class TransportSocketEndpoint {
+	TransportInterfaceEndpoint::pointer interface_endpoint;
+	/**
+	 * Creates new endpoint instance using specified interface ID.
+	 * @param id
+	 */
+	void resetEndpointByID(uint32_t id);
 public:
 	TransportSocketEndpoint(){};
-	virtual ~TransportSocketEndpoint(){};
+	TransportSocketEndpoint(const TransportSocketEndpoint& tse);
+	TransportSocketEndpoint(net::TransportInterfaceEndpoint::const_pointer interface_endpoint);
+	~TransportSocketEndpoint(){};
 
-	typedef std::shared_ptr<TransportSocketEndpoint> pointer;
+	// Operators
+	void operator =(const TransportSocketEndpoint& tse);
 
-	virtual pointer yieldCopyPtr() const = 0;
-	virtual databases::TransportSocketEndpoint_s_Type getEndpointType() const = 0;
+	explicit operator bool();
 
-	static pointer fromProtobuf(databases::TransportSocketEndpoint_s tse_s);
-	virtual databases::TransportSocketEndpoint_s toProtobuf() const = 0;
+	uint32_t getInterfaceID() const;
 
-	static pointer fromString(std::string endpoint_s);
-	std::string toString() const {return toProtobuf().SerializeAsString();};
+	/*
+	 * Serialization
+	 */
+	void fromProtobuf(databases::TransportSocketEndpoint_s tse_s);
+	databases::TransportSocketEndpoint_s toProtobuf() const;
+	TransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s);
 
-	virtual std::string toHRString() = 0;
+	/*
+	 * Binary strings serialization. Uses protobuf (look up! ^_^)
+	 */
+	void fromBinaryString(std::string binary_string);
+	inline std::string toBinaryString() const {
+		return toProtobuf().SerializeAsString();
+	}
+
+	/*
+	 * Human readable strings operation.
+	 */
+	void fromReadableString(std::string readable_string);
+	std::string toReadableString() const;
 };
 
 } /* namespace net */
