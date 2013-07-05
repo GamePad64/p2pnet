@@ -3,9 +3,17 @@ compiler:
   - gcc
   - clang
 before_script:
+  - sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update
-  - sudo apt-get install ccache
+  - sudo apt-get dist-upgrade
+  - sudo apt-get install ccache monotone libboost-all-dev g++-4.8 python-all
+  - mtn db init --db=botan.mtn
+  - mtn pull --db=botan.mtn mtn.randombit.net 'net.randombit.botan'
+  - ls
+  - mtn checkout --db=botan.mtn --branch=net.randombit.botan botan
+  - ls
 script:
+  - ls
   - cd D_linamd64
   - make all
 branches:
