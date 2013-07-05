@@ -31,7 +31,7 @@ class TransportSocketEndpoint;
 
 class TransportSocket : public abstract::Singleton<TransportSocket> {
 protected:
-	std::vector<TransportInterface*> interfaces;
+	std::map<uint32_t, TransportInterface*> interfaces;
 	std::map<std::string, TransportInterface*> readable_strings_prefixes;
 
 	/**
