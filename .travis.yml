@@ -2,11 +2,12 @@ language: cpp
 compiler:
   - gcc
   - clang
-before_script:
+install:
   - sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update
   - sudo apt-get dist-upgrade
-  - sudo apt-get install ccache monotone libboost-all-dev g++-4.8 python-all
+  - sudo apt-get install ccache monotone libboost-all-dev g++-4.8 gcc-4.8 build-essential python-all binutils-gold
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
   - cd contrib
   - mkdir downloads
   - cd downloads
@@ -26,4 +27,5 @@ script:
 branches:
   only:
     - master
+    - travis-config
 
