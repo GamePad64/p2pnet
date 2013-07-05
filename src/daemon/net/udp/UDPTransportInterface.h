@@ -25,7 +25,7 @@ using namespace boost::asio;
 namespace p2pnet {
 namespace net {
 
-class UDPTransportInterface : public p2pnet::net::TransportSocket {
+class UDPTransportInterface : public p2pnet::net::TransportInterface {
 	// MTU values from http://stackoverflow.com/a/7072799
 	const unsigned short IPv4_MTU = 1438;
 	const unsigned short IPv6_MTU = 1280;
@@ -42,6 +42,9 @@ protected:
 public:
 	UDPTransportInterface();
 	virtual ~UDPTransportInterface();
+
+	virtual TransportInterfaceEndpoint::pointer createEndpoint();
+	virtual std::string getInterfacePrefix() const;
 
 	inline unsigned short getMTU(){
 		return mtu;

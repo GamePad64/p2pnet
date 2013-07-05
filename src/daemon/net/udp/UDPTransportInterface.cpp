@@ -32,12 +32,20 @@ UDPTransportInterface::~UDPTransportInterface() {
 		m_socket.close();
 }
 
+TransportInterfaceEndpoint::pointer UDPTransportInterface::createEndpoint() {
+	return std::make_shared<UDPTransportInterfaceEndpoint>();
+}
+
+std::string UDPTransportInterface::getInterfacePrefix() const {
+	return "UDP";
+}
+
 void UDPTransportInterface::receivedMessageHandler(const std::string& message,
 		TransportInterfaceEndpoint::pointer endpoint_p) {
 	TransportSocketCallback callback;
 	callback.data = message;
 	callback.endpoint = TransportSocketEndpoint(endpoint_p);
-	this->updateOnReceive(callback);
+	TransportSocket::getInstance()->updateOnReceive(callback);
 }
 
 void UDPTransportInterface::receivedMessageHandler(char* buffer,
@@ -52,7 +60,7 @@ void UDPTransportInterface::sentMessageHandler(const std::string& message,
 	TransportSocketCallback callback;
 	callback.data = message;
 	callback.endpoint = TransportSocketEndpoint(endpoint_p);
-	this->updateOnSend(callback);
+	TransportSocket::getInstance()->updateOnSend(callback);
 }
 
 void UDPTransportInterface::sentMessageHandler(char* buffer, size_t bytes_sent,

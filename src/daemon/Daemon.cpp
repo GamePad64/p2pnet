@@ -13,7 +13,7 @@
  */
 
 #include "Daemon.h"
-#include "net/udp/UDPTransportSocketEndpoint.h"
+#include "net/udp/UDPTransportInterfaceEndpoint.h"
 #include "net/lpd/UDPLPDv4.h"
 
 namespace p2pnet {
@@ -28,30 +28,32 @@ Daemon::~Daemon() {
 	databases::PersonalKeyStorage::clear();
 	messaging::SessionStorage::clear();
 
-	if (m_transport_socket_udp) delete m_transport_socket_udp;
+	if (m_transport_socket) delete m_transport_socket;
 
 	if (m_lpd_udpv4) delete m_lpd_udpv4;
 	if (m_lpd_udpv6) delete m_lpd_udpv6;
 }
 
 void Daemon::run() {
-	this->initTransportSockets();
+	this->initTransportSocket();
 	this->initMessageSocket();
 	this->initLPD();
 	AsioIOService::getIOService().run();
 }
 
-void Daemon::initTransportSockets() {
+void Daemon::initTransportSocket() {
 	try {
-		m_transport_socket_udp = new net::UDPTransportSocket();
+		m_transport_socket = net::TransportSocket::getInstance();
+		m_transport_socket->addListener(&m_message_socket);
 
+		m_udp_interface = new net::UDPTransportInterface();
 		unsigned short int port_v6 = config.getConfig().get("net.sockets.udpv6.port", 2185);
-		m_transport_socket_udp->bindLocalAll(port_v6);
+		m_udp_interface->bindLocalAll(port_v6);
 
-		m_transport_socket_udp->addListener(&m_message_socket);
+		net::UDPTransportInterfaceEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), port_v6);
+		m_transport_socket->registerInterface(m_udp_interface);
 
-		net::UDPTransportSocketEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), port_v6);
-		m_transport_socket_udp->asyncReceiveFrom(endpoint);
+		m_udp_interface->asyncReceiveFrom(std::make_shared<net::UDPTransportInterfaceEndpoint>(endpoint));
 	} catch (boost::system::system_error& e) {
 		std::clog << "[Daemon] Unable to initialize IPv6 UDP socket. Exception caught: " << e.what() << std::endl;
 	}
@@ -63,7 +65,7 @@ void Daemon::initMessageSocket() {
 
 void Daemon::initLPD() {
 	try {
-		m_lpd_udpv4 = new net::lpd::UDPLPDv4(config, *m_transport_socket_udp);
+		m_lpd_udpv4 = new net::lpd::UDPLPDv4(config);
 		m_lpd_udpv4->startReceive();
 		m_lpd_udpv4->startSend();
 	} catch (boost::system::system_error& e) {
@@ -72,7 +74,7 @@ void Daemon::initLPD() {
 	}
 
 	try {
-		m_lpd_udpv6 = new net::lpd::UDPLPDv6(config, *m_transport_socket_udp);
+		m_lpd_udpv6 = new net::lpd::UDPLPDv6(config);
 		m_lpd_udpv6->startReceive();
 		m_lpd_udpv6->startSend();
 	} catch (boost::system::system_error& e) {
