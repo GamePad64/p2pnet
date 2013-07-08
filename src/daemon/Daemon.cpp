@@ -42,25 +42,31 @@ void Daemon::run() {
 }
 
 void Daemon::initTransportSocket() {
+	// Creating TransportSocket
+	m_transport_socket = net::TransportSocket::getInstance();
+	m_transport_socket->addListener(&m_message_socket);
+
+	// Creating interfaces
+	m_udp_interface = new net::UDPTransportInterface();
+
+	// Registering interfaces in TransportSocket
+	m_transport_socket->registerInterface(m_udp_interface);
+
+	// Configuring interfaces
 	try {
-		m_transport_socket = net::TransportSocket::getInstance();
-		m_transport_socket->addListener(&m_message_socket);
+		unsigned short int port = config.getConfig().get("net.sockets.udp.port", 2185);
+		m_udp_interface->bindLocalAll(port);
 
-		m_udp_interface = new net::UDPTransportInterface();
-		unsigned short int port_v6 = config.getConfig().get("net.sockets.udpv6.port", 2185);
-		m_udp_interface->bindLocalAll(port_v6);
-
-		net::UDPTransportInterfaceEndpoint endpoint(config.getConfig().get("net.sockets.udpv6.bind", "0::0"), port_v6);
-		m_transport_socket->registerInterface(m_udp_interface);
-
+		// Begin receiving from UDP
+		net::UDPTransportInterfaceEndpoint endpoint(config.getConfig().get("net.sockets.udp.bind", "0::0"), port);
 		m_udp_interface->asyncReceiveFrom(std::make_shared<net::UDPTransportInterfaceEndpoint>(endpoint));
 	} catch (boost::system::system_error& e) {
-		std::clog << "[Daemon] Unable to initialize IPv6 UDP socket. Exception caught: " << e.what() << std::endl;
+		std::clog << "[Daemon] Unable to initialize UDP socket. Exception caught: " << e.what() << std::endl;
 	}
 }
 
 void Daemon::initMessageSocket() {
-
+	m_transport_socket->addListener(&m_message_socket);
 }
 
 void Daemon::initLPD() {
