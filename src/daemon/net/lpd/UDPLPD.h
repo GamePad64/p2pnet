@@ -53,12 +53,6 @@ protected:
 	io_service& m_io_service;
 
 	/**
-	 * This function is virtual, so it returns UDP port for given protocol, for IPv4 or IPv6.
-	 * @return
-	 */
-	virtual unsigned short getUDPPort() = 0;
-
-	/**
 	 * This timer is used between sending two messages. Default is to wait 10 seconds.
 	 */
 	deadline_timer m_timer;
@@ -67,10 +61,8 @@ protected:
 	//! boost::asio multicast UDP Socket
 	ip::udp::socket m_lpd_socket;
 
-	ip::address m_target_address;
-	unsigned short m_target_port = 0;
-
-	ip::address m_bind_address;
+	ip::udp::endpoint target_ipv4_multicast;
+	ip::udp::endpoint target_ipv6_multicast;
 
 	/**
 	 * Message, that we are going to send is stored here.
@@ -81,9 +73,10 @@ public:
 	virtual ~UDPLPD();
 
 	void run();
+	void readConfig();
 
-	virtual void readConfig() = 0;
-	virtual void initSocket() = 0;
+	virtual void readConfig();
+	virtual void initSocket();
 	virtual std::string getComponentName(){
 		return "UDPLPD";
 	}

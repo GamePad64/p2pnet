@@ -29,8 +29,15 @@ namespace lpd {
 UDPLPD::UDPLPD(Config& config) :
 		m_config(config), m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), m_lpd_socket(
 				m_io_service) {
-	m_target_port = 0;
-	m_timer_seconds = 0;
+	const unsigned int m_default_timer_seconds = 10;
+	std::string m_default_bind_address = "0::0";
+	std::string m_default_target_address = "ff08::BD02";
+	unsigned short m_default_target_port = 28915;
+
+	this->m_timer_seconds = m_config.getConfig().get("net.lpd.udpv6.timer", m_default_timer_seconds);
+	this->m_target_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv6.address", m_default_target_address));
+	this->m_target_port = m_config.getConfig().get("net.sockets.udp.port", m_default_target_port);
+	this->m_bind_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv6.address", m_default_bind_address));
 }
 
 UDPLPD::~UDPLPD() {
@@ -126,29 +133,47 @@ messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
 }
 
 void UDPLPD::send() {
-	std::clog << "[" << getComponentName() << "] Local -> " << m_target_address.to_string() << ":" << m_target_port
-			<< std::endl;
-	m_lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()),
-			ip::udp::endpoint(m_target_address, m_target_port), boost::bind(&UDPLPD::waitBeforeSend, this));
+	std::clog << "[" << getComponentName() << "] Local -> " << target_ipv4_multicast.address().to_string() << ":" << target_ipv4_multicast.port();
+	m_lpd_socket.send_to(buffer(generateLPDMessage().SerializeAsString()), target_ipv4_multicast);
+	m_lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()), target_ipv6_multicast, boost::bind(&UDPLPD::waitBeforeSend, this));
 }
 
 void UDPLPD::receive() {
-	char* lpd_packet = new char[2048];
-	std::shared_ptr< ip::udp::endpoint > endpoint = std::make_shared< ip::udp::endpoint >(m_bind_address,
-			m_target_port);
-	m_lpd_socket.async_receive_from(buffer(lpd_packet, 2048), *endpoint,
-			boost::bind(&UDPLPD::processReceived, this, placeholders::bytes_transferred, endpoint, lpd_packet));
+	char* lpd_packet4 = new char[2048];
+	char* lpd_packet6 = new char[2048];
+	std::shared_ptr< ip::udp::endpoint > endpoint4 = std::make_shared< ip::udp::endpoint >(target_ipv4_multicast);
+	std::shared_ptr< ip::udp::endpoint > endpoint6 = std::make_shared< ip::udp::endpoint >(target_ipv6_multicast);
+	m_lpd_socket.async_receive_from(buffer(lpd_packet4, 2048), *endpoint4,
+			boost::bind(&UDPLPD::processReceived, this, placeholders::bytes_transferred, endpoint4, lpd_packet4));
+	m_lpd_socket.async_receive_from(buffer(lpd_packet6, 2048), *endpoint6,
+			boost::bind(&UDPLPD::processReceived, this, placeholders::bytes_transferred, endpoint6, lpd_packet6));
 }
 
 void UDPLPD::startSend() {
-	std::clog << "[" << getComponentName() << "] Started sending broadcasts to: " << m_target_address << ":"
-			<< m_target_port << std::endl;
+	std::clog << "[" << getComponentName() << "] Started sending broadcasts to:" << std::endl <<
+			"[" << getComponentName() << "]" << "   IPv4: " << target_ipv4_multicast.address().to_string() << ":" << target_ipv4_multicast.port() << std::endl <<
+			"[" << getComponentName() << "]" << "   IPv6: " << target_ipv6_multicast.address().to_string() << ":" << target_ipv6_multicast.port() << std::endl;
 	send();
 }
 
+void UDPLPD::initSocket() {
+}
+
+void UDPLPD::readConfig() {
+	m_lpd_socket.open(ip::udp::v6());
+
+	m_lpd_socket.set_option(ip::multicast::join_group(m_target_address));
+	m_lpd_socket.set_option(ip::multicast::enable_loopback(true));
+	m_lpd_socket.set_option(ip::udp::socket::reuse_address(true));
+	m_lpd_socket.set_option(ip::v6_only(true));
+
+	m_lpd_socket.bind(ip::udp::endpoint(m_bind_address, m_target_port));
+}
+
 void UDPLPD::startReceive() {
-	std::clog << "[" << getComponentName() << "] Started receiving broadcasts from: " << m_target_address << ":"
-			<< m_target_port << std::endl;
+	std::clog << "[" << getComponentName() << "] Started receiving broadcasts from:" << std::endl <<
+			"[" << getComponentName() << "]" << "   IPv4: " << target_ipv4_multicast.address().to_string() << ":" << target_ipv4_multicast.port() << std::endl <<
+			"[" << getComponentName() << "]" << "   IPv6: " << target_ipv6_multicast.address().to_string() << ":" << target_ipv6_multicast.port() << std::endl;
 	receive();
 }
 
