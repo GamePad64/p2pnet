@@ -27,13 +27,13 @@ UDPLPDv4::~UDPLPDv4() {
 }
 
 unsigned short UDPLPDv4::getUDPPort(){
-	return m_config.getConfig().get("net.sockets.udpv4.port", 2185);
+	return m_config.getConfig().get("net.sockets.udp.port", 2185);
 }
 
 void UDPLPDv4::readConfig() {
 	this->m_timer_seconds = m_config.getConfig().get("net.lpd.udpv4.timer", m_default_timer_seconds);
 	this->m_target_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv4.address", m_default_target_address));
-	this->m_target_port = m_config.getConfig().get("net.lpd.udpv4.port", m_default_target_port);
+	this->m_target_port = m_config.getConfig().get("net.sockets.udp.port", m_default_target_port);
 	this->m_bind_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv4.address", m_default_bind_address));
 }
 

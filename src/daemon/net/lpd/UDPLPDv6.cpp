@@ -27,13 +27,13 @@ UDPLPDv6::~UDPLPDv6() {
 }
 
 unsigned short UDPLPDv6::getUDPPort(){
-	return m_config.getConfig().get("net.sockets.udpv6.port", 2185);
+	return m_config.getConfig().get("net.sockets.udp.port", 2185);
 }
 
 void UDPLPDv6::readConfig() {
 	this->m_timer_seconds = m_config.getConfig().get("net.lpd.udpv6.timer", m_default_timer_seconds);
 	this->m_target_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv6.address", m_default_target_address));
-	this->m_target_port = m_config.getConfig().get("net.lpd.udpv6.port", m_default_target_port);
+	this->m_target_port = m_config.getConfig().get("net.sockets.udp.port", m_default_target_port);
 	this->m_bind_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv6.address", m_default_bind_address));
 }
 
@@ -41,7 +41,7 @@ void UDPLPDv6::initSocket() {
 	m_lpd_socket.open(ip::udp::v6());
 
 	m_lpd_socket.set_option(ip::multicast::join_group(m_target_address));
-	m_lpd_socket.set_option(ip::multicast::enable_loopback(false));
+	m_lpd_socket.set_option(ip::multicast::enable_loopback(true));
 	m_lpd_socket.set_option(ip::udp::socket::reuse_address(true));
 	m_lpd_socket.set_option(ip::v6_only(true));
 
