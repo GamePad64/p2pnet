@@ -26,19 +26,9 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-UDPLPD::UDPLPD(Config& config) :
-		m_config(config), m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), m_lpd_socket(
-				m_io_service) {
-	const unsigned int m_default_timer_seconds = 10;
-	std::string m_default_bind_address = "0::0";
-	std::string m_default_target_address = "ff08::BD02";
-	unsigned short m_default_target_port = 28915;
-
-	this->m_timer_seconds = m_config.getConfig().get("net.lpd.udpv6.timer", m_default_timer_seconds);
-	this->m_target_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv6.address", m_default_target_address));
-	this->m_target_port = m_config.getConfig().get("net.sockets.udp.port", m_default_target_port);
-	this->m_bind_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv6.address", m_default_bind_address));
-}
+UDPLPD::UDPLPD(ConfigManager& parent_config) : GenericLPD(parent_config),
+		m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), m_lpd_socket(
+				m_io_service) {}
 
 UDPLPD::~UDPLPD() {
 	m_timer.cancel();
@@ -121,7 +111,7 @@ messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
 	databases::PersonalKeyStorage* pks = databases::PersonalKeyStorage::getInstance();
 
 	messaging::protocol::UDPLPDMessage message;
-	message.set_port(getUDPPort());
+	message.set_port(getConfig().get());
 
 	message.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
 
@@ -157,9 +147,6 @@ void UDPLPD::startSend() {
 }
 
 void UDPLPD::initSocket() {
-}
-
-void UDPLPD::readConfig() {
 	m_lpd_socket.open(ip::udp::v6());
 
 	m_lpd_socket.set_option(ip::multicast::join_group(m_target_address));
@@ -167,7 +154,31 @@ void UDPLPD::readConfig() {
 	m_lpd_socket.set_option(ip::udp::socket::reuse_address(true));
 	m_lpd_socket.set_option(ip::v6_only(true));
 
-	m_lpd_socket.bind(ip::udp::endpoint(m_bind_address, m_target_port));
+	this->target_ipv4_multicast = ip::udp::endpoint(
+			ip::address::from_string(getConfig().get("net.lpd.udp.v4.host", getDefaults().get<std::string>("net.lpd.udp.v4.host"))),
+			getConfig().get("net.lpd.udp.v4.port", getDefaults().get<unsigned short>("net.lpd.udp.v4.port"))
+	);
+
+	m_lpd_socket.bind(ip::udp::endpoint(ip::address::from_string(getConfig().get("net.lpd.udp.v4.host", getDefaults().get<std::string>("net.lpd.udp.v4.host"))),
+			m_target_port));
+}
+
+void UDPLPD::readConfig() {
+	this->m_timer_seconds = getConfig().get("net.lpd.udp.timer", getDefaults().get<unsigned int>("net.lpd.udp.timer"));
+	this->target_ipv4_multicast = ip::udp::endpoint(
+			ip::address::from_string(getConfig().get("net.lpd.udp.v4.host", getDefaults().get<std::string>("net.lpd.udp.v4.host"))),
+			getConfig().get("net.lpd.udp.v4.port", getDefaults().get<unsigned short>("net.lpd.udp.v4.port"))
+	);
+	this->target_ipv6_multicast = ip::udp::endpoint(
+			ip::address::from_string(getConfig().get("net.lpd.udp.v6.host", getDefaults().get<std::string>("net.lpd.udp.v6.host"))),
+			getConfig().get("net.lpd.udp.v6.port", getDefaults().get<unsigned short>("net.lpd.udp.v6.port"))
+	);
+	this->m_bind_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv6.address", m_default_bind_address));
+
+
+}
+
+void UDPLPD::configChanged() {
 }
 
 void UDPLPD::startReceive() {

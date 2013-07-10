@@ -18,7 +18,7 @@ namespace p2pnet {
 namespace net {
 namespace lpd {
 
-GenericLPD::GenericLPD() {}
+GenericLPD::GenericLPD(ConfigManager& parent_config) : ConfigClient(parent_config) {}
 GenericLPD::~GenericLPD() {}
 
 } /* namespace lpd */

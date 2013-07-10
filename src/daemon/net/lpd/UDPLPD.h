@@ -48,8 +48,6 @@ class UDPLPD: public GenericLPD {
 	messaging::protocol::UDPLPDMessage generateLPDMessage();
 
 protected:
-	Config& m_config;
-
 	io_service& m_io_service;
 
 	/**
@@ -69,17 +67,18 @@ protected:
 	 */
 
 public:
-	UDPLPD(Config& config);
+	UDPLPD(ConfigManager& parent_config);
 	virtual ~UDPLPD();
 
 	void run();
 	void readConfig();
 
-	virtual void readConfig();
 	virtual void initSocket();
 	virtual std::string getComponentName(){
 		return "UDPLPD";
 	}
+
+	void configChanged();
 
 	void send();
 	void receive();

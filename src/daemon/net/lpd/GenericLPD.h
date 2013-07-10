@@ -15,13 +15,15 @@
 #ifndef GENERICLPD_H_
 #define GENERICLPD_H_
 
+#include "../../../common/Config.h"
+
 namespace p2pnet {
 namespace net {
 namespace lpd {
 
-class GenericLPD {
+class GenericLPD : public ConfigClient {
 public:
-	GenericLPD();
+	GenericLPD(ConfigManager& parent_config);
 	virtual ~GenericLPD();
 
 
