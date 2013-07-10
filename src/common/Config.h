@@ -36,6 +36,8 @@ protected:
 
 	config_t getConfig();
 	void putConfig(config_t config);
+
+	config_t getDefaults();
 };
 
 class ConfigManager {

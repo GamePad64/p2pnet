@@ -46,6 +46,10 @@ void ConfigClient::putConfig(config_t config){
 	parent_config_manager.putConfig(config);
 };
 
+config_t ConfigClient::getDefaults(){
+	return parent_config_manager.getDefaults();
+}
+
 // ConfigManager
 ConfigManager::ConfigManager() {
 	this->setDefaultConfigFilepath();
