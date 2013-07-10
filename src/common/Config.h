@@ -17,26 +17,25 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <mutex>
+#include <set>
 
 namespace p2pnet {
 
 typedef boost::property_tree::ptree config_t;
 
+class ConfigManager;
+
 class ConfigClient {
 	friend class ConfigManager;
 	ConfigManager& parent_config_manager;
 protected:
-	ConfigClient(ConfigManager& parent_config) : parent_config_manager(parent_config){
-		parent_config_manager.registerClient(this);
-	}
-	virtual ~ConfigClient(){
-		parent_config_manager.registerClient(this);
-	}
+	ConfigClient(ConfigManager& parent_config);
+	virtual ~ConfigClient();
 
 	virtual void configChanged() = 0;
 
-	inline config_t getConfig(){return parent_config_manager.getConfig();};
-	inline void putConfig(config_t config){parent_config_manager.putConfig(config);};
+	config_t getConfig();
+	void putConfig(config_t config);
 };
 
 class ConfigManager {

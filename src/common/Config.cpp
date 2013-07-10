@@ -29,9 +29,24 @@
 
 namespace p2pnet {
 
-ConfigClient::~ConfigClient() {
+// ConfigClient
+ConfigClient::ConfigClient(ConfigManager& parent_config) : parent_config_manager(parent_config){
+	parent_config_manager.registerClient(this);
 }
 
+ConfigClient::~ConfigClient() {
+	parent_config_manager.registerClient(this);
+}
+
+config_t ConfigClient::getConfig(){
+	return parent_config_manager.getConfig();
+};
+
+void ConfigClient::putConfig(config_t config){
+	parent_config_manager.putConfig(config);
+};
+
+// ConfigManager
 ConfigManager::ConfigManager() {
 	this->setDefaultConfigFilepath();
 	this->loadFromFile();
@@ -119,7 +134,7 @@ void ConfigManager::removeClient(ConfigClient* client) {
 }
 
 void ConfigManager::configChanged() {
-	for(ConfigClient* &client : config_clients){
+	for(auto &client : config_clients){
 		client->configChanged();
 	}
 }
