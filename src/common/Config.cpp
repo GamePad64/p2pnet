@@ -29,19 +29,22 @@
 
 namespace p2pnet {
 
-Config::Config() {
+ConfigClient::~ConfigClient() {
+}
+
+ConfigManager::ConfigManager() {
 	this->setDefaultConfigFilepath();
 	this->loadFromFile();
 }
 
-Config::Config(std::string config_filepath) {
+ConfigManager::ConfigManager(std::string config_filepath) {
 	this->setConfigFilepath(config_filepath);
 	this->loadFromFile();
 }
 
-Config::~Config() {this->saveToFile();}
+ConfigManager::~ConfigManager() {this->saveToFile();}
 
-std::string Config::getDefaultConfigFilepath() {
+std::string ConfigManager::getDefaultConfigFilepath() {
 	// Setting up paths on multiple platforms
 
 	// First, check P2PNET_CONFIG environment variable
@@ -69,27 +72,56 @@ std::string Config::getDefaultConfigFilepath() {
 	return config_file;
 }
 
-void Config::setDefaultConfigFilepath() {
+void ConfigManager::setDefaultConfigFilepath() {
 	this->setConfigFilepath(this->getDefaultConfigFilepath());
 }
 
-void Config::setConfigFilepath(std::string filepath){
+void ConfigManager::setConfigFilepath(std::string filepath){
 	config_file = filepath;
 }
 
-void Config::resetToDefaults() {
-	pt.clear();
+void ConfigManager::putConfig(config_t config) {
+	config_io_mutex.lock();	// No RAII, only hardcore!
+
+	internal_config = config;
+	saveToFile();	// TODO: This will be created in a separate thread.
+
+	config_io_mutex.unlock();
 }
 
-void Config::loadFromFile() {
+void ConfigManager::resetToDefaults() {
+	config_io_mutex.lock();
+	internal_config.clear();
+	config_io_mutex.unlock();
+}
+
+void ConfigManager::loadFromFile() {
 	boost::filesystem::create_directory(config_directory);
+	config_io_mutex.lock();
+
 	std::ofstream file(config_file);
 	file.close();
-	read_xml(config_file, pt);
+	read_xml(config_file, internal_config);
+
+	config_io_mutex.unlock();
 }
 
-void Config::saveToFile() {
-	write_xml(config_file, pt);
+void ConfigManager::saveToFile() {
+	write_xml(config_file, internal_config);
+}
+
+void ConfigManager::registerClient(ConfigClient* client) {
+	config_clients.insert(client);
+}
+
+void ConfigManager::removeClient(ConfigClient* client) {
+	config_clients.erase(client);
+}
+
+void ConfigManager::configChanged() {
+	for(ConfigClient* &client : config_clients){
+		client->configChanged();
+	}
 }
 
 } /* namespace p2pnet */
