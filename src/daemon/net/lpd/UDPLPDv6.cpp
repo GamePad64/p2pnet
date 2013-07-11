@@ -23,7 +23,7 @@ UDPLPDv6::UDPLPDv6(Config& config) : UDPLPD(config) {
 	initSocket();
 }
 UDPLPDv6::~UDPLPDv6() {
-	m_lpd_socket.set_option(ip::multicast::leave_group(m_target_address));
+	lpd_socket.set_option(ip::multicast::leave_group(m_target_address));
 }
 
 unsigned short UDPLPDv6::getUDPPort(){
@@ -38,14 +38,14 @@ void UDPLPDv6::readConfig() {
 }
 
 void UDPLPDv6::initSocket() {
-	m_lpd_socket.open(ip::udp::v6());
+	lpd_socket.open(ip::udp::v6());
 
-	m_lpd_socket.set_option(ip::multicast::join_group(m_target_address));
-	m_lpd_socket.set_option(ip::multicast::enable_loopback(true));
-	m_lpd_socket.set_option(ip::udp::socket::reuse_address(true));
-	m_lpd_socket.set_option(ip::v6_only(true));
+	lpd_socket.set_option(ip::multicast::join_group(m_target_address));
+	lpd_socket.set_option(ip::multicast::enable_loopback(true));
+	lpd_socket.set_option(ip::udp::socket::reuse_address(true));
+	lpd_socket.set_option(ip::v6_only(true));
 
-	m_lpd_socket.bind(ip::udp::endpoint(m_bind_address, m_target_port));
+	lpd_socket.bind(ip::udp::endpoint(m_bind_address, m_target_port));
 }
 
 } /* namespace lpd */

@@ -80,10 +80,9 @@ public:
 		config.put("net.lpd.udp.enable", true);
 		config.put("net.lpd.udp.timer", 10);
 		config.put("net.lpd.udp.local_ip", "0::0");
-		config.put("net.lpd.udp.v4.host", "239.192.152.144");
-		config.put("net.lpd.udp.v4.port", 28915);
-		config.put("net.lpd.udp.v6.host", "ff08::BD02");
-		config.put("net.lpd.udp.v6.port", 28915);
+		config.put("net.lpd.udp.mcast.port", 28915);
+		config.put("net.lpd.udp.mcast.host_v4", "239.192.152.144");
+		config.put("net.lpd.udp.mcast.host_v6", "ff08::BD02");
 
 		return config;
 	};

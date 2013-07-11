@@ -57,8 +57,9 @@ protected:
 	unsigned int m_timer_seconds = 0;
 
 	//! boost::asio multicast UDP Socket
-	ip::udp::socket m_lpd_socket;
+	ip::udp::socket lpd_socket;
 
+	ip::udp::endpoint local_multicast;
 	ip::udp::endpoint target_ipv4_multicast;
 	ip::udp::endpoint target_ipv6_multicast;
 

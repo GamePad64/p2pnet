@@ -27,7 +27,7 @@ namespace net {
 namespace lpd {
 
 UDPLPD::UDPLPD(ConfigManager& parent_config) : GenericLPD(parent_config),
-		m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), m_lpd_socket(
+		m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), lpd_socket(
 				m_io_service) {}
 
 UDPLPD::~UDPLPD() {
@@ -111,7 +111,7 @@ messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
 	databases::PersonalKeyStorage* pks = databases::PersonalKeyStorage::getInstance();
 
 	messaging::protocol::UDPLPDMessage message;
-	message.set_port(getConfig().get());
+	message.set_port(this->getConfigValueOrDefault<unsigned short>("net.sockets.udp.port"));
 
 	message.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
 
@@ -124,8 +124,8 @@ messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
 
 void UDPLPD::send() {
 	std::clog << "[" << getComponentName() << "] Local -> " << target_ipv4_multicast.address().to_string() << ":" << target_ipv4_multicast.port();
-	m_lpd_socket.send_to(buffer(generateLPDMessage().SerializeAsString()), target_ipv4_multicast);
-	m_lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()), target_ipv6_multicast, boost::bind(&UDPLPD::waitBeforeSend, this));
+	lpd_socket.send_to(buffer(generateLPDMessage().SerializeAsString()), target_ipv4_multicast);
+	lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()), target_ipv6_multicast, boost::bind(&UDPLPD::waitBeforeSend, this));
 }
 
 void UDPLPD::receive() {
@@ -133,9 +133,9 @@ void UDPLPD::receive() {
 	char* lpd_packet6 = new char[2048];
 	std::shared_ptr< ip::udp::endpoint > endpoint4 = std::make_shared< ip::udp::endpoint >(target_ipv4_multicast);
 	std::shared_ptr< ip::udp::endpoint > endpoint6 = std::make_shared< ip::udp::endpoint >(target_ipv6_multicast);
-	m_lpd_socket.async_receive_from(buffer(lpd_packet4, 2048), *endpoint4,
+	lpd_socket.async_receive_from(buffer(lpd_packet4, 2048), *endpoint4,
 			boost::bind(&UDPLPD::processReceived, this, placeholders::bytes_transferred, endpoint4, lpd_packet4));
-	m_lpd_socket.async_receive_from(buffer(lpd_packet6, 2048), *endpoint6,
+	lpd_socket.async_receive_from(buffer(lpd_packet6, 2048), *endpoint6,
 			boost::bind(&UDPLPD::processReceived, this, placeholders::bytes_transferred, endpoint6, lpd_packet6));
 }
 
@@ -147,33 +147,30 @@ void UDPLPD::startSend() {
 }
 
 void UDPLPD::initSocket() {
-	m_lpd_socket.open(ip::udp::v6());
+	lpd_socket.open(ip::udp::v6());
 
-	m_lpd_socket.set_option(ip::multicast::join_group(m_target_address));
-	m_lpd_socket.set_option(ip::multicast::enable_loopback(true));
-	m_lpd_socket.set_option(ip::udp::socket::reuse_address(true));
-	m_lpd_socket.set_option(ip::v6_only(true));
+	lpd_socket.set_option(ip::multicast::join_group(m_target_address));
+	lpd_socket.set_option(ip::multicast::enable_loopback(true));
+	lpd_socket.set_option(ip::udp::socket::reuse_address(true));
+	lpd_socket.set_option(ip::v6_only(true));
 
-	this->target_ipv4_multicast = ip::udp::endpoint(
-			ip::address::from_string(getConfig().get("net.lpd.udp.v4.host", getDefaults().get<std::string>("net.lpd.udp.v4.host"))),
-			getConfig().get("net.lpd.udp.v4.port", getDefaults().get<unsigned short>("net.lpd.udp.v4.port"))
-	);
-
-	m_lpd_socket.bind(ip::udp::endpoint(ip::address::from_string(getConfig().get("net.lpd.udp.v4.host", getDefaults().get<std::string>("net.lpd.udp.v4.host"))),
-			m_target_port));
+	lpd_socket.bind(local_multicast);
 }
 
 void UDPLPD::readConfig() {
 	this->m_timer_seconds = getConfig().get("net.lpd.udp.timer", getDefaults().get<unsigned int>("net.lpd.udp.timer"));
 	this->target_ipv4_multicast = ip::udp::endpoint(
-			ip::address::from_string(getConfig().get("net.lpd.udp.v4.host", getDefaults().get<std::string>("net.lpd.udp.v4.host"))),
-			getConfig().get("net.lpd.udp.v4.port", getDefaults().get<unsigned short>("net.lpd.udp.v4.port"))
+			ip::address::from_string(this->getConfigValueOrDefault<std::string>("net.lpd.udp.mcast.host_v4")),
+			this->getConfigValueOrDefault<unsigned short>("net.lpd.udp.mcast.port")
 	);
 	this->target_ipv6_multicast = ip::udp::endpoint(
-			ip::address::from_string(getConfig().get("net.lpd.udp.v6.host", getDefaults().get<std::string>("net.lpd.udp.v6.host"))),
-			getConfig().get("net.lpd.udp.v6.port", getDefaults().get<unsigned short>("net.lpd.udp.v6.port"))
+			ip::address::from_string(this->getConfigValueOrDefault<std::string>("net.lpd.udp.mcast.host_v6")),
+			this->getConfigValueOrDefault<unsigned short>("net.lpd.udp.mcast.port")
 	);
-	this->m_bind_address = ip::address::from_string(m_config.getConfig().get("net.lpd.udpv6.address", m_default_bind_address));
+	this->local_multicast = ip::udp::endpoint(
+			ip::address::from_string(this->getConfigValueOrDefault<std::string>("net.lpd.udp.local_ip")),
+			this->getConfigValueOrDefault<unsigned short>("net.lpd.udp.mcast.port")
+	);
 
 
 }
