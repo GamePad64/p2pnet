@@ -38,6 +38,9 @@ protected:
 	void putConfig(config_t config);
 
 	config_t getDefaults();
+
+	template<class T>
+	T getConfigValueOrDefault(std::string path);
 };
 
 class ConfigManager {
@@ -95,5 +98,11 @@ public:
 	void configChanged();
 };
 
+template< class T >
+inline T ConfigClient::getConfigValueOrDefault(std::string path) {
+	return getConfig().get(path, getDefaults().get<T>(path));
+}
+
 } /* namespace p2pnet */
+
 #endif /* CONFIG_H_ */
