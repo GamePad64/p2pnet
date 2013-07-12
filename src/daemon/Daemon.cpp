@@ -52,11 +52,11 @@ void Daemon::initTransportSocket() {
 
 	// Configuring interfaces
 	try {
-		unsigned short int port = config_manager.getConfig().get("net.sockets.udp.port", 2185);
+		unsigned short int port = config_manager.getConfigValueOrDefault<unsigned short int>("net.sockets.udp.port");
 		m_udp_interface->bindLocalAll(port);
 
 		// Begin receiving from UDP
-		net::UDPTransportInterfaceEndpoint endpoint(config_manager.getConfig().get("net.sockets.udp.local_ip", "0::0"), port);
+		net::UDPTransportInterfaceEndpoint endpoint(config_manager.getConfigValueOrDefault<std::string>("net.sockets.udp.local_ip"), port);
 		m_udp_interface->asyncReceiveFrom(std::make_shared<net::UDPTransportInterfaceEndpoint>(endpoint));
 	} catch (boost::system::system_error& e) {
 		std::clog << "[Daemon] Unable to initialize UDP socket. Exception caught: " << e.what() << std::endl;

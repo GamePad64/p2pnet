@@ -28,7 +28,9 @@ namespace lpd {
 
 UDPLPD::UDPLPD(ConfigManager& parent_config) : GenericLPD(parent_config),
 		m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), lpd_socket(
-				m_io_service) {}
+				m_io_service) {
+	readConfig();
+}
 
 UDPLPD::~UDPLPD() {
 	m_timer.cancel();

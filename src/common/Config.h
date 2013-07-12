@@ -95,10 +95,18 @@ public:
 	void removeClient(ConfigClient* client);
 
 	void configChanged();
+
+	template<class T>
+	T getConfigValueOrDefault(std::string path);
 };
 
 template< class T >
-inline T ConfigClient::getConfigValueOrDefault(std::string path) {
+inline T ConfigClient::getConfigValueOrDefault(std::string path){
+	return parent_config_manager.getConfigValueOrDefault<T>(path);
+}
+
+template< class T >
+inline T ConfigManager::getConfigValueOrDefault(std::string path) {
 	return getConfig().get(path, getDefaults().get<T>(path));
 }
 
