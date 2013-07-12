@@ -149,8 +149,9 @@ void UDPLPD::startSend() {
 void UDPLPD::initSocket() {
 	lpd_socket.open(ip::udp::v6());
 
-	lpd_socket.set_option(ip::multicast::join_group(m_target_address));
-	lpd_socket.set_option(ip::multicast::enable_loopback(true));
+	lpd_socket.set_option(ip::multicast::join_group(target_ipv4_multicast.address()));
+	lpd_socket.set_option(ip::multicast::join_group(target_ipv6_multicast.address()));
+	lpd_socket.set_option(ip::multicast::enable_loopback(false));
 	lpd_socket.set_option(ip::udp::socket::reuse_address(true));
 	lpd_socket.set_option(ip::v6_only(true));
 
