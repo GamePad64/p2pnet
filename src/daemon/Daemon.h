@@ -27,8 +27,7 @@
 #include "net/TransportSocket.h"
 
 #include "net/udp/UDPTransportInterface.h"
-#include "net/lpd/UDPLPDv4.h"
-#include "net/lpd/UDPLPDv6.h"
+#include "net/lpd/UDPLPD.h"
 
 namespace p2pnet {
 
@@ -37,7 +36,7 @@ class Daemon {
 	void initMessageSocket();
 	void initLPD();
 public:
-	Config config;
+	ConfigManager config_manager;
 
 	databases::NetDBStorage* m_netdb_storage;
 	databases::PersonalKeyStorage* m_pk_storage;
@@ -50,8 +49,7 @@ public:
 	// MessageSocket
 	messaging::MessageSocket m_message_socket;
 
-	net::lpd::UDPLPDv4* m_lpd_udpv4;
-	net::lpd::UDPLPDv6* m_lpd_udpv6;
+	net::lpd::UDPLPD* m_lpd_udp;
 
 	Daemon();
 	virtual ~Daemon();

@@ -14,7 +14,6 @@
 
 #include "Daemon.h"
 #include "net/udp/UDPTransportInterfaceEndpoint.h"
-#include "net/lpd/UDPLPDv4.h"
 
 namespace p2pnet {
 
@@ -30,8 +29,7 @@ Daemon::~Daemon() {
 
 	if (m_transport_socket) delete m_transport_socket;
 
-	if (m_lpd_udpv4) delete m_lpd_udpv4;
-	if (m_lpd_udpv6) delete m_lpd_udpv6;
+	if (m_lpd_udp) delete m_lpd_udp;
 }
 
 void Daemon::run() {
@@ -54,11 +52,11 @@ void Daemon::initTransportSocket() {
 
 	// Configuring interfaces
 	try {
-		unsigned short int port = config.getConfig().get("net.sockets.udp.port", 2185);
+		unsigned short int port = config_manager.getConfig().get("net.sockets.udp.port", 2185);
 		m_udp_interface->bindLocalAll(port);
 
 		// Begin receiving from UDP
-		net::UDPTransportInterfaceEndpoint endpoint(config.getConfig().get("net.sockets.udp.bind", "0::0"), port);
+		net::UDPTransportInterfaceEndpoint endpoint(config_manager.getConfig().get("net.sockets.udp.local_ip", "0::0"), port);
 		m_udp_interface->asyncReceiveFrom(std::make_shared<net::UDPTransportInterfaceEndpoint>(endpoint));
 	} catch (boost::system::system_error& e) {
 		std::clog << "[Daemon] Unable to initialize UDP socket. Exception caught: " << e.what() << std::endl;
@@ -71,20 +69,11 @@ void Daemon::initMessageSocket() {
 
 void Daemon::initLPD() {
 	try {
-		m_lpd_udpv4 = new net::lpd::UDPLPDv4(config);
-		m_lpd_udpv4->startReceive();
-		m_lpd_udpv4->startSend();
+		m_lpd_udp = new net::lpd::UDPLPD(config_manager);
+		m_lpd_udp->startReceive();
+		m_lpd_udp->startSend();
 	} catch (boost::system::system_error& e) {
-		std::clog << "[Daemon] Unable to initialize IPv4 UDP multicast LPD. Exception caught: " << e.what()
-				<< std::endl;
-	}
-
-	try {
-		m_lpd_udpv6 = new net::lpd::UDPLPDv6(config);
-		m_lpd_udpv6->startReceive();
-		m_lpd_udpv6->startSend();
-	} catch (boost::system::system_error& e) {
-		std::clog << "[Daemon] Unable to initialize IPv6 UDP multicast LPD. Exception caught: " << e.what()
+		std::clog << "[Daemon] Unable to initialize UDP multicast LPD. Exception caught: " << e.what()
 				<< std::endl;
 	}
 }
