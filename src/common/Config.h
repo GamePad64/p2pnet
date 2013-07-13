@@ -77,12 +77,18 @@ public:
 		config.put("net.sockets.udp.enable", true);
 		config.put("net.sockets.udp.local_ip", "0::0");
 		config.put("net.sockets.udp.port", 2185);
-		config.put("net.lpd.udp.enable", true);
-		config.put("net.lpd.udp.timer", 10);
-		config.put("net.lpd.udp.local_ip", "0::0");
-		config.put("net.lpd.udp.mcast.port", 28915);
-		config.put("net.lpd.udp.mcast.host_v4", "239.192.152.144");
-		config.put("net.lpd.udp.mcast.host_v6", "ff08::BD02");
+
+		config.put("net.lpd.udpv4.enable", true);
+		config.put("net.lpd.udpv4.timer", 10);
+		config.put("net.lpd.udpv4.local_ip", "0.0.0.0");
+		config.put("net.lpd.udpv4.mcast.host", "239.192.152.144");
+		config.put("net.lpd.udpv4.mcast.port", 28915);
+
+		config.put("net.lpd.udpv6.enable", true);
+		config.put("net.lpd.udpv6.timer", 10);
+		config.put("net.lpd.udpv6.local_ip", "0::0");
+		config.put("net.lpd.udpv6.mcast.host", "ff08::BD02");
+		config.put("net.lpd.udpv6.mcast.port", 28915);
 
 		return config;
 	};

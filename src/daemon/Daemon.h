@@ -27,7 +27,8 @@
 #include "net/TransportSocket.h"
 
 #include "net/udp/UDPTransportInterface.h"
-#include "net/lpd/UDPLPD.h"
+#include "net/lpd/UDPLPDv4.h"
+#include "net/lpd/UDPLPDv6.h"
 
 namespace p2pnet {
 
@@ -49,7 +50,8 @@ public:
 	// MessageSocket
 	messaging::MessageSocket m_message_socket;
 
-	net::lpd::UDPLPD* m_lpd_udp;
+	net::lpd::UDPLPDv4* m_lpd_udpv4;
+	net::lpd::UDPLPDv6* m_lpd_udpv6;
 
 	Daemon();
 	virtual ~Daemon();

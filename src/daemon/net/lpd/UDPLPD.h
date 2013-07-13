@@ -48,7 +48,15 @@ class UDPLPD: public GenericLPD {
 	messaging::protocol::UDPLPDMessage generateLPDMessage();
 
 protected:
+	ConfigManager& m_config;
+
 	io_service& m_io_service;
+
+	/**
+	 * This function is virtual, so it returns UDP port for given protocol, for IPv4 or IPv6.
+	 * @return
+	 */
+	virtual unsigned short getUDPPort() = 0;
 
 	/**
 	 * This timer is used between sending two messages. Default is to wait 10 seconds.
@@ -57,24 +65,25 @@ protected:
 	unsigned int m_timer_seconds = 0;
 
 	//! boost::asio multicast UDP Socket
-	ip::udp::socket lpd_socket;
+	ip::udp::socket m_lpd_socket;
 
-	ip::udp::endpoint local_multicast;
-	ip::udp::endpoint target_ipv4_multicast;
-	ip::udp::endpoint target_ipv6_multicast;
+	ip::address m_target_address;
+	unsigned short m_target_port = 0;
+
+	ip::address m_bind_address;
 
 	/**
 	 * Message, that we are going to send is stored here.
 	 */
 
 public:
-	UDPLPD(ConfigManager& parent_config);
+	UDPLPD(ConfigManager& config);
 	virtual ~UDPLPD();
 
 	void run();
-	void readConfig();
 
-	virtual void initSocket();
+	virtual void readConfig() = 0;
+	virtual void initSocket() = 0;
 	virtual std::string getComponentName(){
 		return "UDPLPD";
 	}

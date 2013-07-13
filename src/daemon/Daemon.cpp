@@ -29,7 +29,8 @@ Daemon::~Daemon() {
 
 	if (m_transport_socket) delete m_transport_socket;
 
-	if (m_lpd_udp) delete m_lpd_udp;
+	if (m_lpd_udpv4) delete m_lpd_udpv4;
+	if (m_lpd_udpv6) delete m_lpd_udpv6;
 }
 
 void Daemon::run() {
@@ -68,12 +69,21 @@ void Daemon::initMessageSocket() {
 }
 
 void Daemon::initLPD() {
+	m_lpd_udpv4 = new net::lpd::UDPLPDv4(config_manager);
+	m_lpd_udpv6 = new net::lpd::UDPLPDv6(config_manager);
+
 	try {
-		m_lpd_udp = new net::lpd::UDPLPD(config_manager);
-		m_lpd_udp->startReceive();
-		m_lpd_udp->startSend();
+		m_lpd_udpv4->startReceive();
+		m_lpd_udpv4->startSend();
 	} catch (boost::system::system_error& e) {
-		std::clog << "[Daemon] Unable to initialize UDP multicast LPD. Exception caught: " << e.what()
+		std::clog << "[Daemon] Unable to initialize UDPv4 multicast LPD. Exception caught: " << e.what()
+				<< std::endl;
+	}
+	try {
+		m_lpd_udpv6->startReceive();
+		m_lpd_udpv6->startSend();
+	} catch (boost::system::system_error& e) {
+		std::clog << "[Daemon] Unable to initialize UDPv6 multicast LPD. Exception caught: " << e.what()
 				<< std::endl;
 	}
 }
