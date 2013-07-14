@@ -6,14 +6,17 @@ install:
   - sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update
   - sudo apt-get dist-upgrade
-  - sudo apt-get install ccache monotone libboost-all-dev g++-4.8 gcc-4.8 build-essential python-all binutils-gold
+  - sudo apt-get install ccache monotone libboost-all-dev g++-4.8 gcc-4.8 build-essential python-all binutils-gold eclipse mercurial subversion libgtest-dev protobuf-compiler libprotobuf-dev
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
   - cd contrib
   - mkdir downloads
   - cd downloads
+  -
   - mtn db init --db=botan.mtn
   - mtn pull --db=botan.mtn mtn.randombit.net 'net.randombit.botan'
   - mtn checkout --db=botan.mtn --branch=net.randombit.botan botan
+  - hg clone https://code.google.com/p/cpp-btree/
+  - 
   - cd botan
   - ./configure.py --prefix=../../
   - make
@@ -22,8 +25,7 @@ install:
   - ls
 script:
   - ls
-  - cd D_linamd64
-  - make all
+  - eclipse/eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import . -build p2pnet
 branches:
   only:
     - master
