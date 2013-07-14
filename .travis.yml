@@ -4,10 +4,17 @@ compiler:
   - clang
 install:
   - sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-add-repository -y ppa:webupd8team/java
+  -
   - sudo apt-get update
   - sudo apt-get dist-upgrade
-  - sudo apt-get install ccache monotone libboost-all-dev g++-4.8 gcc-4.8 build-essential python-all binutils-gold eclipse eclipse-cdt mercurial subversion libgtest-dev protobuf-compiler libprotobuf-dev
+  -
+  - echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
+  - echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
+  -
+  - sudo apt-get install ccache monotone libboost-all-dev g++-4.8 gcc-4.8 build-essential python-all binutils-gold eclipse eclipse-cdt mercurial subversion libgtest-dev protobuf-compiler libprotobuf-dev oracle-java8-installer
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+  - 
   - cd contrib
   - mkdir downloads
   - cd downloads
