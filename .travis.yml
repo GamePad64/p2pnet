@@ -22,10 +22,11 @@ install:
   - make
   - make install
   - cd ../..
+  - cd ..
   - ls
 script:
   - ls
-  - eclipse/eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import . -build p2pnet
+  - eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import . -build p2pnet
 branches:
   only:
     - master
