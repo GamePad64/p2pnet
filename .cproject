@@ -16,7 +16,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="P2PNet built on Ubuntu amd64" id="cdt.managedbuild.config.gnu.cross.exe.debug.1766732349" name="D_linamd64" parent="cdt.managedbuild.config.gnu.cross.exe.debug">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="P2PNet built on Ubuntu amd64" id="cdt.managedbuild.config.gnu.cross.exe.debug.1766732349" name="D_linamd64" parent="cdt.managedbuild.config.gnu.cross.exe.debug" prebuildStep="cd ../src/daemon/protobuf; ./protoc.sh">
 					<folderInfo id="cdt.managedbuild.config.gnu.cross.exe.debug.1766732349." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.base.5148982" name="Linux GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.base" superClass="cdt.managedbuild.toolchain.gnu.base">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF;org.eclipse.cdt.core.GNU_ELF;org.eclipse.cdt.core.PE" id="cdt.managedbuild.target.gnu.platform.base.1081520835" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
@@ -83,10 +83,10 @@
 		</configuration>
 		<configuration configurationName="Test"/>
 		<configuration configurationName="D_linamd64"/>
-		<configuration configurationName="T_linamd64"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/p2pnet"/>
 		</configuration>
+		<configuration configurationName="T_linamd64"/>
 		<configuration configurationName="R_linamd64"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings">
@@ -94,7 +94,9 @@
 			<path value=""/>
 		</doc-comment-owner>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+		<buildTargets/>
+	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.debug.1766732349.2003556941;cdt.managedbuild.config.gnu.cross.exe.debug.1766732349.2003556941.;cdt.managedbuild.tool.gnu.c.compiler.mingw.base.87627093;cdt.managedbuild.tool.gnu.c.compiler.input.645327358">
