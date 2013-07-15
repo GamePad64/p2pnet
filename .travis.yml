@@ -34,6 +34,7 @@ install:
   - ls
 script:
   - ls
+  - cd src/daemon/protobuf; ./protoc.sh; cd ../../..
   - contrib/downloads/eclipse/eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import . -build p2pnet
 branches:
   only:
