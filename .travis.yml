@@ -12,7 +12,7 @@ install:
   - echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
   - echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
   -
-  - sudo apt-get install ccache monotone libboost-all-dev g++-4.8 gcc-4.8 build-essential python-all binutils-gold mercurial subversion libgtest-dev protobuf-compiler libprotobuf-dev oracle-java8-installer
+  - sudo apt-get install ccache monotone libboost1.48-all-dev g++-4.8 gcc-4.8 build-essential python-all binutils-gold mercurial subversion libgtest-dev protobuf-compiler libprotobuf-dev oracle-java8-installer
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
   - 
   - cd contrib
