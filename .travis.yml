@@ -28,7 +28,7 @@ install:
   - tar -xvzf eclipse.tar.gz
   - 
   - cd botan
-  - ./configure.py --prefix=../../
+  - ./configure.py --prefix=../../ --cc=$CC
   - make
   - make install
   - cd ../..
