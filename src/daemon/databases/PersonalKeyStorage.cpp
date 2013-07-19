@@ -20,33 +20,53 @@
 namespace p2pnet {
 namespace databases {
 
-PersonalKeyStorage::PersonalKeyStorage() {
+PersonalKeyStorage::PersonalKeyStorage() : timer(timer_service) {
 	// TEMP: We shouldn't regenerate keys every execution, so some sort of caching is required.
 	regenerateKeys();
 }
 PersonalKeyStorage::~PersonalKeyStorage() {
-	delete my_transport_hash;
 	delete my_private_key;
+	delete my_transport_hash;
 }
 
 void PersonalKeyStorage::regenerateKeys() {
-	my_private_key = new crypto::PrivateKeyDSA(crypto::PrivateKeyDSA::generate());
-	my_transport_hash = new crypto::Hash(
-			crypto::Hash::compute(my_private_key->derivePublicKey().toBinaryString()));
+	// Generating all this. This should be asynchronous.
+	auto my_new_private_key = new crypto::PrivateKeyDSA(crypto::PrivateKeyDSA::generate());
+	auto my_new_transport_hash = new crypto::Hash(
+			crypto::Hash::compute(my_new_private_key->derivePublicKey().toBinaryString()));
+
+	// LOCK! Moving faster now!
+	key_lock.lock();
+	// Synchronous zone. Now we freeze all the system.
+	//delete my_private_key;
+	//delete my_transport_hash;
+	my_private_key = my_new_private_key;	// We will not delete my_new_private_key after =, it's ok.
+	my_transport_hash = my_new_transport_hash;
+	// UNLOCK! It's safe now.
+	key_lock.unlock();
 
 	std::clog << "[Crypto] Keys regenerated. New TH: " << my_transport_hash->toBase58() << std::endl;
 }
 
 crypto::Hash PersonalKeyStorage::getMyTransportHash() {
-	return *my_transport_hash;
+	key_lock.lock();
+	auto ret = crypto::Hash(*my_transport_hash);
+	key_lock.unlock();
+	return ret;
 }
 
 crypto::PublicKeyDSA PersonalKeyStorage::getMyPublicKey() {
-	return my_private_key->derivePublicKey();
+	key_lock.lock();
+	auto ret = my_private_key->derivePublicKey();
+	key_lock.unlock();
+	return ret;
 }
 
 crypto::PrivateKeyDSA PersonalKeyStorage::getMyPrivateKey() {
-	return *my_private_key;
+	key_lock.lock();
+	auto ret = crypto::PrivateKeyDSA(*my_private_key);
+	key_lock.unlock();
+	return ret;
 }
 
 } /* namespace databases */

@@ -19,12 +19,23 @@
 #include "../peer/TH.h"
 #include "../abstract/Singleton.h"
 
+#include <boost/asio.hpp>
+#include <thread>
+
 namespace p2pnet {
 namespace databases {
 
 class PersonalKeyStorage : public abstract::Singleton<PersonalKeyStorage>{
 	crypto::PrivateKeyDSA* my_private_key;
 	peer::TH* my_transport_hash;
+	std::mutex key_lock;
+
+	/*
+	 * Well, I hoped to abstract from boost::asio, but here it is. This ... thing is not about networking,
+	 * it is about asynchronous operations.
+	 */
+	boost::asio::io_service timer_service;
+	boost::asio::deadline_timer timer;
 
 public:
 	PersonalKeyStorage();
