@@ -18,22 +18,18 @@ package p2pnet.databases;
 message TransportSocketEndpoint_s {
 	// Well, this needs to be standardized somehow.
 	optional uint32 interface_id = 1 [default = 0];
+	optional int64 last_usage = 2;
 
 	optional string ip = 3;
 	optional uint32 port = 4;
 	optional bytes th = 5;
 }
 
-message TimedTSE {
-	required TransportSocketEndpoint_s tse_s = 1;
-	optional int64 last_usage = 2;	// Unix timestamp. int64 because of Y2038.
-}
-
 message NetDBEntry {
 	optional bytes ecdsa_public_key = 1;
 	optional bytes aes_key = 2;
 
-	repeated TimedTSE tse_s = 4;
+	repeated TransportSocketEndpoint_s endpoints = 4;
 
 	optional bool local = 16 [default = false];
 	optional bool dht = 17 [default = false];

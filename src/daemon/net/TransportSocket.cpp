@@ -15,6 +15,7 @@
 #include "TransportSocket.h"
 #include "TransportSocketListener.h"
 #include "TransportSocketEndpoint.h"
+#include <iostream>
 
 namespace p2pnet {
 namespace net {
@@ -29,7 +30,8 @@ TransportInterface* TransportSocket::getInterfaceByPrefix(std::string prefix) {
 }
 
 void TransportSocket::registerInterface(TransportInterface* interface){
-	interfaces[interface->getInterfaceID()] = interface;
+	auto interface_id = interface->getInterfaceID();
+	interfaces[interface_id] = interface;
 	readable_strings_prefixes[interface->getInterfacePrefix()] = interface;
 }
 

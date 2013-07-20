@@ -35,9 +35,8 @@ TransportSocketEndpoint::TransportSocketEndpoint(net::TransportInterfaceEndpoint
 }
 
 void TransportSocketEndpoint::resetEndpointByID(uint32_t id) {
-	interface_endpoint = TransportSocket::getInstance()->
-			getInterfaceByID(id)->
-			createEndpoint();
+	auto interface_ptr = TransportSocket::getInstance()->getInterfaceByID(id);
+	interface_endpoint = interface_ptr->createEndpoint();
 }
 
 // Operators

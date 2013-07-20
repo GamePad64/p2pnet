@@ -41,8 +41,8 @@ NetDBEntry& MapNetDBStorage< peermap_t >::getEntry(const peer::TH& peer_th) {
 template< typename peermap_t >
 bool MapNetDBStorage< peermap_t >::hasRouteToPeer(const peer::TH& peer_th, const TransportSocketEndpoint_s& peer_tse_s){
 	NetDBEntry& entry = getEntry(peer_th);
-	for(auto& timed_tse : entry.tse_s()){
-		if(timed_tse.tse_s().SerializeAsString() == peer_tse_s.SerializeAsString())
+	for(auto& endpoint : entry.endpoints()){
+		if(endpoint.SerializeAsString() == peer_tse_s.SerializeAsString())
 			return true;
 	}
 	return false;
@@ -51,9 +51,9 @@ bool MapNetDBStorage< peermap_t >::hasRouteToPeer(const peer::TH& peer_th, const
 template< typename peermap_t >
 void MapNetDBStorage< peermap_t >::bumpRouteToPeer(const peer::TH& peer_th, const TransportSocketEndpoint_s& peer_tse_s){
 	NetDBEntry& entry = getEntry(peer_th);
-	for(auto timed_tse = entry.mutable_tse_s()->begin(); timed_tse != entry.mutable_tse_s()->end(); timed_tse++){
-		if(timed_tse->tse_s().SerializeAsString() == peer_tse_s.SerializeAsString()){
-			timed_tse->set_last_usage((google::protobuf::int64)std::time(0));
+	for(auto endpoint_i = entry.mutable_endpoints()->begin(); endpoint_i != entry.mutable_endpoints()->end(); endpoint_i++){
+		if(endpoint_i->SerializeAsString() == peer_tse_s.SerializeAsString()){
+			endpoint_i->set_last_usage((google::protobuf::int64)std::time(0));
 			break;
 		}
 	}

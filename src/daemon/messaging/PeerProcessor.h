@@ -15,17 +15,22 @@
 #ifndef PEERPROCESSOR_H_
 #define PEERPROCESSOR_H_
 
+#include "../peer/TH.h"
+#include "../net/TransportSocketEndpoint.h"
 #include "../abstract/Singleton.h"
 
 namespace p2pnet {
 namespace messaging {
 
 class PeerProcessor : public abstract::Singleton<PeerProcessor> {
+	inline std::string getComponentName(){
+		return "PeerProcessor";
+	}
 public:
 	PeerProcessor();
 	virtual ~PeerProcessor();
 
-	void processNewPeerConnection(peer::TH th, net::TransportSocketEndpoint tse);
+	void processNewPeerConnection(peer::TH th, net::TransportSocketEndpoint endpoint);
 };
 
 } /* namespace messaging */

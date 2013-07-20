@@ -19,6 +19,7 @@
 #include "../../databases/PersonalKeyStorage.h"
 #include "../../messaging/MessageGenerator.h"
 #include "../../messaging/SessionMap.h"
+#include "../../messaging/PeerProcessor.h"
 #include "../../peer/TH.h"
 #include <ctime>
 
@@ -78,28 +79,10 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 
 		peer::TH th = peer::TH::compute(message.src_pubkey());
 
-		if(! databases::NetDBStorage::getInstance()->hasEntry(th)){
-			std::clog << "[" << getComponentName() << "] Discovered peer: " << th.toBase58() << std::endl;
-		}
-
-		databases::NetDBEntry& peer_recv = databases::NetDBStorage::getInstance()->getEntry(th);
-
 		// Converting Boost::asio endpoint representation to string, so we could pass it as an argument to our network backend.
-		net::UDPTransportInterfaceEndpoint endpoint(asio_endpoint->address().to_string(), message.port());
-		if(! databases::NetDBStorage::getInstance()->hasRouteToPeer(th, endpoint.toProtobuf()) ){
-			databases::TimedTSE* timed_tse = peer_recv.mutable_tse_s()->Add();
-			*(timed_tse->mutable_tse_s()) = endpoint.toProtobuf();
-			timed_tse->set_last_usage((google::protobuf::int64)std::time(0));
-		}else{
-			/*
-			 * This function should be called when we want to "bump" selected route,
-			 * so it is set to preferred.
-			 */
-			databases::NetDBStorage::getInstance()->bumpRouteToPeer(th, endpoint.toProtobuf());
-		}
-
-		auto session_ptr = (*messaging::SessionStorage::getInstance())[th.toBinaryString()];
-		session_ptr->sendConnectionMessage();
+		net::UDPTransportInterfaceEndpoint interface_endpoint(asio_endpoint->address().to_string(), message.port());
+		net::TransportSocketEndpoint socket_endpoint(std::make_shared<const UDPTransportInterfaceEndpoint>(interface_endpoint));
+		messaging::PeerProcessor::getInstance()->processNewPeerConnection(th, socket_endpoint);
 	} catch(messaging::RejectException *e) {
 		std::clog << e->what();
 		delete e;
