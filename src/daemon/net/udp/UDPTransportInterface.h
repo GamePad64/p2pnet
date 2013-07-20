@@ -66,6 +66,8 @@ public:
 	void bindLocalAll(UDPTransportInterfaceEndpoint::port_t port);
 
 	//Inherited from TransportSocket
+	virtual uint32_t getInterfaceID() const {return 1;};
+
 	virtual void asyncReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
 	virtual void waitReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
 	virtual TransportSocketCallback hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
