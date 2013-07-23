@@ -23,6 +23,8 @@ namespace messaging {
 PeerProcessor::PeerProcessor() {}
 PeerProcessor::~PeerProcessor() {}
 
+
+
 void PeerProcessor::processNewPeerConnection(peer::TH th, net::TransportSocketEndpoint endpoint) {
 	if(! databases::NetDBStorage::getInstance()->hasEntry(th)){
 		std::clog << "[" << getComponentName() << "] Discovered peer: " << th.toBase58() << std::endl;
@@ -43,6 +45,8 @@ void PeerProcessor::processNewPeerConnection(peer::TH th, net::TransportSocketEn
 	}
 
 	auto session_ptr = (*messaging::SessionStorage::getInstance())[th.toBinaryString()];
+	if(!session_ptr)
+		session_ptr = std::make_shared<messaging::Session>(th);
 	session_ptr->sendConnectionMessage();
 }
 

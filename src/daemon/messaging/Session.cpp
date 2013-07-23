@@ -42,7 +42,7 @@ const crypto::ECDH& Session::renewECDHPrivateKey() {
 }
 
 const crypto::ECDH& Session::getECDHPrivateKey() {
-	if(m_ecdh_private_key){
+	if(hasECDHPrivateKey()){
 		return *m_ecdh_private_key;
 	}
 	return renewECDHPrivateKey();
@@ -53,10 +53,10 @@ void Session::sendKeyExchangeMessage() {
 }
 
 void Session::sendConnectionMessage() {
-//	protocol::p2pMessage_Payload payload = m_generator.generateConnectionPayload(getECDHPrivateKey().derivePublicKey());
+	protocol::p2pMessage_Payload payload = m_generator.generateConnectionPayload(getECDHPrivateKey().derivePublicKey());
 
-//	auto pks = databases::PersonalKeyStorage::getInstance();
-//	auto message = m_generator.generateMessage(pks->getMyTransportHash(), m_th, payload);
+	auto pks = databases::PersonalKeyStorage::getInstance();
+	auto message = m_generator.generateMessage(pks->getMyTransportHash(), m_th, payload);
 }
 
 } /* namespace messaging */

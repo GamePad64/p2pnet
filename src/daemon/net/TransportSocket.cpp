@@ -47,5 +47,24 @@ void TransportSocket::updateOnSend(TransportSocketCallback callback) {
 	}
 }
 
+void TransportSocket::asyncReceiveFrom(TransportSocketEndpoint endpoint) {
+}
+
+void TransportSocket::waitReceiveFrom(TransportSocketEndpoint endpoint) {
+}
+
+TransportSocketCallback TransportSocket::hereReceiveFrom(TransportSocketEndpoint endpoint) {
+}
+
+void TransportSocket::asyncSendTo(TransportSocketEndpoint endpoint, const std::string& data) {
+	getInterfaceByID(endpoint.getInterfaceID())->asyncSendTo(endpoint.interface_endpoint, data);
+}
+
+void TransportSocket::waitSendTo(TransportSocketEndpoint endpoint, const std::string& data) {
+}
+
+void TransportSocket::hereSendTo(TransportSocketEndpoint endpoint, const std::string& data) {
+}
+
 }
 }

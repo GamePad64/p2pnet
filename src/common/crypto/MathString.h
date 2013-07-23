@@ -30,8 +30,8 @@ public:
 	typedef std::vector< Botan::byte, Botan::secure_allocator< Botan::byte > > binary_vector_t;
 
 protected:
-	MathString(const binary_vector_t bv) {
-	}
+	MathString() {}
+	MathString(const binary_vector_t bv) {}
 
 public:
 	virtual ~MathString() {

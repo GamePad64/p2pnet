@@ -32,7 +32,7 @@ ECDH::ECDH(binary_vector_t serialized_vector) :
 
 ECDH::ECDH(Botan::ECDH_PrivateKey& botan_key) :
 		MathString<ECDH>::MathString(Botan::PKCS8::BER_encode(botan_key)),
-		key_private(botan_key) {}
+		key_private(rng, Botan::EC_Group(ecdh_curve), botan_key.private_value()) {}
 
 ECDH::~ECDH() {
 }
