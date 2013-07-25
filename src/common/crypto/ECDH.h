@@ -26,7 +26,6 @@ const std::string ecdh_curve = "secp256r1";
 
 class ECDH : public MathString<ECDH> {
 	std::shared_ptr<Botan::ECDH_PrivateKey> key_private;
-	mutable std::mutex key_mutex;
 
 public:
 	/**

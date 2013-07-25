@@ -31,7 +31,7 @@ PersonalKeyStorage::~PersonalKeyStorage() {
 
 void PersonalKeyStorage::regenerateKeys() {
 	// Generating all this. This should be asynchronous.
-	auto my_new_private_key = new crypto::PrivateKeyDSA(crypto::PrivateKeyDSA::generate());
+	auto my_new_private_key = new crypto::PrivateKeyDSA(crypto::PrivateKeyDSA::generateKey());
 	auto my_new_transport_hash = new crypto::Hash(
 			crypto::Hash::compute(my_new_private_key->derivePublicKey().toBinaryString()));
 

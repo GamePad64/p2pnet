@@ -19,28 +19,14 @@
 namespace p2pnet {
 namespace crypto {
 
-PublicKeyDSA::PublicKeyDSA(binary_vector_t serialized_vector) :
-		MathString<PublicKeyDSA>::MathString(serialized_vector),
-		key_public(*(getPublicKeyPtrFromBinaryVector(serialized_vector))) {}
-PublicKeyDSA::PublicKeyDSA(Botan::ECDSA_PublicKey& botan_key) :
-		MathString<PublicKeyDSA>::MathString([&](){	// Sort of type conversion crap. Uses lambdas.
-	auto vec = Botan::X509::BER_encode(botan_key);
-	return binary_vector_t(vec.begin(), vec.end());
-}()),	key_public(botan_key) {}
+PublicKeyDSA::PublicKeyDSA() {}
+PublicKeyDSA::PublicKeyDSA(std::shared_ptr<Botan::ECDSA_PublicKey> botan_key) {
+	key_public = botan_key;
+}
 PublicKeyDSA::~PublicKeyDSA() {}
 
-std::shared_ptr<Botan::ECDSA_PublicKey> PublicKeyDSA::getPublicKeyPtrFromBinaryVector(binary_vector_t serialized_vector) {
-	Botan::DataSource_Memory botan_source(serialized_vector);
-	Botan::ECDSA_PublicKey* pubkey = dynamic_cast<Botan::ECDSA_PublicKey*>(Botan::X509::load_key(botan_source));
-	return std::shared_ptr<Botan::ECDSA_PublicKey>(pubkey);
-}
-
-const Botan::ECDSA_PublicKey& PublicKeyDSA::getPublicKey() {
-	return key_public;
-}
-
 std::string PublicKeyDSA::encrypt(std::string data) {
-	Botan::PK_Encryptor_EME pk_encryptor(getPublicKey(), "EME1(" + Hash::getAlgoName() + ")");
+	Botan::PK_Encryptor_EME pk_encryptor(*key_public, "EME1(" + Hash::getAlgoName() + ")");
 	Botan::AutoSeeded_RNG rng;
 
 	std::vector<Botan::byte> encrypted_v = pk_encryptor.encrypt(std::vector<Botan::byte>(data.begin(), data.end()), rng);
@@ -48,7 +34,7 @@ std::string PublicKeyDSA::encrypt(std::string data) {
 }
 
 bool PublicKeyDSA::verify(std::string data, std::string signature) {
-	Botan::PK_Verifier pk_verifier(key_public, "EMSA1(" + Hash::getAlgoName() + ")");
+	Botan::PK_Verifier pk_verifier(*key_public, "EMSA1(" + Hash::getAlgoName() + ")");
 
 	return pk_verifier.verify_message(
 			std::vector<Botan::byte>(data.begin(), data.end()),
@@ -57,7 +43,7 @@ bool PublicKeyDSA::verify(std::string data, std::string signature) {
 }
 
 bool PublicKeyDSA::verifyRaw(std::string data, std::string signature) {
-	Botan::PK_Verifier pk_verifier(key_public, "Raw");
+	Botan::PK_Verifier pk_verifier(*key_public, "Raw");
 
 	return pk_verifier.verify_message(
 			std::vector<Botan::byte>(data.begin(), data.end()),
@@ -68,22 +54,26 @@ bool PublicKeyDSA::verifyRaw(std::string data, std::string signature) {
 void PublicKeyDSA::fromPEM(std::string pem) {
 	std::vector<Botan::byte> pem_v(pem.begin(), pem.end());
 	Botan::DataSource_Memory botan_source(pem_v);
-	auto key_public_ptr = Botan::X509::load_key(botan_source);
-	key_public = *dynamic_cast<Botan::ECDSA_PublicKey*>(key_public_ptr);
-	delete key_public_ptr;
+	key_public = std::shared_ptr<Botan::ECDSA_PublicKey>(dynamic_cast<Botan::ECDSA_PublicKey*>(Botan::X509::load_key(botan_source)));
 }
 
 std::string PublicKeyDSA::toPEM() {
-	return Botan::X509::PEM_encode(getPublicKey());
+	return Botan::X509::PEM_encode(*key_public);
 }
 
 bool PublicKeyDSA::validate() {
 	Botan::AutoSeeded_RNG rng;
-	return key_public.check_key(rng, false);
+	return key_public->check_key(rng, false);
+}
+
+void PublicKeyDSA::setAsBinaryVector(binary_vector_t serialized_vector) {
+	Botan::DataSource_Memory botan_source(serialized_vector);
+	Botan::ECDSA_PublicKey* pubkey = dynamic_cast<Botan::ECDSA_PublicKey*>(Botan::X509::load_key(botan_source));
+	key_public = std::shared_ptr<Botan::ECDSA_PublicKey>(pubkey);
 }
 
 const PublicKeyDSA::binary_vector_t PublicKeyDSA::toBinaryVector() const {
-	std::vector<Botan::byte> pubkey_encoded_v = Botan::X509::BER_encode(key_public);
+	std::vector<Botan::byte> pubkey_encoded_v = Botan::X509::BER_encode(*key_public);
 	binary_vector_t pubkey_encoded_bv(pubkey_encoded_v.begin(), pubkey_encoded_v.end());
 	return pubkey_encoded_bv;
 }

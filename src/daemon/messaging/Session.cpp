@@ -37,7 +37,7 @@ bool Session::hasECDHPrivateKey() const {
 
 const crypto::ECDH& Session::renewECDHPrivateKey() {
 	delete m_ecdh_private_key;
-	m_ecdh_private_key = new crypto::ECDH(crypto::ECDH::generate());
+	m_ecdh_private_key = new crypto::ECDH(crypto::ECDH::generateKey());
 	return *(m_ecdh_private_key);
 }
 

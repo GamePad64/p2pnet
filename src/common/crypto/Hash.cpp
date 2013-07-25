@@ -13,10 +13,6 @@
  */
 
 #include "Hash.h"
-//#include "base58.h"
-//#include "base64.h"
-#include <sstream>
-#include <iomanip>
 #include <deque>
 
 namespace p2pnet {
@@ -28,16 +24,15 @@ std::string Hash::getAlgoName() {
 	return hasher.name();
 }
 
-Hash::Hash(const binary_vector_t serialized_vector) :
-		MathString< Hash >::MathString(serialized_vector) {
-	hash = serialized_vector;
-}
+Hash::Hash() {}
 
 Hash::~Hash() {
 }
 
 Hash Hash::compute(std::string data) {
-	return Hash(hasher.process(data));
+	Hash h;
+	h.setAsBinaryVector(h.hasher.process(data));
+	return h;
 }
 
 bool Hash::check(std::string data) {
@@ -69,14 +64,14 @@ unsigned short Hash::computeDistance(Hash rhash) {
 	return distance;
 }
 
-std::vector<unsigned char> Hash::operator^(const Hash& lhash) const {
+std::vector<unsigned char> Hash::operator^(const Hash& rhash) const {
 	std::deque<unsigned char> result_v;
 	binary_vector_t this_v = this->toBinaryVector();
-	binary_vector_t left_v = lhash.toBinaryVector();
+	binary_vector_t right_v = rhash.toBinaryVector();
 
 	auto this_i = this_v.begin();
-	auto left_i = left_v.begin();
-	while( (this_i != this_v.end()) && (left_i != left_v.end()) ){
+	auto left_i = right_v.begin();
+	while( (this_i != this_v.end()) && (left_i != right_v.end()) ){
 		result_v.push_back( (*this_i) ^ (*left_i) );
 		this_i++;
 		left_i++;

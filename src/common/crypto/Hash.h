@@ -32,20 +32,22 @@ class Hash : public MathString< Hash > {
 private:
 	binary_vector_t hash;
 	static Botan::Keccak_1600 hasher;
-
-protected:
-	Hash(const binary_vector_t serialized_vector);
 public:
+	Hash();
 	virtual ~Hash();
 
 	static Hash compute(std::string data);
 	bool check(std::string data);
 
+	void setAsBinaryVector(binary_vector_t serialized_vector) {
+		hash = serialized_vector;
+	}
 	const binary_vector_t toBinaryVector() const {
 		return hash;
 	}
 
 	unsigned short computeDistance(Hash rhash);
+
 	std::vector<unsigned char> operator^(const Hash& lhash) const;
 
 	/**
