@@ -31,6 +31,8 @@ public:
 
 	virtual uint32_t getInterfaceID() const {return 0;};
 
+	virtual void operator=(const TransportInterfaceEndpoint& tse) = 0;
+
 	/*
 	 * Serialization
 	 */

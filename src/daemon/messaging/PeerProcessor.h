@@ -18,6 +18,7 @@
 #include "../peer/TH.h"
 #include "../net/TransportSocketEndpoint.h"
 #include "../abstract/Singleton.h"
+#include "../../common/crypto/PublicKeyDSA.h"
 
 namespace p2pnet {
 namespace messaging {
@@ -32,6 +33,7 @@ public:
 	virtual ~PeerProcessor();
 
 	void processNewPeerConnection(peer::TH th, net::TransportSocketEndpoint endpoint);
+	void processNewPeerConnection(peer::TH th, net::TransportSocketEndpoint endpoint, crypto::PublicKeyDSA pubkey);
 };
 
 } /* namespace messaging */

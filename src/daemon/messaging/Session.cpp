@@ -13,6 +13,7 @@
  */
 
 #include "Session.h"
+#include "MessageSocket.h"
 #include "../databases/NetDBStorage.h"
 
 namespace p2pnet {
@@ -57,6 +58,7 @@ void Session::sendConnectionMessage() {
 
 	auto pks = databases::PersonalKeyStorage::getInstance();
 	auto message = m_generator.generateMessage(pks->getMyTransportHash(), m_th, payload);
+	messaging::MessageSocket::getInstance()->sendMessage(m_th, message);
 }
 
 } /* namespace messaging */

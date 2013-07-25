@@ -82,7 +82,8 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 		// Converting Boost::asio endpoint representation to string, so we could pass it as an argument to our network backend.
 		net::UDPTransportInterfaceEndpoint interface_endpoint(asio_endpoint->address().to_string(), message.port());
 		net::TransportSocketEndpoint socket_endpoint(std::make_shared<const UDPTransportInterfaceEndpoint>(interface_endpoint));
-		messaging::PeerProcessor::getInstance()->processNewPeerConnection(th, socket_endpoint);
+		std::clog << socket_endpoint.toReadableString();
+		messaging::PeerProcessor::getInstance()->processNewPeerConnection(th, socket_endpoint, pubkey);
 	} catch(messaging::RejectException *e) {
 		std::clog << e->what();
 		delete e;

@@ -21,11 +21,13 @@ Daemon::Daemon() {
 	m_netdb_storage = databases::NetDBStorage::getInstance();
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 	m_sessionmap = messaging::SessionStorage::getInstance();
+	m_message_socket = messaging::MessageSocket::getInstance();
 }
 Daemon::~Daemon() {
 	databases::NetDBStorage::clear();
 	databases::PersonalKeyStorage::clear();
 	messaging::SessionStorage::clear();
+	messaging::MessageSocket::clear();
 
 	if (m_transport_socket) delete m_transport_socket;
 
@@ -35,7 +37,6 @@ Daemon::~Daemon() {
 
 void Daemon::run() {
 	this->initTransportSocket();
-	this->initMessageSocket();
 	this->initLPD();
 	AsioIOService::getIOService().run();
 }
@@ -43,7 +44,7 @@ void Daemon::run() {
 void Daemon::initTransportSocket() {
 	// Creating TransportSocket
 	m_transport_socket = net::TransportSocket::getInstance();
-	m_transport_socket->addListener(&m_message_socket);
+	m_transport_socket->addListener(m_message_socket);
 
 	// Creating interfaces
 	m_udp_interface = new net::UDPTransportInterface();
@@ -62,10 +63,6 @@ void Daemon::initTransportSocket() {
 	} catch (boost::system::system_error& e) {
 		std::clog << "[Daemon] Unable to initialize UDP socket. Exception caught: " << e.what() << std::endl;
 	}
-}
-
-void Daemon::initMessageSocket() {
-	m_transport_socket->addListener(&m_message_socket);
 }
 
 void Daemon::initLPD() {

@@ -34,7 +34,6 @@ namespace p2pnet {
 
 class Daemon {
 	void initTransportSocket();
-	void initMessageSocket();
 	void initLPD();
 public:
 	ConfigManager config_manager;
@@ -48,7 +47,7 @@ public:
 	net::UDPTransportInterface* m_udp_interface;
 
 	// MessageSocket
-	messaging::MessageSocket m_message_socket;
+	messaging::MessageSocket* m_message_socket;
 
 	net::lpd::UDPLPDv4* m_lpd_udpv4;
 	net::lpd::UDPLPDv6* m_lpd_udpv6;

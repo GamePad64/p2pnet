@@ -28,7 +28,7 @@
 namespace p2pnet {
 namespace messaging {
 
-class MessageSocket : public net::TransportSocketListener {
+class MessageSocket : public net::TransportSocketListener, public abstract::Singleton<MessageSocket> {
 	// Active handlers
 	std::list<handlers::MessageHandler*> m_handler_list;
 

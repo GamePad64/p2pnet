@@ -19,6 +19,7 @@
 // Standard headers
 #include <memory>
 #include <sstream>
+#include <iostream>
 
 namespace p2pnet {
 namespace net {
@@ -31,7 +32,9 @@ TransportSocketEndpoint::TransportSocketEndpoint(const TransportSocketEndpoint& 
 TransportSocketEndpoint::TransportSocketEndpoint(net::TransportInterfaceEndpoint::const_pointer interface_endpoint) {
 	auto id = interface_endpoint->getInterfaceID();
 	resetEndpointByID(id);
-	*(this->interface_endpoint) = *interface_endpoint;
+	//SHIT: Really dirty code. We could do this without protobuf. Just write a normal copy constructor and assigning operator.
+	(this->interface_endpoint)->fromProtobuf(interface_endpoint->toProtobuf());
+	//*(this->interface_endpoint) = *interface_endpoint;
 }
 
 void TransportSocketEndpoint::resetEndpointByID(uint32_t id) {

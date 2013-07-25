@@ -23,14 +23,39 @@ namespace messaging {
 PeerProcessor::PeerProcessor() {}
 PeerProcessor::~PeerProcessor() {}
 
-
-
 void PeerProcessor::processNewPeerConnection(peer::TH th, net::TransportSocketEndpoint endpoint) {
 	if(! databases::NetDBStorage::getInstance()->hasEntry(th)){
 		std::clog << "[" << getComponentName() << "] Discovered peer: " << th.toBase58() << std::endl;
 	}
 
 	databases::NetDBEntry& db_entry = databases::NetDBStorage::getInstance()->getEntry(th);
+
+	if(! databases::NetDBStorage::getInstance()->hasRouteToPeer(th, endpoint.toProtobuf()) ){
+		databases::TransportSocketEndpoint_s* db_endpoint = db_entry.mutable_endpoints()->Add();
+		*db_endpoint = endpoint.toProtobuf();
+		db_endpoint->set_last_usage((google::protobuf::int64)std::time(0));
+	}else{
+		/*
+		 * This function should be called when we want to "bump" selected route,
+		 * so it is set to preferred.
+		 */
+		databases::NetDBStorage::getInstance()->bumpRouteToPeer(th, endpoint.toProtobuf());
+	}
+
+	auto session_ptr = (*messaging::SessionStorage::getInstance())[th.toBinaryString()];
+	if(!session_ptr)
+		session_ptr = std::make_shared<messaging::Session>(th);
+	session_ptr->sendKeyExchangeMessage();
+}
+
+void PeerProcessor::processNewPeerConnection(peer::TH th, net::TransportSocketEndpoint endpoint, crypto::PublicKeyDSA pubkey) {
+	std::clog << endpoint.toReadableString();
+	if(! databases::NetDBStorage::getInstance()->hasEntry(th)){
+		std::clog << "[" << getComponentName() << "] Discovered peer: " << th.toBase58() << std::endl;
+	}
+
+	databases::NetDBEntry& db_entry = databases::NetDBStorage::getInstance()->getEntry(th);
+	db_entry.set_ecdsa_public_key(pubkey.toBinaryString());
 
 	if(! databases::NetDBStorage::getInstance()->hasRouteToPeer(th, endpoint.toProtobuf()) ){
 		databases::TransportSocketEndpoint_s* db_endpoint = db_entry.mutable_endpoints()->Add();
