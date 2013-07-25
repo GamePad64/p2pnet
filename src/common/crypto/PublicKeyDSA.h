@@ -22,16 +22,13 @@ namespace p2pnet {
 namespace crypto {
 
 class PublicKeyDSA : public MathString<PublicKeyDSA> {
-	Botan::ECDSA_PublicKey key_public;
+	std::shared_ptr<Botan::ECDSA_PublicKey> key_public;
 
-	std::shared_ptr<Botan::ECDSA_PublicKey> getPublicKeyPtrFromBinaryVector(binary_vector_t serialized_vector);
 protected:
-	virtual const Botan::ECDSA_PublicKey& getPublicKey();
-
 	friend class PrivateKeyDSA;
-	PublicKeyDSA(Botan::ECDSA_PublicKey& botan_key);
+	PublicKeyDSA(std::shared_ptr<Botan::ECDSA_PublicKey> botan_key);
 public:
-	PublicKeyDSA(binary_vector_t serialized_vector);
+	PublicKeyDSA();
 	virtual ~PublicKeyDSA();
 
 	std::string encrypt(std::string data);
@@ -44,6 +41,7 @@ public:
 	virtual void fromPEM(std::string pem);
 	virtual std::string toPEM();
 
+	void setAsBinaryVector(binary_vector_t serialized_vector);
 	virtual const binary_vector_t toBinaryVector() const;
 };
 

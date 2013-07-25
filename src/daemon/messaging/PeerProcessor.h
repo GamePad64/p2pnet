@@ -22,6 +22,7 @@
 namespace p2pnet {
 namespace messaging {
 
+// This is a multi-purprose class (I know, that OOP hates this approach, but...)
 class PeerProcessor : public abstract::Singleton<PeerProcessor> {
 	inline std::string getComponentName(){
 		return "PeerProcessor";

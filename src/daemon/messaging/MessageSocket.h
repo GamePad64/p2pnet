@@ -41,6 +41,8 @@ public:
 	MessageSocket();
 	virtual ~MessageSocket();
 
+	void sendMessage(peer::TH th, protocol::p2pMessage message);
+
 	// TransportSocketListener functions.
 	virtual void receivedMessage(net::TransportSocketCallback callback);
 	virtual void sentMessage(net::TransportSocketCallback callback);

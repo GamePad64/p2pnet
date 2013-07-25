@@ -76,6 +76,7 @@ void ConnectionHandler::processReceivedMessage(protocol::p2pMessage& message, Me
 		 * - sender's public key (if it is not a response)
 		 * - Session ECDH key, so now we can generate a symmetric key.
 		 */
+		std::clog << "[" << getHandlerName() << "] Received \"Connection\" message from: TH:" << crypto::Hash::fromBinaryString(message.header().src_th()).toBase58() << std::endl;
 	}
 }
 

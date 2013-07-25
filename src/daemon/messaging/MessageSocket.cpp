@@ -15,6 +15,7 @@
 #include "handlers/RelayHandler.h"
 #include "handlers/KeyExchangeHandler.h"
 #include "handlers/ConnectionHandler.h"
+#include "../net/TransportSocket.h"
 
 #include "MessageSocket.h"
 #include <iostream>
@@ -50,6 +51,23 @@ void MessageSocket::receivedMessage(net::TransportSocketCallback callback) {
 	// TODO: Add this TransportSocketLink to database.
 
 	processReceivedMessage(message);
+}
+
+void MessageSocket::sendMessage(peer::TH th, protocol::p2pMessage message) {
+	auto db_entry = databases::NetDBStorage::getInstance()->getEntry(th);
+	if(db_entry.has_ecdsa_public_key()){
+		// We need some logic here to choose an optimal route.
+		if(db_entry.endpoints().size() > 0){
+			net::TransportSocketEndpoint endpoint;
+			endpoint.fromProtobuf(db_entry.endpoints(0));
+			net::TransportSocket::getInstance()->asyncSendTo(endpoint, message.SerializeAsString());
+		}
+	}else{
+		/*
+		 * We should use kinda DHT to resolve TransportSocketEndpoint to this peer. Unimplemented yet.
+		 * Same hell on inactive TransportSocketEndpoints.
+		 */
+	}
 }
 
 void MessageSocket::sentMessage(net::TransportSocketCallback callback) {

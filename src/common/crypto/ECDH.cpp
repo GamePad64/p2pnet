@@ -19,33 +19,28 @@
 namespace p2pnet {
 namespace crypto {
 
-std::shared_ptr< Botan::ECDH_PrivateKey > ECDH::getPrivateKeyPtrFromBinaryVector(binary_vector_t serialized_vector) {
-	Botan::DataSource_Memory botan_source(serialized_vector);
-	Botan::AutoSeeded_RNG rng;
-	Botan::ECDH_PrivateKey* privkey = dynamic_cast<Botan::ECDH_PrivateKey*>(Botan::PKCS8::load_key(botan_source, rng));
-	return std::shared_ptr<Botan::ECDH_PrivateKey>(privkey);
+ECDH::ECDH() {}
+
+ECDH::ECDH(binary_vector_t serialized_vector) {
+	setAsBinaryVector(serialized_vector);
 }
-
-ECDH::ECDH(binary_vector_t serialized_vector) :
-		MathString<ECDH>::MathString(serialized_vector),
-		key_private(*(getPrivateKeyPtrFromBinaryVector(serialized_vector))) {}
-
-ECDH::ECDH(Botan::ECDH_PrivateKey& botan_key) :
-		MathString<ECDH>::MathString(Botan::PKCS8::BER_encode(botan_key)),
-		key_private(botan_key) {}
 
 ECDH::~ECDH() {
 }
 
-ECDH ECDH::generate() {
+void ECDH::renewKey() {
 	Botan::AutoSeeded_RNG rng;
+	key_private = std::make_shared<Botan::ECDH_PrivateKey>(rng, Botan::EC_Group(ecdh_curve));
+}
 
-	Botan::ECDH_PrivateKey botan_key(rng, Botan::EC_Group(ecdh_curve));
-	return ECDH(botan_key);
+ECDH ECDH::generateKey() {
+	ECDH new_ecdh;
+	new_ecdh.renewKey();
+	return new_ecdh;
 }
 
 std::string ECDH::deriveSymmetricKey(size_t key_length, std::string other_pubkey, std::string session_param) const {
-	Botan::PK_Key_Agreement key_agreement(key_private, "KDF2(" + Hash::getAlgoName() + ")");
+	Botan::PK_Key_Agreement key_agreement(*key_private, "KDF2(" + Hash::getAlgoName() + ")");
 
 	std::vector<Botan::byte> other_pubkey_v(other_pubkey.begin(), other_pubkey.end());
 
@@ -53,12 +48,19 @@ std::string ECDH::deriveSymmetricKey(size_t key_length, std::string other_pubkey
 }
 
 std::string ECDH::derivePublicKey() const {
-	std::vector<Botan::byte> key_public_v = key_private.public_value();
+	std::vector<Botan::byte> key_public_v = key_private->public_value();
 	return std::string(key_public_v.begin(), key_public_v.end());
 }
 
+void ECDH::setAsBinaryVector(binary_vector_t serialized_vector) {
+	Botan::DataSource_Memory botan_source(serialized_vector);
+	Botan::AutoSeeded_RNG rng;
+	Botan::ECDH_PrivateKey* privkey = dynamic_cast<Botan::ECDH_PrivateKey*>(Botan::PKCS8::load_key(botan_source, rng));
+	key_private = std::shared_ptr<Botan::ECDH_PrivateKey>(privkey);
+}
+
 const ECDH::binary_vector_t ECDH::toBinaryVector() const {
-	return Botan::PKCS8::BER_encode(key_private);
+	return Botan::PKCS8::BER_encode(*key_private);
 }
 
 } /* namespace crypto */
