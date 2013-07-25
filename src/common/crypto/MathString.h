@@ -31,19 +31,24 @@ public:
 
 protected:
 	MathString() {}
-	MathString(const binary_vector_t bv) {}
 
 public:
 	virtual ~MathString() {
 	}
 
+	virtual void setAsBinaryVector(binary_vector_t serialized_vector) = 0;
 	static T fromBinaryVector(binary_vector_t serialized_vector) {
 		return T(serialized_vector);
 	}
 	virtual const binary_vector_t toBinaryVector() const = 0;
 
+	void setAsBinaryString(std::string serialized_string){
+		setAsBinaryVector(binary_vector_t(serialized_string.begin(), serialized_string.end()));
+	}
 	static T fromBinaryString(std::string serialized_string) {
-		return fromBinaryVector(binary_vector_t(serialized_string.begin(), serialized_string.end()));
+		T new_string;
+		new_string.setAsBinaryString(serialized_string);
+		return new_string;
 	}
 	const std::string toBinaryString() const {
 		binary_vector_t bv = toBinaryVector();
@@ -51,22 +56,37 @@ public:
 		return s;
 	}
 
+	void setAsHex(std::string hex_string){
+		setAsBinaryString(decodeFromHex(hex_string));
+	}
 	static T fromHex(std::string hex_string) {
-		return fromBinaryString(decodeFromHex(hex_string));
+		T new_string;
+		new_string.setAsHex(hex_string);
+		return new_string;
 	}
 	const std::string toHex() const {
 		return encodeToHex(toBinaryString());
 	}
 
+	void setAsBase58(std::string b58_string){
+		setAsBinaryString(decodeFromBase58(b58_string));
+	}
 	static T fromBase58(std::string b58_string) {
-		return fromBinaryString(decodeFromBase58(b58_string));
+		T new_string;
+		new_string.setAsBase58(b58_string);
+		return new_string;
 	}
 	const std::string toBase58() const {
 		return encodeToBase58(toBinaryString());
 	}
 
+	void setAsBase64(std::string b64_string){
+		setAsBinaryString(decodeFromBase64(b64_string));
+	}
 	static T fromBase64(std::string b64_string) {
-		return fromBinaryString(decodeFromBase64(b64_string));
+		T new_string;
+		new_string.setAsBase64(b64_string);
+		return new_string;
 	}
 	const std::string toBase64() const {
 		return encodeToBase64(toBinaryString());
