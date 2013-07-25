@@ -127,12 +127,14 @@ void UDPLPD::configChanged(){
 }
 
 void UDPLPD::startSend() {
+	initSocket();
 	std::clog << "[" << getComponentName() << "] Started sending broadcasts to: " << m_target_address << ":"
 			<< m_target_port << std::endl;
 	send();
 }
 
 void UDPLPD::startReceive() {
+	initSocket();
 	std::clog << "[" << getComponentName() << "] Started receiving broadcasts from: " << m_target_address << ":"
 			<< m_target_port << std::endl;
 	receive();

@@ -51,6 +51,7 @@ protected:
 	ConfigManager& m_config;
 
 	io_service& m_io_service;
+	bool initialized = false;
 
 	/**
 	 * This function is virtual, so it returns UDP port for given protocol, for IPv4 or IPv6.
