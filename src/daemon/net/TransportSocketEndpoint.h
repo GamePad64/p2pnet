@@ -26,6 +26,9 @@ namespace net {
 class TransportSocketEndpoint {
 	friend class TransportSocket;
 	TransportInterfaceEndpoint::pointer interface_endpoint;
+	inline TransportInterfaceEndpoint::pointer getInterfaceEndpoint(){
+		return interface_endpoint;
+	}
 	/**
 	 * Creates new endpoint instance using specified interface ID.
 	 * @param id
