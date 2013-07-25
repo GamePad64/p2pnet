@@ -17,6 +17,7 @@
 
 #include <botan/ecdh.h>
 #include "MathString.h"
+#include <mutex>
 
 namespace p2pnet {
 namespace crypto {
@@ -24,21 +25,25 @@ namespace crypto {
 const std::string ecdh_curve = "secp256r1";
 
 class ECDH : public MathString<ECDH> {
-	Botan::ECDH_PrivateKey key_private;
-
-	std::shared_ptr<Botan::ECDH_PrivateKey> getPrivateKeyPtrFromBinaryVector(binary_vector_t serialized_vector);
-protected:
-	ECDH(Botan::ECDH_PrivateKey& botan_key);
+	std::shared_ptr<Botan::ECDH_PrivateKey> key_private;
+	mutable std::mutex key_mutex;
 
 public:
+	/**
+	 * Generic ECDH constructor. This creates empty ECDH key pair. Any call to function that requires ECDH not to be
+	 * empty initializes it, generating new key pair.
+	 */
+	ECDH();
 	ECDH(binary_vector_t serialized_vector);
 	virtual ~ECDH();
 
-	static ECDH generate();
+	void renewKey();
+	static ECDH generateKey();
 
 	std::string deriveSymmetricKey(size_t key_length, std::string other_pubkey, std::string session_param) const;
 	std::string derivePublicKey() const;
 
+	void setAsBinaryVector(binary_vector_t serialized_vector);
 	virtual const binary_vector_t toBinaryVector() const;
 };
 
