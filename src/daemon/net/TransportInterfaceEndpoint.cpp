@@ -19,6 +19,10 @@ namespace net {
 
 TransportInterfaceEndpoint::TransportInterfaceEndpoint() {}
 
+TransportInterfaceEndpoint& TransportInterfaceEndpoint::operator =(const TransportInterfaceEndpoint& rvalue){
+	return *this;
+}
+
 void TransportInterfaceEndpoint::fromBinaryString(std::string binary_string) {
 	databases::TransportSocketEndpoint_s tse_s;
 	tse_s.ParseFromString(binary_string);

@@ -35,6 +35,8 @@ public:
 	UDPTransportInterfaceEndpoint();
 	virtual ~UDPTransportInterfaceEndpoint();
 
+	virtual TransportInterfaceEndpoint& operator =(const TransportInterfaceEndpoint& rvalue);
+
 	bool isIPv4();
 	bool isIPv6();
 

@@ -22,8 +22,12 @@ namespace net {
 UDPTransportInterfaceEndpoint::UDPTransportInterfaceEndpoint(){};
 UDPTransportInterfaceEndpoint::~UDPTransportInterfaceEndpoint(){};
 
-void UDPTransportInterfaceEndpoint::operator =(const TransportInterfaceEndpoint& tse) {
-	asio_endpoint = dynamic_cast<UDPTransportInterfaceEndpoint>(tse).asio_endpoint;
+TransportInterfaceEndpoint& UDPTransportInterfaceEndpoint::operator =(const TransportInterfaceEndpoint& rvalue){
+	auto pTIE = dynamic_cast<const UDPTransportInterfaceEndpoint*>(&rvalue);
+	if(pTIE){
+		asio_endpoint = pTIE->asio_endpoint;
+	}
+	return *this;
 }
 
 udp::endpoint& UDPTransportInterfaceEndpoint::getEndpoint(){

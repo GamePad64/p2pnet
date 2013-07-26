@@ -127,7 +127,6 @@ void UDPTransportInterface::asyncSendTo(TransportInterfaceEndpoint::const_pointe
 	*mutable_copy_endpoint = *const_copy_endpoint;
 
 	char* data_sent = new char[getMTU()];
-	std::clog << endpoint->toReadableString();
 	m_socket.async_send_to(boost::asio::buffer(data), mutable_copy_endpoint->getEndpoint(),
 			boost::bind(&UDPTransportInterface::sentMessageHandler, this, data_sent, boost::asio::placeholders::bytes_transferred, mutable_copy_endpoint));
 }

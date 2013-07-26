@@ -60,7 +60,6 @@ void MessageSocket::sendMessage(peer::TH th, protocol::p2pMessage message) {
 		if(db_entry.endpoints().size() > 0){
 			net::TransportSocketEndpoint endpoint;
 			endpoint.fromProtobuf(db_entry.endpoints(0));
-			std::clog << endpoint.toReadableString();
 			net::TransportSocket::getInstance()->asyncSendTo(endpoint, message.SerializeAsString());
 		}
 	}else{

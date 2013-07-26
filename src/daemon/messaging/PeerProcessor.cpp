@@ -49,7 +49,6 @@ void PeerProcessor::processNewPeerConnection(peer::TH th, net::TransportSocketEn
 }
 
 void PeerProcessor::processNewPeerConnection(peer::TH th, net::TransportSocketEndpoint endpoint, crypto::PublicKeyDSA pubkey) {
-	std::clog << endpoint.toReadableString();
 	if(! databases::NetDBStorage::getInstance()->hasEntry(th)){
 		std::clog << "[" << getComponentName() << "] Discovered peer: " << th.toBase58() << std::endl;
 	}
