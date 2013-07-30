@@ -25,7 +25,8 @@ enum Reason {
 	CUSTOM,
 	CRC_MISMATCH,
 	KEY_INVALID,
-	PARSE_ERROR
+	PARSE_ERROR,
+	ENCRYPTION_NEEDED
 };
 
 class RejectException {

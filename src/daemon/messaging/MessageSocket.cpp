@@ -45,9 +45,42 @@ void MessageSocket::reject(Reason reason) {
 }
 
 void MessageSocket::receivedMessage(net::TransportSocketCallback callback) {
-	protocol::p2pMessage message;
-	message.ParseFromString(callback.data);
+	try {
+		protocol::p2pMessage message;
 
+		if(message.ParseFromString(callback.data)){
+			/*
+		 	 * This message is not encrypted. So, we need to check its type.
+			 * Only some types of messages are permitted. These types are
+			 * used only when encryption is not possible.
+			 */
+			switch(message.payload().message_type()){
+			case message.payload().KEY_REQUEST:
+				break;
+			default:
+				reject(ENCRYPTION_NEEDED);
+			}
+		}else{
+			// Okay, this message is encrypted OR corrupted.
+			auto privkey = databases::PersonalKeyStorage::getInstance()->getMyPrivateKey();
+			auto decrypted_message = privkey.decrypt(callback.data);
+
+			if(message.ParseFromString(decrypted_message)){
+				/*
+				 * This message is decrypted well, doesn't seem to be corrupted (but CRC checks will be performed)
+				 */
+
+			}else{
+				/*
+				 * Well, this message is corrupted or "stale". Stale means that this message is
+				 * encrypted using our old
+				 */
+			}
+		}
+	} catch(RejectException *e) {
+		std::clog << e->what();
+		delete e;
+	}
 	// TODO: Add this TransportSocketLink to database.
 
 	processReceivedMessage(message);
@@ -74,7 +107,6 @@ void MessageSocket::sentMessage(net::TransportSocketCallback callback) {
 }
 
 void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
-	try {
 		MessageGenerator m_generator;
 		if (!m_generator.checkMessageCRC32(message))
 			reject(Reason::CRC_MISMATCH);
@@ -94,10 +126,6 @@ void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
 				}
 			}
 		} while(message_props.repeat);
-	} catch(RejectException *e) {
-		std::clog << e->what();
-		delete e;
-	}
 }
 
 void MessageSocket::addHandler(handlers::MessageHandler* handler_ptr) {

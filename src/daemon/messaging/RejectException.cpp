@@ -48,6 +48,9 @@ std::string p2pnet::messaging::RejectException::what() const {
 		case PARSE_ERROR:
 			what << "Protobuf parse error";
 			break;
+		case ENCRYPTION_NEEDED:
+			what << "Encryption needed for this type of message";
+			break;
 		default:;
 		}
 	}
