@@ -36,7 +36,6 @@ class MessageSocket : public net::TransportSocketListener, public abstract::Sing
 	databases::PersonalKeyStorage* m_pks;
 
 	void reject(Reason reason);
-	void processReceivedMessage(protocol::p2pMessage message);
 public:
 	MessageSocket();
 	virtual ~MessageSocket();

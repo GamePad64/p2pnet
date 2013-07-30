@@ -55,7 +55,7 @@ void MessageSocket::receivedMessage(net::TransportSocketCallback callback) {
 			 * used only when encryption is not possible.
 			 */
 			switch(message.payload().message_type()){
-			case message.payload().KEY_REQUEST:
+			case protocol::p2pMessage_Payload::KEY_REQUEST:
 				break;
 			default:
 				reject(ENCRYPTION_NEEDED);
@@ -82,8 +82,6 @@ void MessageSocket::receivedMessage(net::TransportSocketCallback callback) {
 		delete e;
 	}
 	// TODO: Add this TransportSocketLink to database.
-
-	processReceivedMessage(message);
 }
 
 void MessageSocket::sendMessage(peer::TH th, protocol::p2pMessage message) {
@@ -106,7 +104,7 @@ void MessageSocket::sendMessage(peer::TH th, protocol::p2pMessage message) {
 void MessageSocket::sentMessage(net::TransportSocketCallback callback) {
 }
 
-void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
+/*void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
 		MessageGenerator m_generator;
 		if (!m_generator.checkMessageCRC32(message))
 			reject(Reason::CRC_MISMATCH);
@@ -126,7 +124,7 @@ void MessageSocket::processReceivedMessage(protocol::p2pMessage message) {
 				}
 			}
 		} while(message_props.repeat);
-}
+}*/
 
 void MessageSocket::addHandler(handlers::MessageHandler* handler_ptr) {
 	m_handler_list.push_back(handler_ptr);
