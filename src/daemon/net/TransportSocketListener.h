@@ -15,7 +15,6 @@
 #ifndef TRANSPORTSOCKETLISTENER_H_
 #define TRANSPORTSOCKETLISTENER_H_
 
-#include <memory>
 #include <string>
 #include "TransportSocketEndpoint.h"
 
@@ -35,7 +34,6 @@ public:
 	TransportSocketListener(){};
 	virtual ~TransportSocketListener(){};
 	virtual void receivedMessage(TransportSocketCallback callback) = 0;
-	virtual void sentMessage(TransportSocketCallback callback) = 0;
 };
 } /* namespace net */
 } /* namespace p2pnet */
