@@ -23,12 +23,7 @@ TransportConnection::~TransportConnection() {
 }
 
 void TransportConnection::process(std::string data) {
-	bool empty_connection = bool(m_overlayconnection);
-	if(empty_connection){
-		m_overlayconnection = std::make_shared()
-	}else{
-		m_overlayconnection.
-	}
+	overlay::OverlaySocket::getInstance()->process(data, m_endpoint);
 }
 
 } /* namespace net */

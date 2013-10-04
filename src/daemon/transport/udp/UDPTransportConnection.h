@@ -20,12 +20,13 @@ namespace p2pnet {
 namespace transport {
 
 class UDPTransportConnection : public TransportConnection {
-	virtual void process(std::string data) = 0;
+	UDPTransportInterface* m_parent_interface;
 public:
-	UDPTransportConnection(TransportSocketEndpoint endpoint);
+	UDPTransportConnection(TransportSocketEndpoint endpoint) = delete;
+	UDPTransportConnection(TransportSocketEndpoint endpoint, UDPTransportInterface* parent_interface);
 	virtual ~UDPTransportConnection();
 
-	virtual void send(std::string data) = 0;
+	virtual void send(std::string data);
 };
 
 } /* namespace transport */

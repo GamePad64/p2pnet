@@ -17,13 +17,13 @@
 
 #include <string>
 #include <memory>
-#include "../protobuf/NetDBEntry.pb.h"
+#include "../protobuf/EndpointFormat.pb.h"
 #include "TransportInterfaceEndpoint.h"
 
 namespace p2pnet {
 namespace transport {
 
-class TransportSocketEndpoint {
+class TransportSocketEndpoint final {
 	friend class TransportSocket;
 protected:
 	std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint;
@@ -38,7 +38,7 @@ protected:
 public:
 	TransportSocketEndpoint(){};
 	TransportSocketEndpoint(const TransportSocketEndpoint& tse);
-	TransportSocketEndpoint(std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint);
+	TransportSocketEndpoint(const std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint);
 	~TransportSocketEndpoint(){};
 
 	// Operators
@@ -53,9 +53,9 @@ public:
 	/*
 	 * Serialization
 	 */
-	void fromProtobuf(databases::TransportSocketEndpoint_s tse_s);
-	databases::TransportSocketEndpoint_s toProtobuf() const;
-	TransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s);
+	void fromProtobuf(proto::TransportSocketEndpoint_s tse_s);
+	proto::TransportSocketEndpoint_s toProtobuf() const;
+	TransportSocketEndpoint(proto::TransportSocketEndpoint_s tse_s);
 
 	/*
 	 * Binary strings serialization. Uses protobuf (look up! ^_^)

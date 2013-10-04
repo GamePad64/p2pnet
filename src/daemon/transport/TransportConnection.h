@@ -15,7 +15,7 @@
 #define TRANSPORTCONNECTION_H_
 
 #include "TransportSocketEndpoint.h"
-#include "OverlayConnection.h"
+#include "../overlay/OverlaySocket.h"
 
 namespace p2pnet {
 namespace transport {

@@ -13,6 +13,7 @@
  */
 
 #include "UDPTransportInterfaceEndpoint.h"
+#include "../../protobuf/IPInterfaceEndpoint.pb.h"
 #include <sstream>
 #include <algorithm>
 
@@ -31,7 +32,7 @@ TransportInterfaceEndpoint& UDPTransportInterfaceEndpoint::operator =(const Tran
 	return *this;
 }
 
-udp::endpoint& UDPTransportInterfaceEndpoint::getEndpoint(){
+udp::endpoint UDPTransportInterfaceEndpoint::getEndpoint(){
 	return this->asio_endpoint;
 };
 
@@ -65,15 +66,15 @@ UDPTransportInterfaceEndpoint::UDPTransportInterfaceEndpoint(std::string ip, UDP
 	this->setPort(port);
 };
 
-void UDPTransportInterfaceEndpoint::fromProtobuf(databases::TransportSocketEndpoint_s tse_s){
-	setIP(tse_s.ip());
-	setPort(tse_s.port());
+void UDPTransportInterfaceEndpoint::fromProtobuf(proto::TransportSocketEndpoint_s tse_s){
+	setIP(tse_s.GetExtension(proto::ip));
+	setPort(tse_s.GetExtension(proto::port));
 }
-databases::TransportSocketEndpoint_s UDPTransportInterfaceEndpoint::toProtobuf() const {
-	databases::TransportSocketEndpoint_s tse_s;
+proto::TransportSocketEndpoint_s UDPTransportInterfaceEndpoint::toProtobuf() const {
+	proto::TransportSocketEndpoint_s tse_s;
 	tse_s.set_interface_id(getInterfaceID());
-	tse_s.set_ip(getIP());
-	tse_s.set_port(getPort());
+	tse_s.SetExtension(proto::ip, getIP());
+	tse_s.SetExtension(proto::port, getPort());
 	return tse_s;
 }
 

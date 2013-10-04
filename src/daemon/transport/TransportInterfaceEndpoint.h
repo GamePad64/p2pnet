@@ -26,14 +26,14 @@ public:
 	TransportInterfaceEndpoint();
 	virtual ~TransportInterfaceEndpoint();
 
-	virtual TransportInterfaceEndpoint& operator =(const TransportInterfaceEndpoint& rvalue) = 0;
+	TransportInterfaceEndpoint& operator =(const TransportInterfaceEndpoint& rvalue);
 
 	virtual uint32_t getInterfaceID() const {return 0;};
 	/*
 	 * Serialization
 	 */
-	virtual void fromProtobuf(databases::TransportSocketEndpoint_s tse_s) = 0;
-	virtual databases::TransportSocketEndpoint_s toProtobuf() const = 0;
+	virtual void fromProtobuf(proto::TransportSocketEndpoint_s tse_s) = 0;
+	virtual proto::TransportSocketEndpoint_s toProtobuf() const = 0;
 
 	void fromBinaryString(std::string binary_string);
 	std::string toBinaryString() const;

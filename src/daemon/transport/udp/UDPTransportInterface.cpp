@@ -12,7 +12,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../TransportSocketListener.h"
 #include "UDPTransportInterface.h"
 #include "../../AsioIOService.h"
 #include <boost/bind.hpp>
@@ -40,6 +39,10 @@ std::string UDPTransportInterface::getInterfacePrefix() const {
 	return "UDP";
 }
 
+void UDPTransportInterface::sentMessageHandler(std::string data, udp::endpoint* endpoint) {
+	delete endpoint;
+}
+
 void UDPTransportInterface::receivedMessageHandler(boost::asio::streambuf* buffer, size_t bytes_received, udp::endpoint* endpoint) {
 	std::string message(buffer->data(), bytes_received);
 	delete buffer;
@@ -50,7 +53,7 @@ void UDPTransportInterface::receivedMessageHandler(boost::asio::streambuf* buffe
 	auto connection_it = TransportSocket::getInstance()->m_connections.find(received_endpoint);
 
 	if(connection_it == TransportSocket::getInstance()->m_connections.end()){
-		std::shared_ptr<UDPTransportConnection> new_connection = std::make_shared<UDPTransportConnection>(received_endpoint);
+		std::shared_ptr<UDPTransportConnection> new_connection = std::make_shared<UDPTransportConnection>(received_endpoint, this);
 		TransportSocket::getInstance()->m_connections.insert(std::make_pair(received_endpoint, new_connection));
 		new_connection->process(message);
 	}else{
@@ -108,13 +111,13 @@ void UDPTransportInterface::receive() {
 					boost::asio::placeholders::bytes_transferred, received));
 }
 
-void UDPTransportInterface::send(TransportInterfaceEndpoint endpoint, const std::string& data) {
-	std::shared_ptr<UDPTransportInterfaceEndpoint> mutable_copy_endpoint = std::make_shared<UDPTransportInterfaceEndpoint>();
-	std::shared_ptr<const UDPTransportInterfaceEndpoint> const_copy_endpoint = std::dynamic_pointer_cast<const UDPTransportInterfaceEndpoint>(endpoint);
-	*mutable_copy_endpoint = *const_copy_endpoint;
+void UDPTransportInterface::send(TransportSocketEndpoint dest, const std::string& data) {
+	auto socketendpoint_ptr = new TransportSocketEndpoint(dest);
+	// Creating new asio endpoint pointer from TransportSocketEndpoint below. "Braindanger ahead!"
+	udp::endpoint* asiosocketendpoint_ptr = new udp::endpoint(static_cast<UDPTransportInterfaceEndpoint>(socketendpoint_ptr->getInterfaceEndpoint()).getEndpoint());
 
-	m_socket.async_send_to(boost::asio::buffer(data), mutable_copy_endpoint->getEndpoint(),
-			boost::bind(&UDPTransportInterface::sentMessageHandler, this, data_sent, boost::asio::placeholders::bytes_transferred, mutable_copy_endpoint));
+	m_socket.async_send_to(boost::asio::buffer(data), *asiosocketendpoint_ptr,
+			boost::bind(&UDPTransportInterface::sentMessageHandler, this, data, asiosocketendpoint_ptr));
 }
 
 } /* namespace net */

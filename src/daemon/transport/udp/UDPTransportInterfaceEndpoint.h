@@ -26,9 +26,6 @@ using namespace boost::asio::ip;
 
 class UDPTransportInterfaceEndpoint: public TransportInterfaceEndpoint {
 	friend class UDPTransportInterface;
-private:
-	udp::endpoint& getEndpoint();
-	void setEndpoint(const udp::endpoint& endpoint);
 protected:
 	udp::endpoint asio_endpoint;
 public:
@@ -41,6 +38,9 @@ public:
 	bool isIPv4();
 	bool isIPv6();
 
+	udp::endpoint getEndpoint();
+	void setEndpoint(const udp::endpoint& endpoint);
+
 	std::string getIP() const;
 	void setIP(const std::string& ip);
 
@@ -52,8 +52,8 @@ public:
 	// Inherited from TransportSocketEndpoint
 	virtual uint32_t getInterfaceID() const {return 1;}
 
-	virtual void fromProtobuf(databases::TransportSocketEndpoint_s tse_s);
-	virtual databases::TransportSocketEndpoint_s toProtobuf() const;
+	virtual void fromProtobuf(proto::TransportSocketEndpoint_s tse_s);
+	virtual proto::TransportSocketEndpoint_s toProtobuf() const;
 
 	virtual std::string toReadableString() const;
 	virtual void fromReadableString(std::string readable_string);

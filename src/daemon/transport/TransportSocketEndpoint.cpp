@@ -25,11 +25,10 @@ namespace p2pnet {
 namespace transport {
 
 // Constructors
-TransportSocketEndpoint::TransportSocketEndpoint(const TransportSocketEndpoint& tse) {
-	*this = tse;
+TransportSocketEndpoint::TransportSocketEndpoint(const TransportSocketEndpoint& tse) : TransportSocketEndpoint(tse.interface_endpoint) {
 }
 
-TransportSocketEndpoint::TransportSocketEndpoint(std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint) {
+TransportSocketEndpoint::TransportSocketEndpoint(const std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint) {
 	auto id = interface_endpoint->getInterfaceID();
 	resetEndpointByID(id);
 	//SHIT: Really dirty code. We could do this without protobuf. Just write a normal copy constructor and assigning operator.
@@ -74,22 +73,22 @@ TransportSocketEndpoint::operator bool() {
 }
 
 // Protobuf part
-void TransportSocketEndpoint::fromProtobuf(databases::TransportSocketEndpoint_s tse_s){
+void TransportSocketEndpoint::fromProtobuf(proto::TransportSocketEndpoint_s tse_s){
 	resetEndpointByID(tse_s.interface_id());
 	interface_endpoint->fromProtobuf(tse_s);
 };
 
-databases::TransportSocketEndpoint_s TransportSocketEndpoint::toProtobuf() const {
+proto::TransportSocketEndpoint_s TransportSocketEndpoint::toProtobuf() const {
 	return interface_endpoint->toProtobuf();
 }
 
-TransportSocketEndpoint::TransportSocketEndpoint(databases::TransportSocketEndpoint_s tse_s) {
+TransportSocketEndpoint::TransportSocketEndpoint(proto::TransportSocketEndpoint_s tse_s) {
 	fromProtobuf(tse_s);
 }
 
 // Binary strings part
 void TransportSocketEndpoint::fromBinaryString(std::string binary_string) {
-	databases::TransportSocketEndpoint_s tse_s;
+	proto::TransportSocketEndpoint_s tse_s;
 	tse_s.ParseFromString(binary_string);
 	fromProtobuf(tse_s);
 }

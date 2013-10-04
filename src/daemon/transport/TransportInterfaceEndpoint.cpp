@@ -20,9 +20,14 @@ namespace transport {
 TransportInterfaceEndpoint::TransportInterfaceEndpoint() {}
 
 void TransportInterfaceEndpoint::fromBinaryString(std::string binary_string) {
-	databases::TransportSocketEndpoint_s tse_s;
+	proto::TransportSocketEndpoint_s tse_s;
 	tse_s.ParseFromString(binary_string);
 	fromProtobuf(tse_s);
+}
+
+TransportInterfaceEndpoint& TransportInterfaceEndpoint::operator =(const TransportInterfaceEndpoint& rvalue) {
+	fromProtobuf(rvalue.toProtobuf());
+	return *this;
 }
 
 std::string TransportInterfaceEndpoint::toBinaryString() const {

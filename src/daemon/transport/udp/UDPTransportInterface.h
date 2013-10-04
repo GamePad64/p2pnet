@@ -37,6 +37,7 @@ class UDPTransportInterface : public TransportInterface {
 	boost::asio::io_service& m_io_service;
 	udp::socket m_socket;
 protected:
+	void sentMessageHandler(std::string data, udp::endpoint* endpoint);
 	void receivedMessageHandler(boost::asio::streambuf* buffer, size_t bytes_received, udp::endpoint* endpoint);
 public:
 	UDPTransportInterface();

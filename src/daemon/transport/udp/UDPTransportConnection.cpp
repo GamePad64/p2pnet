@@ -16,9 +16,15 @@
 namespace p2pnet {
 namespace transport {
 
-UDPTransportConnection::UDPTransportConnection(TransportSocketEndpoint endpoint) : TransportConnection(endpoint) {}
+UDPTransportConnection::UDPTransportConnection(TransportSocketEndpoint endpoint, UDPTransportInterface* parent_interface) : TransportConnection(endpoint) {
+	m_parent_interface = parent_interface;
+}
 
 UDPTransportConnection::~UDPTransportConnection() {}
+
+void UDPTransportConnection::send(std::string data) {
+	m_parent_interface->send(m_endpoint, data);
+}
 
 } /* namespace transport */
 } /* namespace p2pnet */
