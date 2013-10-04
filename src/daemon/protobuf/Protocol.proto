@@ -13,11 +13,11 @@
  */
 
 syntax = "proto2";
-package p2pnet.messaging.protocol;
+package p2pnet.protocol;
 
-message p2pMessage {
+message OverlayMessageStructure {
 	message Header {
-		optional bytes src_th = 1;
+		required bytes src_th = 1;
 		optional bytes dest_th = 2;
 	}
 
@@ -26,7 +26,7 @@ message p2pMessage {
 	message Payload {
 		// MessageType section.
 		enum MessageType {
-			// RSA encrypted message type. serialized_payload must contain serialized Payload type.
+			// AES encrypted message type. serialized_payload must contain serialized Payload type.
 			ENCRYPTED = 0;
 			DATA = 1;
 			ONION = 2;
@@ -68,8 +68,10 @@ message p2pMessage {
 
 	required Payload payload = 2;
 
-	// CRC-32 of message payload. If CRC-32 doesn't match the message, then the message is dropped.
-	required fixed32 crc32 = 3;
+	// CRC-32 of serialized message header concatenated with serialized payload. If CRC-32 doesn't match the message, then the message is dropped.
+	// This is optional, because TCP is reliable, so CRC checking is not compulsory.
+	// But UDP or WiFi packets do not have corruption control.
+	optional fixed32 crc32 = 3;
 }
 
 /*

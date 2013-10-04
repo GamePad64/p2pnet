@@ -11,25 +11,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef TRANSPORTCONNECTION_H_
+#define TRANSPORTCONNECTION_H_
 
-#ifndef GENERICLPD_H_
-#define GENERICLPD_H_
-
-#include "../../../common/Config.h"
+#include "TransportSocketEndpoint.h"
+#include "OverlayConnection.h"
 
 namespace p2pnet {
-namespace net {
-namespace lpd {
+namespace transport {
 
-class GenericLPD : public ConfigClient {
+class TransportConnection : std::enable_shared_from_this<TransportConnection> {
+protected:
+	TransportSocketEndpoint m_endpoint;
 public:
-	GenericLPD(ConfigManager& parent_config);
-	virtual ~GenericLPD();
+	TransportConnection(TransportSocketEndpoint endpoint);
+	virtual ~TransportConnection();
 
-
+	virtual void send(std::string data) = 0;
+	/**
+	 * Used for transferring data from TransportConnection to OverlayConnection.
+	 * This method is something like an elevator, transferring data from low-level class to high-level.
+	 * @param data
+	 */
+	void process(std::string data);
 };
 
-} /* namespace lpd */
 } /* namespace net */
 } /* namespace p2pnet */
-#endif /* GENERICLPD_H_ */
+
+#endif /* TRANSPORTCONNECTION_H_ */

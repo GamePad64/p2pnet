@@ -20,7 +20,7 @@
 #include <boost/asio.hpp>
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 
 using namespace boost::asio::ip;
 
@@ -33,6 +33,7 @@ protected:
 	udp::endpoint asio_endpoint;
 public:
 	UDPTransportInterfaceEndpoint();
+	UDPTransportInterfaceEndpoint(udp::endpoint rendpoint);
 	virtual ~UDPTransportInterfaceEndpoint();
 
 	virtual TransportInterfaceEndpoint& operator =(const TransportInterfaceEndpoint& rvalue);

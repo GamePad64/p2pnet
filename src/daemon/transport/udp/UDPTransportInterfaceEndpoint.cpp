@@ -17,15 +17,16 @@
 #include <algorithm>
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 
 UDPTransportInterfaceEndpoint::UDPTransportInterfaceEndpoint(){};
+UDPTransportInterfaceEndpoint::UDPTransportInterfaceEndpoint(udp::endpoint rendpoint) : asio_endpoint(rendpoint){};
 UDPTransportInterfaceEndpoint::~UDPTransportInterfaceEndpoint(){};
 
 TransportInterfaceEndpoint& UDPTransportInterfaceEndpoint::operator =(const TransportInterfaceEndpoint& rvalue){
-	auto pTIE = dynamic_cast<const UDPTransportInterfaceEndpoint*>(&rvalue);
+	auto pTIE = dynamic_cast<const UDPTransportInterfaceEndpoint&>(rvalue);
 	if(pTIE){
-		asio_endpoint = pTIE->asio_endpoint;
+		asio_endpoint = pTIE.asio_endpoint;
 	}
 	return *this;
 }

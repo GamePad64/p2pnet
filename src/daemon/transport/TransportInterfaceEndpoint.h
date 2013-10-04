@@ -19,17 +19,14 @@
 #include <memory>
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 
 class TransportInterfaceEndpoint {
 public:
 	TransportInterfaceEndpoint();
 	virtual ~TransportInterfaceEndpoint();
 
-	virtual TransportInterfaceEndpoint& operator =(const TransportInterfaceEndpoint& rvalue);
-
-	typedef std::shared_ptr<TransportInterfaceEndpoint> pointer;
-	typedef std::shared_ptr<const TransportInterfaceEndpoint> const_pointer;
+	virtual TransportInterfaceEndpoint& operator =(const TransportInterfaceEndpoint& rvalue) = 0;
 
 	virtual uint32_t getInterfaceID() const {return 0;};
 	/*

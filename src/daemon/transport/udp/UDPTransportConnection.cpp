@@ -11,29 +11,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include "TransportInterfaceEndpoint.h"
+#include "UDPTransportConnection.h"
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 
-TransportInterfaceEndpoint::TransportInterfaceEndpoint() {}
+UDPTransportConnection::UDPTransportConnection(TransportSocketEndpoint endpoint) : TransportConnection(endpoint) {}
 
-TransportInterfaceEndpoint& TransportInterfaceEndpoint::operator =(const TransportInterfaceEndpoint& rvalue){
-	return *this;
-}
+UDPTransportConnection::~UDPTransportConnection() {}
 
-void TransportInterfaceEndpoint::fromBinaryString(std::string binary_string) {
-	databases::TransportSocketEndpoint_s tse_s;
-	tse_s.ParseFromString(binary_string);
-	fromProtobuf(tse_s);
-}
-
-std::string TransportInterfaceEndpoint::toBinaryString() const {
-	return toProtobuf().SerializeAsString();
-}
-
-TransportInterfaceEndpoint::~TransportInterfaceEndpoint() {}
-
-} /* namespace net */
+} /* namespace transport */
 } /* namespace p2pnet */

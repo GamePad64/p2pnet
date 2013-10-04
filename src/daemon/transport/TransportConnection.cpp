@@ -11,30 +11,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef TRANSPORTSOCKETLISTENER_H_
-#define TRANSPORTSOCKETLISTENER_H_
-
-#include <string>
-#include "TransportSocketEndpoint.h"
+#include "TransportConnection.h"
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 
-/**
- * TransportInterfaceCallback is data received from socket "glued" with remote endpoint.
- */
-struct TransportSocketCallback {
-	TransportSocketEndpoint endpoint;
-	std::string data;
-};
+TransportConnection::TransportConnection(TransportSocketEndpoint endpoint) : m_endpoint(endpoint) {}
 
-class TransportSocketListener {
-public:
-	TransportSocketListener(){};
-	virtual ~TransportSocketListener(){};
-	virtual void receivedMessage(TransportSocketCallback callback) = 0;
-};
+TransportConnection::~TransportConnection() {
+	// TODO Auto-generated destructor stub
+}
+
+void TransportConnection::process(std::string data) {
+	bool empty_connection = bool(m_overlayconnection);
+	if(empty_connection){
+		m_overlayconnection = std::make_shared()
+	}else{
+		m_overlayconnection.
+	}
+}
+
 } /* namespace net */
 } /* namespace p2pnet */
-#endif /* TRANSPORTSOCKETLISTENER_H_ */

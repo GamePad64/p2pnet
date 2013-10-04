@@ -20,30 +20,29 @@
 #include <boost/asio.hpp>
 #include <memory>
 
-using namespace boost::asio;
+using namespace boost::asio::ip;
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 
-class UDPTransportInterface : public p2pnet::net::TransportInterface {
+class UDPTransportInterface : public TransportInterface {
 	// MTU values from http://stackoverflow.com/a/7072799
 	const unsigned short IPv4_MTU = 1438;
 	const unsigned short IPv6_MTU = 1280;
 
 	unsigned short mtu;
 
-	io_service& m_io_service;
-	ip::udp::socket m_socket;
+	udp::endpoint local;
+
+	boost::asio::io_service& m_io_service;
+	udp::socket m_socket;
 protected:
-	void receivedMessageHandler(const std::string& message, TransportInterfaceEndpoint::pointer endpoint);
-	void receivedMessageHandler(char* buffer, size_t bytes_received, TransportInterfaceEndpoint::pointer endpoint);
-	void sentMessageHandler(const std::string& message, TransportInterfaceEndpoint::pointer endpoint);
-	void sentMessageHandler(char* buffer, size_t bytes_sent, TransportInterfaceEndpoint::pointer endpoint);
+	void receivedMessageHandler(boost::asio::streambuf* buffer, size_t bytes_received, udp::endpoint* endpoint);
 public:
 	UDPTransportInterface();
 	virtual ~UDPTransportInterface();
 
-	virtual TransportInterfaceEndpoint::pointer createEndpoint();
+	virtual std::shared_ptr<TransportInterfaceEndpoint> createEndpoint();
 	virtual std::string getInterfacePrefix() const;
 
 	inline unsigned short getMTU(){
@@ -68,13 +67,8 @@ public:
 	//Inherited from TransportSocket
 	virtual uint32_t getInterfaceID() const {return 1;};
 
-	virtual void asyncReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
-	virtual void waitReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
-	virtual TransportSocketCallback hereReceiveFrom(TransportInterfaceEndpoint::const_pointer endpoint);
-
-	virtual void asyncSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data);
-	virtual void waitSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data);
-	virtual void hereSendTo(TransportInterfaceEndpoint::const_pointer endpoint, const std::string& data);
+	virtual void receive();
+	virtual void send(TransportSocketEndpoint endpoint, const std::string& data);
 };
 
 } /* namespace net */

@@ -21,12 +21,13 @@
 #include "TransportInterfaceEndpoint.h"
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 
 class TransportSocketEndpoint {
 	friend class TransportSocket;
-	TransportInterfaceEndpoint::pointer interface_endpoint;
-	inline TransportInterfaceEndpoint::pointer getInterfaceEndpoint(){
+protected:
+	std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint;
+	inline TransportInterfaceEndpoint getInterfaceEndpoint(){
 		return interface_endpoint;
 	}
 	/**
@@ -37,11 +38,13 @@ class TransportSocketEndpoint {
 public:
 	TransportSocketEndpoint(){};
 	TransportSocketEndpoint(const TransportSocketEndpoint& tse);
-	TransportSocketEndpoint(net::TransportInterfaceEndpoint::const_pointer interface_endpoint);
+	TransportSocketEndpoint(std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint);
 	~TransportSocketEndpoint(){};
 
 	// Operators
 	void operator =(const TransportSocketEndpoint& tse);
+	bool operator ==(const TransportSocketEndpoint& tse);
+	bool operator <(const TransportSocketEndpoint& tse);
 
 	explicit operator bool();
 

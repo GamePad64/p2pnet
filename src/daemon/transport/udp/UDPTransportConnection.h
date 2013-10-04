@@ -11,16 +11,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef UDPTRANSPORTCONNECTION_H_
+#define UDPTRANSPORTCONNECTION_H_
 
-#include "GenericLPD.h"
+#include "../TransportConnection.h"
 
 namespace p2pnet {
-namespace net {
-namespace lpd {
+namespace transport {
 
-GenericLPD::GenericLPD(ConfigManager& parent_config) : ConfigClient(parent_config) {}
-GenericLPD::~GenericLPD() {}
+class UDPTransportConnection : public TransportConnection {
+	virtual void process(std::string data) = 0;
+public:
+	UDPTransportConnection(TransportSocketEndpoint endpoint);
+	virtual ~UDPTransportConnection();
 
-} /* namespace lpd */
-} /* namespace net */
+	virtual void send(std::string data) = 0;
+};
+
+} /* namespace transport */
 } /* namespace p2pnet */
+
+#endif /* UDPTRANSPORTCONNECTION_H_ */

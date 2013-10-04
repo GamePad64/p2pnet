@@ -22,14 +22,14 @@
 #include <iostream>
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 
 // Constructors
 TransportSocketEndpoint::TransportSocketEndpoint(const TransportSocketEndpoint& tse) {
 	*this = tse;
 }
 
-TransportSocketEndpoint::TransportSocketEndpoint(net::TransportInterfaceEndpoint::const_pointer interface_endpoint) {
+TransportSocketEndpoint::TransportSocketEndpoint(std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint) {
 	auto id = interface_endpoint->getInterfaceID();
 	resetEndpointByID(id);
 	//SHIT: Really dirty code. We could do this without protobuf. Just write a normal copy constructor and assigning operator.
@@ -39,7 +39,7 @@ TransportSocketEndpoint::TransportSocketEndpoint(net::TransportInterfaceEndpoint
 
 void TransportSocketEndpoint::resetEndpointByID(uint32_t id) {
 	auto interface_ptr = TransportSocket::getInstance()->getInterfaceByID(id);
-	interface_endpoint = interface_ptr->createEndpoint();
+	interface_endpoint = interface_ptr->createInterfaceEndpoint();
 }
 
 // Operators
@@ -47,6 +47,30 @@ void TransportSocketEndpoint::operator =(const TransportSocketEndpoint& tse) {
 	auto id = tse.interface_endpoint->getInterfaceID();
 	resetEndpointByID(id);
 	*interface_endpoint = *(tse.interface_endpoint);
+}
+
+bool TransportSocketEndpoint::operator ==(const TransportSocketEndpoint& tse) {
+	if(interface_endpoint && tse.interface_endpoint){
+		if(interface_endpoint->toProtobuf().SerializeAsString() == tse.interface_endpoint->toProtobuf().SerializeAsString()){	// It is the most correct way to compare them, using protobuf.
+			return true;
+		}
+		return false;
+	}
+	return interface_endpoint == tse.interface_endpoint ? true : false;
+}
+
+bool TransportSocketEndpoint::operator <(const TransportSocketEndpoint& tse) {
+	if(interface_endpoint && tse.interface_endpoint){
+		if(interface_endpoint->toProtobuf().SerializeAsString() < tse.interface_endpoint->toProtobuf().SerializeAsString()){	// It is not ideal, but using virtual operators is super dirty.
+			return true;
+		}
+		return false;
+	}
+	return interface_endpoint == tse.interface_endpoint ? true : false;
+}
+
+TransportSocketEndpoint::operator bool() {
+	return bool(interface_endpoint);
 }
 
 // Protobuf part
@@ -96,14 +120,9 @@ void TransportSocketEndpoint::fromReadableString(std::string readable_string) {
 	interface_endpoint->fromReadableString(readable_part);
 }
 
-TransportSocketEndpoint::operator bool() {
-	return bool(interface_endpoint);
-}
-
-uint32_t p2pnet::net::TransportSocketEndpoint::getInterfaceID() const {
+uint32_t p2pnet::transport::TransportSocketEndpoint::getInterfaceID() const {
 	return bool(interface_endpoint) ? interface_endpoint->getInterfaceID() : 0;
 }
 
-} /* namespace net */
+} /* namespace transport */
 } /* namespace p2pnet */
-

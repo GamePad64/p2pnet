@@ -24,7 +24,7 @@
 #include <ctime>
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 namespace lpd {
 
 UDPLPD::UDPLPD(ConfigManager& config) : GenericLPD(config), m_config(config), m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), m_lpd_socket(
@@ -80,8 +80,8 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 		peer::TH th = peer::TH::compute(message.src_pubkey());
 
 		// Converting Boost::asio endpoint representation to string, so we could pass it as an argument to our network backend.
-		net::UDPTransportInterfaceEndpoint interface_endpoint(asio_endpoint->address().to_string(), message.port());
-		net::TransportSocketEndpoint socket_endpoint(std::make_shared<const UDPTransportInterfaceEndpoint>(interface_endpoint));
+		transport::UDPTransportInterfaceEndpoint interface_endpoint(asio_endpoint->address().to_string(), message.port());
+		transport::TransportSocketEndpoint socket_endpoint(std::make_shared<const UDPTransportInterfaceEndpoint>(interface_endpoint));
 		messaging::PeerProcessor::getInstance()->processNewPeerConnection(th, socket_endpoint, pubkey);
 	} catch(messaging::RejectException *e) {
 		std::clog << e->what();

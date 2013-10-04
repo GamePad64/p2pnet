@@ -19,10 +19,10 @@
 #include <string>
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 namespace lpd {
 
-class UDPLPDv6: public p2pnet::net::lpd::UDPLPD {
+class UDPLPDv6: public UDPLPD {
 	const unsigned int m_default_timer_seconds = 10;
 	std::string m_default_bind_address = "0::0";
 	std::string m_default_target_address = "ff08::BD02";

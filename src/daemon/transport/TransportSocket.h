@@ -24,7 +24,7 @@
 #include "../abstract/Singleton.h"
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 
 class TransportSocketListener;
 class TransportSocketEndpoint;
@@ -39,37 +39,31 @@ protected:
 	 * These will be updated of a message is sent or received on this socket.
 	 */
 	std::list<TransportSocketListener*> m_listenerlist;
+	std::map<TransportSocketEndpoint, std::shared_ptr<TransportConnection>> m_connections;
 public:
 	virtual ~TransportSocket();
-
-	typedef std::tuple<TransportInterfaceEndpoint::pointer, std::string> Callback;
 
 	TransportInterface* getInterfaceByID(uint32_t id);
 	TransportInterface* getInterfaceByPrefix(std::string prefix);
 	void registerInterface(TransportInterface* interface);
 
-	// All data I/O is processed using classic GoF Observer pattern.
-	/**
-	 * Adds listener to list to be updated on send/receive events.
-	 * @param listener Pointer to TransportSocketListener.
-	 */
-	void addListener(TransportSocketListener* listener){m_listenerlist.push_back(listener);};
-	/**
-	 * Prevents listener from updating by this socket.
-	 * @param listener
-	 */
-	void removeListener(TransportSocketListener* listener){m_listenerlist.remove(listener);};
-	void updateOnReceive(TransportSocketCallback callback);
-	void updateOnSend(TransportSocketCallback callback);
+//	This was used in the past, now uplevel-interconnection is handled by TransportConnection.
+//	// All data I/O is processed using classic GoF Observer pattern.
+//	/**
+//	 * Adds listener to list to be updated on send/receive events.
+//	 * @param listener Pointer to TransportSocketListener.
+//	 */
+//	void addListener(TransportSocketListener* listener){m_listenerlist.push_back(listener);};
+//	/**
+//	 * Prevents listener from updating by this socket.
+//	 * @param listener
+//	 */
+//	void removeListener(TransportSocketListener* listener){m_listenerlist.remove(listener);};
+//	void updateOnReceive(TransportSocketCallback callback);
 
 	// Basically, I/O
-	void asyncReceiveFrom(TransportSocketEndpoint endpoint);
-	void waitReceiveFrom(TransportSocketEndpoint endpoint);
-	TransportSocketCallback hereReceiveFrom(TransportSocketEndpoint endpoint);
-
-	void asyncSendTo(TransportSocketEndpoint endpoint, const std::string& data);
-	void waitSendTo(TransportSocketEndpoint endpoint, const std::string& data);
-	void hereSendTo(TransportSocketEndpoint endpoint, const std::string& data);
+	void receive();
+	void send(TransportSocketEndpoint endpoint, const std::string& data);
 };
 
 } /* namespace net */

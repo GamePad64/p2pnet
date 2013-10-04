@@ -12,35 +12,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UDPLPDV4_H_
-#define UDPLPDV4_H_
-
-#include "UDPLPD.h"
-#include <string>
+#include "TransportInterfaceEndpoint.h"
 
 namespace p2pnet {
-namespace net {
-namespace lpd {
+namespace transport {
 
-class UDPLPDv4: public UDPLPD {
-	const unsigned int m_default_timer_seconds = 10;
-	std::string m_default_bind_address = "0.0.0.0";
-	std::string m_default_target_address = "239.192.152.144";
-	unsigned short m_default_target_port = 28915;
-public:
-	UDPLPDv4(ConfigManager& config);
-	virtual ~UDPLPDv4();
+TransportInterfaceEndpoint::TransportInterfaceEndpoint() {}
 
-	unsigned short getUDPPort();
+void TransportInterfaceEndpoint::fromBinaryString(std::string binary_string) {
+	databases::TransportSocketEndpoint_s tse_s;
+	tse_s.ParseFromString(binary_string);
+	fromProtobuf(tse_s);
+}
 
-	virtual void readConfig();
-	virtual void initSocket();
-	virtual std::string getComponentName(){
-		return "UDPLPDv4";
-	}
-};
+std::string TransportInterfaceEndpoint::toBinaryString() const {
+	return toProtobuf().SerializeAsString();
+}
 
-} /* namespace lpd */
+TransportInterfaceEndpoint::~TransportInterfaceEndpoint() {}
+
 } /* namespace net */
 } /* namespace p2pnet */
-#endif /* UDPLPDV4_H_ */

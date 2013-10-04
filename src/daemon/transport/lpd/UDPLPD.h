@@ -27,7 +27,7 @@
 using namespace boost::asio;
 
 namespace p2pnet {
-namespace net {
+namespace transport {
 namespace lpd {
 
 class UDPLPD: public GenericLPD {
