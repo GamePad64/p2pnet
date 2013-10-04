@@ -18,7 +18,7 @@
 #include "../../common/crypto/Hash.h"
 
 namespace p2pnet {
-namespace peer {
+namespace overlay {
 
 typedef crypto::Hash TH;
 
