@@ -13,16 +13,16 @@
  */
 
 syntax = "proto2";
+
 import "EndpointFormat.proto";
+package p2pnet.transport.proto;
 
-package p2pnet.databases;
-
-message NetDBEntry {
-	optional bytes ecdsa_public_key = 1;
-	optional bytes aes_key = 2;
-
-	repeated .p2pnet.transport.proto.TransportInterfaceEndpoint_s endpoints = 4;
-
-	optional bool local = 16 [default = false];
-	optional bool dht = 17 [default = false];
+extend TransportInterfaceEndpoint_s {
+	/*
+	 * Okay, this will be in next releases. This is needed for Wi-Fi mesh network.
+	 */
+	optional bytes wifi_mac = 21;
+	/*
+	 * Well, not necessarily MAC. It maybe BSSID.
+	 */
 }

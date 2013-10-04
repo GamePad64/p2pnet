@@ -13,16 +13,16 @@
  */
 
 syntax = "proto2";
-import "EndpointFormat.proto";
+package p2pnet.transport.proto;
 
-package p2pnet.databases;
+message TransportInterfaceEndpoint_s {
+	/*
+	 *  Well, this needs to be standardized somehow.
+	 *  Default: 0 (invalid id!)
+	 */
+	optional uint32 interface_id = 1 [default = 0];
+	// Yes, int64 timestamp.
+	optional int64 last_usage = 2;
 
-message NetDBEntry {
-	optional bytes ecdsa_public_key = 1;
-	optional bytes aes_key = 2;
-
-	repeated .p2pnet.transport.proto.TransportInterfaceEndpoint_s endpoints = 4;
-
-	optional bool local = 16 [default = false];
-	optional bool dht = 17 [default = false];
+	extensions 16 to max;
 }
