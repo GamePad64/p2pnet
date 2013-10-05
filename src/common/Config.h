@@ -72,21 +72,21 @@ public:
 	config_t getDefaults(){
 		config_t config;
 
-		config.put("net.sockets.udp.enable", true);
-		config.put("net.sockets.udp.local_ip", "0::0");
-		config.put("net.sockets.udp.port", 2185);
+		config.put("transport.udp.enabled", true);
+		config.put("transport.udp.local_ip", "0::0");
+		config.put("transport.udp.port", 2185);
 
-		config.put("net.lpd.udpv4.enable", true);
-		config.put("net.lpd.udpv4.timer", 10);
-		config.put("net.lpd.udpv4.local_ip", "0.0.0.0");
-		config.put("net.lpd.udpv4.mcast.host", "239.192.152.144");
-		config.put("net.lpd.udpv4.mcast.port", 28915);
+		config.put("discovery.udpv4.enabled", true);
+		config.put("discovery.udpv4.timer", 10);
+		config.put("discovery.udpv4.local_ip", "0.0.0.0");
+		config.put("discovery.udpv4.multicast.ip", "239.192.152.144");
+		config.put("discovery.udpv4.multicast.port", 28915);
 
-		config.put("net.lpd.udpv6.enable", true);
-		config.put("net.lpd.udpv6.timer", 10);
-		config.put("net.lpd.udpv6.local_ip", "0::0");
-		config.put("net.lpd.udpv6.mcast.host", "ff08::BD02");
-		config.put("net.lpd.udpv6.mcast.port", 28915);
+		config.put("discovery.udpv6.enabled", true);
+		config.put("discovery.udpv6.timer", 10);
+		config.put("discovery.udpv6.local_ip", "0::0");
+		config.put("discovery.udpv6.multicast.ip", "ff08::BD02");
+		config.put("discovery.udpv6.multicast.port", 28915);
 
 		return config;
 	};

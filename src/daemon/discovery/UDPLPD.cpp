@@ -13,23 +13,21 @@
  */
 
 #include "UDPLPD.h"
-#include "../../AsioIOService.h"
+#include "../AsioIOService.h"
 #include "../udp/UDPTransportInterface.h"
-#include "../../protobuf/Protocol.pb.h"
-#include "../../databases/PersonalKeyStorage.h"
-#include "../../messaging/MessageGenerator.h"
-#include "../../messaging/SessionMap.h"
-#include "../../messaging/PeerProcessor.h"
-#include "../../peer/TH.h"
-#include <ctime>
+#include "../protobuf/Protocol.pb.h"
+#include "../../common/Version.h"
+
+#include <memory>
+#include <functional>
 
 namespace p2pnet {
-namespace transport {
-namespace lpd {
+namespace discovery {
 
-UDPLPD::UDPLPD(ConfigManager& config) : GenericLPD(config), m_config(config), m_io_service(AsioIOService::getIOService()), m_timer(m_io_service), m_lpd_socket(
-				m_io_service) {
-	m_target_port = 0;
+UDPLPD::UDPLPD(ConfigManager& config) : GenericLPD(config),
+		m_config(config),
+		m_timer(AsioIOService::getIOService()),
+		m_lpd_socket(AsioIOService::getIOService()) {
 	m_timer_seconds = 0;
 }
 
@@ -38,9 +36,8 @@ UDPLPD::~UDPLPD() {
 }
 
 void UDPLPD::run() {
-	initSocket();
-	startReceive();
-	startSend();
+	startReceiveLoop();
+	startSendLoop();
 }
 
 void UDPLPD::waitBeforeSend() {
@@ -48,43 +45,32 @@ void UDPLPD::waitBeforeSend() {
 	m_timer.async_wait(boost::bind(&UDPLPD::send, this));
 }
 
-bool UDPLPD::reject(messaging::Reason reason) {
-	throw(new messaging::RejectException(reason, getComponentName()));
-}
-
-bool UDPLPD::reject(messaging::Reason reason, std::string comment) {
-	throw(new messaging::RejectException(reason, comment, getComponentName()));
-}
-
-void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > asio_endpoint, char* recv_buffer) {
+void UDPLPD::processReceived(std::shared_ptr<boost::asio::streambuf> recv_buffer,
+		size_t recv_bytes,
+		std::shared_ptr<ip::udp::endpoint> mcast_endpoint_ptr) {
+	std::istream buffer_stream(recv_buffer);
 	// Create Protocol Buffer message
-	messaging::protocol::UDPLPDMessage message;
-	message.ParseFromString(std::string(recv_buffer, bytes));
-	// EXCEPTION: Corrupted packet! UDP protobuf message has required fields and can throw exception if the message is incomplete.
-	delete[] recv_buffer;
-
-	std::clog << "[" << getComponentName() << "] Local <- " << asio_endpoint->address().to_string() << ":"
-			<< message.port() << std::endl;
-
-	crypto::PublicKeyDSA pubkey = crypto::PublicKeyDSA::fromBinaryString(message.src_pubkey());
+	protocol::UDPDiscoveryMessage message;
 
 	try {
-		if(!pubkey.validate())
-			reject(messaging::Reason::KEY_INVALID, "Public key is inconsistent");
-		if(!pubkey.verify(message.src_pubkey(), message.signature()))
-			reject(messaging::Reason::KEY_INVALID, "Signature is invalid");
+		bool parsed_well = message.ParseFromIstream(&buffer_stream);
+		if(!parsed_well){
+			throw(new errors::MessageReject(errors::MessageReject::Reason::PARSE_ERROR));
+		}
+
+		// This endpoint is ready to send handshake messages to
+		ip::udp::endpoint dest_endpoint(mcast_endpoint_ptr->address(), message.port());
+
+		log() << "Local <- " << dest_endpoint << std::endl;
+
 		/*
-		 * Summary: We received a message, which contains TransportSocketEndpoint (well, we can create it from this message)
+		 * Summary: We received a message and we can create TransportSocketEndpoint from it
 		 */
-
-		peer::TH th = peer::TH::compute(message.src_pubkey());
-
-		// Converting Boost::asio endpoint representation to string, so we could pass it as an argument to our network backend.
-		transport::UDPTransportInterfaceEndpoint interface_endpoint(asio_endpoint->address().to_string(), message.port());
-		transport::TransportSocketEndpoint socket_endpoint(std::make_shared<const UDPTransportInterfaceEndpoint>(interface_endpoint));
-		messaging::PeerProcessor::getInstance()->processNewPeerConnection(th, socket_endpoint, pubkey);
-	} catch(messaging::RejectException *e) {
-		std::clog << e->what();
+		auto interface_endpoint = std::make_shared<transport::UDPTransportInterfaceEndpoint>(dest_endpoint);
+		transport::TransportSocketEndpoint socket_endpoint(interface_endpoint);
+		// Well, trying to handshake it.
+	} catch(errors::MessageReject *e) {
+		log(ERROR) << e->what();
 		delete e;
 	}
 
@@ -92,54 +78,34 @@ void UDPLPD::processReceived(size_t bytes, std::shared_ptr< ip::udp::endpoint > 
 	receive();
 }
 
-messaging::protocol::UDPLPDMessage UDPLPD::generateLPDMessage() {
-	databases::PersonalKeyStorage* pks = databases::PersonalKeyStorage::getInstance();
-
-	messaging::protocol::UDPLPDMessage message;
-	message.set_port(getUDPPort());
-
-	message.set_src_pubkey(pks->getMyPublicKey().toBinaryString());
-
-	// We need to sign this message for security reasons.
-	std::string signature = pks->getMyPrivateKey().sign(pks->getMyPublicKey().toBinaryString());
-	message.set_signature(signature);
-
-	return message;
+std::string UDPLPD::getMulticastMessage() {
+	protocol::UDPDiscoveryMessage message;
+	message.set_port(getValue<unsigned short>("transport.udp.port"));
+	message.set_version(getMyVersion());
+	return message.SerializeAsString();
 }
 
 void UDPLPD::send() {
-	std::clog << "[" << getComponentName() << "] Local -> " << m_target_address.to_string() << ":" << m_target_port
-			<< std::endl;
-	m_lpd_socket.async_send_to(buffer(generateLPDMessage().SerializeAsString()),
-			ip::udp::endpoint(m_target_address, m_target_port), boost::bind(&UDPLPD::waitBeforeSend, this));
+	log() << "Local -> " << target_endpoint << std::endl;
+	m_lpd_socket.async_send_to(buffer(getMulticastMessage()), target_endpoint, std::bind(&UDPLPD::waitBeforeSend, this));
 }
 
 void UDPLPD::receive() {
-	char* lpd_packet = new char[2048];
-	std::shared_ptr< ip::udp::endpoint > endpoint = std::make_shared< ip::udp::endpoint >(m_bind_address,
-			m_target_port);
-	m_lpd_socket.async_receive_from(buffer(lpd_packet, 2048), *endpoint,
-			boost::bind(&UDPLPD::processReceived, this, placeholders::bytes_transferred, endpoint, lpd_packet));
+	auto udp_buffer = std::make_shared<boost::asio::streambuf>();
+	auto endpoint = std::make_shared<ip::udp::endpoint>(bind_endpoint);
+	m_lpd_socket.async_receive_from(*udp_buffer, *endpoint,
+			std::bind(&UDPLPD::processReceived, this, udp_buffer, std::placeholders::_2, endpoint));
 }
 
-void UDPLPD::configChanged(){
-
-}
-
-void UDPLPD::startSend() {
-	initSocket();
-	std::clog << "[" << getComponentName() << "] Started sending broadcasts to: " << m_target_address << ":"
-			<< m_target_port << std::endl;
+void UDPLPD::startSendLoop() {
+	std::clog << "[" << getComponentName() << "] Started sending broadcasts to: " << target_endpoint << std::endl;
 	send();
 }
 
-void UDPLPD::startReceive() {
-	initSocket();
-	std::clog << "[" << getComponentName() << "] Started receiving broadcasts from: " << m_target_address << ":"
-			<< m_target_port << std::endl;
+void UDPLPD::startReceiveLoop() {
+	std::clog << "[" << getComponentName() << "] Started receiving broadcasts from: " << target_endpoint << std::endl;
 	receive();
 }
 
-} /* namespace lpd */
-} /* namespace net */
+} /* namespace discovery */
 } /* namespace p2pnet */

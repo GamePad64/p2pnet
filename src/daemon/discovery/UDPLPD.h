@@ -16,48 +16,34 @@
 #define UDPLPD_H_
 
 #include "GenericLPD.h"
-#include "../../../common/Config.h"
-#include "../../databases/NetDBStorage.h"
-#include "../../protobuf/Protocol.pb.h"
-#include "../../messaging/RejectException.h"
+#include "../../common/Config.h"
+#include "../../common/Loggable.h"
+#include "../protobuf/Protocol.pb.h"
 #include <boost/asio.hpp>
 #include <string>
-#include <memory>
 
 using namespace boost::asio;
 
 namespace p2pnet {
-namespace transport {
-namespace lpd {
+namespace discovery {
 
-class UDPLPD: public GenericLPD {
+class UDPLPD: public GenericLPD, Loggable {
 	void waitBeforeSend();
 
-	bool reject(messaging::Reason);
-	bool reject(messaging::Reason, std::string comment);
 	/**
 	 * This function is invoked on receiving packets. It must perform necessary checks for packet integrity.
 	 * Its arguments are from asio::socket, as it works as callback.
 	 */
-	void processReceived(size_t bytes, std::shared_ptr<ip::udp::endpoint> endpoint, char* recv_buffer);
+	void processReceived(std::shared_ptr<boost::asio::streambuf> recv_buffer,
+			size_t recv_bytes,
+			std::shared_ptr<ip::udp::endpoint> mcast_endpoint_ptr);
 
-	/**
-	 * Message to be sent to UDP multicast.
-	 * @return Protobuf structure, ready to be serialized.
-	 */
-	messaging::protocol::UDPLPDMessage generateLPDMessage();
+	std::string getMulticastMessage();
 
+	void send();
+	void receive();
 protected:
 	ConfigManager& m_config;
-
-	io_service& m_io_service;
-	bool initialized = false;
-
-	/**
-	 * This function is virtual, so it returns UDP port for given protocol, for IPv4 or IPv6.
-	 * @return
-	 */
-	virtual unsigned short getUDPPort() = 0;
 
 	/**
 	 * This timer is used between sending two messages. Default is to wait 10 seconds.
@@ -68,37 +54,24 @@ protected:
 	//! boost::asio multicast UDP Socket
 	ip::udp::socket m_lpd_socket;
 
-	ip::address m_target_address;
-	unsigned short m_target_port = 0;
-
-	ip::address m_bind_address;
-
-	/**
-	 * Message, that we are going to send is stored here.
-	 */
-
+	ip::udp::endpoint bind_endpoint;
+	ip::udp::endpoint target_endpoint;
 public:
 	UDPLPD(ConfigManager& config);
 	virtual ~UDPLPD();
 
+	// Configuration part.
+	virtual void readConfig() = 0;
+	void configChanged(){};	// TODO: stub
+
+	// Processing part
 	void run();
 
-	virtual void readConfig() = 0;
-	virtual void initSocket() = 0;
-	virtual std::string getComponentName(){
-		return "UDPLPD";
-	}
+	void startSendLoop();
+	void startReceiveLoop();
 
-	void configChanged();
-
-	void send();
-	void receive();
-
-	void startSend();
-	void startReceive();
 };
 
-} /* namespace lpd */
-} /* namespace net */
+} /* namespace discovery */
 } /* namespace p2pnet */
 #endif /* UDPLPD_H_ */

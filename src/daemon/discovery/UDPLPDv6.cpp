@@ -15,41 +15,34 @@
 #include "UDPLPDv6.h"
 
 namespace p2pnet {
-namespace transport {
-namespace lpd {
+namespace discovery {
 
 UDPLPDv6::UDPLPDv6(ConfigManager& config) : UDPLPD(config) {
 	readConfig();
-}
-UDPLPDv6::~UDPLPDv6() {
-	m_lpd_socket.set_option(ip::multicast::leave_group(m_target_address));
+
+	m_lpd_socket.open(ip::udp::v6());
+	m_lpd_socket.set_option(ip::multicast::join_group(target_endpoint));
+	m_lpd_socket.set_option(ip::multicast::enable_loopback(false));
+	m_lpd_socket.set_option(ip::udp::socket::reuse_address(true));
+	m_lpd_socket.set_option(ip::v6_only(true));
+
+	m_lpd_socket.bind(bind_endpoint);
 }
 
-unsigned short UDPLPDv6::getUDPPort(){
-	return m_config.getConfig().get("net.sockets.udpv6.port", 2185);
+UDPLPDv6::~UDPLPDv6() {
+	m_lpd_socket.set_option(ip::multicast::leave_group(target_endpoint.address()));
 }
 
 void UDPLPDv6::readConfig() {
-	this->m_timer_seconds = getConfigValueOrDefault<unsigned int>("net.lpd.udpv6.timer");
-	this->m_target_address = ip::address::from_string(getConfigValueOrDefault<std::string>("net.lpd.udpv6.mcast.host"));
-	this->m_target_port = getConfigValueOrDefault<unsigned short>("net.lpd.udpv6.mcast.port");
-	this->m_bind_address = ip::address::from_string(getConfigValueOrDefault<std::string>("net.lpd.udpv6.local_ip"));
+	m_timer_seconds = getValue<unsigned int>("discovery.udpv6.timer");
+
+	unsigned short multicast_port = getValue<unsigned short>("discovery.udpv6.multicast.port");
+	bind_endpoint.port(multicast_port);
+	target_endpoint.port(multicast_port);
+
+	bind_endpoint.address(ip::address::from_string(getValue<std::string>("discovery.udpv6.local_ip")));
+	target_endpoint.address(ip::address::from_string(getValue<std::string>("discovery.udpv6.multicast.ip")));
 }
 
-void UDPLPDv6::initSocket() {
-	if(!initialized){
-		m_lpd_socket.open(ip::udp::v6());
-
-		m_lpd_socket.set_option(ip::multicast::join_group(m_target_address));
-		m_lpd_socket.set_option(ip::multicast::enable_loopback(false));
-		m_lpd_socket.set_option(ip::udp::socket::reuse_address(true));
-		m_lpd_socket.set_option(ip::v6_only(true));
-
-		m_lpd_socket.bind(ip::udp::endpoint(m_bind_address, m_target_port));
-		initialized = true;
-	}
-}
-
-} /* namespace lpd */
-} /* namespace net */
+} /* namespace discovery */
 } /* namespace p2pnet */

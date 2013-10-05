@@ -19,28 +19,19 @@
 #include <string>
 
 namespace p2pnet {
-namespace transport {
-namespace lpd {
+namespace discovery {
 
 class UDPLPDv4: public UDPLPD {
-	const unsigned int m_default_timer_seconds = 10;
-	std::string m_default_bind_address = "0.0.0.0";
-	std::string m_default_target_address = "239.192.152.144";
-	unsigned short m_default_target_port = 28915;
 public:
 	UDPLPDv4(ConfigManager& config);
 	virtual ~UDPLPDv4();
 
-	unsigned short getUDPPort();
-
 	virtual void readConfig();
-	virtual void initSocket();
 	virtual std::string getComponentName(){
 		return "UDPLPDv4";
 	}
 };
 
-} /* namespace lpd */
-} /* namespace net */
+} /* namespace discovery */
 } /* namespace p2pnet */
 #endif /* UDPLPDV4_H_ */
