@@ -25,45 +25,31 @@ using namespace boost::asio::ip;
 namespace p2pnet {
 namespace transport {
 
+// MTU values from http://stackoverflow.com/a/7072799
+#define IPv4_MTU 1438
+#define IPv6_MTU 1280
+
 class UDPTransportInterface : public TransportInterface {
-	// MTU values from http://stackoverflow.com/a/7072799
-	const unsigned short IPv4_MTU = 1438;
-	const unsigned short IPv6_MTU = 1280;
+	unsigned short mtu;	// MTU value is for future use. Maybe, we will treat it correctly some day.
 
-	unsigned short mtu;
-
+	udp::socket m_socket;
 	udp::endpoint local;
 
-	boost::asio::io_service& m_io_service;
-	udp::socket m_socket;
+	void readConfig();
 protected:
-	void sentMessageHandler(std::string data, udp::endpoint* endpoint);
-	void receivedMessageHandler(boost::asio::streambuf* buffer, size_t bytes_received, udp::endpoint* endpoint);
+	void sentMessageHandler(std::string data, std::shared_ptr<udp::endpoint> endpoint);
+	void receivedMessageHandler(std::shared_ptr<boost::asio::streambuf> buffer,
+			size_t bytes_received,
+			std::shared_ptr<udp::endpoint> endpoint);
 public:
-	UDPTransportInterface();
+	UDPTransportInterface(ConfigManager& config);
 	virtual ~UDPTransportInterface();
 
 	virtual std::shared_ptr<TransportInterfaceEndpoint> createEndpoint();
 	virtual std::string getInterfacePrefix() const;
 
-	inline unsigned short getMTU(){
-		return mtu;
-	}
-
-	void openIPv4();
-	void openIPv6();
-	void openAll();
-	/*!
-	 * Opens the socket, sets it to IPv4, binds on all available network interfaces and sets MTU = IPv4_MTU
-	 * @param port
-	 */
-	void bindLocalIPv4(UDPTransportInterfaceEndpoint::port_t port);
-	/*!
-	 * Opens the socket, sets it to IPv6, binds on all available network interfaces and sets MTU = IPv6_MTU
-	 * @param port
-	 */
-	void bindLocalIPv6(UDPTransportInterfaceEndpoint::port_t port);
-	void bindLocalAll(UDPTransportInterfaceEndpoint::port_t port);
+	void open();
+	void bind(address ip, UDPTransportInterfaceEndpoint::port_t port);
 
 	//Inherited from TransportSocket
 	virtual uint32_t getInterfaceID() const {return 1;};

@@ -24,7 +24,7 @@ namespace transport {
 class TransportInterfaceEndpoint;
 class TransportSocketEndpoint;
 
-class TransportInterface {
+class TransportInterface : ConfigClient {
 protected:
 	inline bool checkEndpoint(TransportSocketEndpoint endpoint) const {
 		return (getInterfaceID() == endpoint.getInterfaceID());
@@ -32,7 +32,7 @@ protected:
 
 	virtual std::shared_ptr<TransportInterfaceEndpoint> createInterfaceEndpoint() = 0;
 public:
-	TransportInterface(){};
+	TransportInterface(ConfigManager& config) : ConfigClient(config) {};
 	virtual ~TransportInterface(){};
 
 	/*

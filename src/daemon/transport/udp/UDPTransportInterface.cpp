@@ -21,14 +21,41 @@
 namespace p2pnet {
 namespace transport {
 
-UDPTransportInterface::UDPTransportInterface() :
-		m_io_service(AsioIOService::getIOService()), m_socket(m_io_service) {
+UDPTransportInterface::UDPTransportInterface(ConfigManager& config) : TransportInterface(config), m_socket(AsioIOService::getIOService()) {
+	readConfig();
 	mtu = IPv4_MTU < IPv6_MTU ? IPv4_MTU : IPv6_MTU;
+
+	m_socket.open(udp::endpoint::protocol_type::v6());
+	m_socket.bind(local);
 }
 
 UDPTransportInterface::~UDPTransportInterface() {
 	if (m_socket.is_open())
 		m_socket.close();
+}
+
+void UDPTransportInterface::readConfig() {
+	local.address(address::from_string(getValue<std::string>("transport.udp.local_ip")));
+	local.port(getValue<unsigned short>("transport.udp.port"));
+}
+
+void UDPTransportInterface::sentMessageHandler(std::string data, std::shared_ptr<udp::endpoint> endpoint) {}
+void UDPTransportInterface::receivedMessageHandler(std::shared_ptr<boost::asio::streambuf> buffer,
+		size_t bytes_received,
+		std::shared_ptr<udp::endpoint> endpoint) {
+
+	std::string message(buffer->data(), bytes_received);
+
+	TransportSocketEndpoint socket_endpoint(endpoint);
+	auto connection_it = TransportSocket::getInstance()->m_connections.find(socket_endpoint);
+
+	if(connection_it == TransportSocket::getInstance()->m_connections.end()){
+		auto new_connection = std::make_shared<UDPTransportConnection>(socket_endpoint, this);
+		TransportSocket::getInstance()->m_connections.insert(std::make_pair(socket_endpoint, new_connection));
+		new_connection->process(message);
+	}else{
+		connection_it->second->process(message);
+	}
 }
 
 std::shared_ptr<TransportInterfaceEndpoint> UDPTransportInterface::createEndpoint() {
@@ -39,82 +66,20 @@ std::string UDPTransportInterface::getInterfacePrefix() const {
 	return "UDP";
 }
 
-void UDPTransportInterface::sentMessageHandler(std::string data, udp::endpoint* endpoint) {
-	delete endpoint;
-}
-
-void UDPTransportInterface::receivedMessageHandler(boost::asio::streambuf* buffer, size_t bytes_received, udp::endpoint* endpoint) {
-	std::string message(buffer->data(), bytes_received);
-	delete buffer;
-
-	TransportSocketEndpoint received_endpoint(std::make_shared<UDPTransportInterfaceEndpoint>(*endpoint));
-	delete endpoint;
-
-	auto connection_it = TransportSocket::getInstance()->m_connections.find(received_endpoint);
-
-	if(connection_it == TransportSocket::getInstance()->m_connections.end()){
-		std::shared_ptr<UDPTransportConnection> new_connection = std::make_shared<UDPTransportConnection>(received_endpoint, this);
-		TransportSocket::getInstance()->m_connections.insert(std::make_pair(received_endpoint, new_connection));
-		new_connection->process(message);
-	}else{
-		connection_it->second->process(message);
-	}
-}
-
-void UDPTransportInterface::openIPv4() {
-	mtu = IPv4_MTU;
-	m_socket.open(udp::endpoint::protocol_type::v4());
-}
-
-void UDPTransportInterface::openIPv6() {
-	mtu = IPv6_MTU;
-	m_socket.open(udp::endpoint::protocol_type::v6());
-}
-
-void UDPTransportInterface::openAll() {
-	mtu = IPv4_MTU;
-	m_socket.open(udp::endpoint::protocol_type::v6());
-}
-
-void UDPTransportInterface::bindLocalIPv4(
-		UDPTransportInterfaceEndpoint::port_t port) {
-	local.address(address_v4::from_string("0.0.0.0"));
-	local.port(port);
-	openIPv4();
-	m_socket.bind(local);
-}
-
-void UDPTransportInterface::bindLocalIPv6(
-		UDPTransportInterfaceEndpoint::port_t port) {
-	local.address(address_v6::from_string("0::0"));
-	local.port(port);
-	openIPv6();
-	m_socket.set_option(boost::asio::ip::v6_only(true));
-	m_socket.bind(local);
-}
-
-void UDPTransportInterface::bindLocalAll(
-		UDPTransportInterfaceEndpoint::port_t port) {
-	local.address(address_v6::from_string("0::0"));
-	local.port(port);
-	openAll();
-	m_socket.bind(local);
-}
-
 //Inherited from TransportSocket
 void UDPTransportInterface::receive() {
-	udp::endpoint *received = udp::endpoint(local);
+	auto received_from = std::make_shared<udp::endpoint>(local);
 
-	boost::asio::streambuf* data_received = new boost::asio::streambuf();
-	m_socket.async_receive_from(*data_received, *received,
+	auto data_received = std::make_shared<boost::asio::streambuf>();
+	m_socket.async_receive_from(*data_received, *received_from,
 			boost::bind(&UDPTransportInterface::receivedMessageHandler, this, data_received,
-					boost::asio::placeholders::bytes_transferred, received));
+					boost::asio::placeholders::bytes_transferred, received_from));
 }
 
 void UDPTransportInterface::send(TransportSocketEndpoint dest, const std::string& data) {
 	auto socketendpoint_ptr = new TransportSocketEndpoint(dest);
 	// Creating new asio endpoint pointer from TransportSocketEndpoint below. "Braindanger ahead!"
-	udp::endpoint* asiosocketendpoint_ptr = new udp::endpoint(static_cast<UDPTransportInterfaceEndpoint>(socketendpoint_ptr->getInterfaceEndpoint()).getEndpoint());
+	auto asiosocketendpoint_ptr = std::make_shared<udp::endpoint>(static_cast<UDPTransportInterfaceEndpoint>(socketendpoint_ptr->getInterfaceEndpoint()).getEndpoint());
 
 	m_socket.async_send_to(boost::asio::buffer(data), *asiosocketendpoint_ptr,
 			boost::bind(&UDPTransportInterface::sentMessageHandler, this, data, asiosocketendpoint_ptr));

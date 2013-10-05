@@ -33,7 +33,7 @@ protected:
 	ConfigClient(ConfigManager& parent_config);
 	virtual ~ConfigClient();
 
-	virtual void configChanged() = 0;
+	virtual void configChanged();	// It is permitted not to handle this, but it is not good though.
 
 	template<class T>
 	T getValue(std::string path);
