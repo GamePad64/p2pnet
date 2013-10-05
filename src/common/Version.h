@@ -15,43 +15,29 @@
 #ifndef VERSION_H_
 #define VERSION_H_
 
+#include "../version.h"
 #include <string>
+#include <sstream>
 
 namespace p2pnet {
 
-const std::string PROGRAM_VERSION = "0.0.0-dev";
+constexpr uint32_t getMyVersion(){
+	return P2PNET_VERSION;
+}
 
-class Version {
-	unsigned short major_version;
-	unsigned short minor_version;
-	unsigned short bugfix_version;
+std::string makeVersionString(uint32_t major, uint32_t minor, uint32_t build, std::string channel){
+	std::ostringstream os;
+	os << major << '.' << std::setfill('0') << std::setw(2) << minor << '.' << std::setw(4) << build << '-' << channel;
+	return os.str();
+}
 
-	std::string variant_version;
-public:
-	Version();
-	Version(unsigned short major_version, unsigned short minor_version, unsigned short bugfix_version);
-	Version(unsigned short major_version, unsigned short minor_version, unsigned short bugfix_version, std::string variant_version);
-	virtual ~Version();
+std::string getMyVersionString(){
+	constexpr uint32_t major = getMyVersion()/1000000;
+	constexpr uint32_t minor = (getMyVersion()-major*1000000)/10000;
+	constexpr uint32_t build = getMyVersion()-major*1000000-minor*1000;
 
-	void fromString(std::string version_s);
-	std::string toString();
-	Version(std::string version_s);
-
-	void fromInteger(uint32_t version_int);
-	uint32_t toInteger();
-	Version(uint32_t version_int);
-
-	// relational operators
-	bool operator==(Version& lhs);
-	bool operator<(Version& lhs);
-	// equivalents
-	bool operator!=(Version& lhs);
-	bool operator>(Version& lhs);
-	bool operator<=(Version& lhs);
-	bool operator>=(Version& lhs);
-};
-
-Version getMyVersion();
+	return makeVersionString(major, minor, build, P2PNET_CHANNEL);
+}
 
 } /* namespace p2pnet */
 #endif /* VERSION_H_ */
