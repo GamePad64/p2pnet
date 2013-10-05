@@ -15,6 +15,7 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
+#include "Loggable.h"
 #include <boost/property_tree/ptree.hpp>
 #include <mutex>
 #include <set>
@@ -34,16 +35,13 @@ protected:
 
 	virtual void configChanged() = 0;
 
-	config_t getConfig();
-	void putConfig(config_t config);
-
-	config_t getDefaults();
-
 	template<class T>
-	T getConfigValueOrDefault(std::string path);
+	T getValue(std::string path);
+	template<class T>
+	void setValue(std::string path, T value);
 };
 
-class ConfigManager {
+class ConfigManager : public Loggable {
 	config_t internal_config;
 	std::string config_directory;
 	std::string config_file;
@@ -98,22 +96,34 @@ public:
 
 	std::set<ConfigClient*> config_clients;
 	void registerClient(ConfigClient* client);
-	void removeClient(ConfigClient* client);
+	void unregisterClient(ConfigClient* client);
 
 	void configChanged();
 
 	template<class T>
-	T getConfigValueOrDefault(std::string path);
+	T getValue(std::string path);
+	template<class T>
+	void setValue(std::string path, T value);
 };
 
 template< class T >
-inline T ConfigClient::getConfigValueOrDefault(std::string path){
-	return parent_config_manager.getConfigValueOrDefault<T>(path);
+inline T ConfigClient::getValue(std::string path){
+	return parent_config_manager.getValue<T>(path);
 }
 
 template< class T >
-inline T ConfigManager::getConfigValueOrDefault(std::string path) {
+inline void ConfigClient::setValue(std::string path, T value){
+	return parent_config_manager.setValue(path, value);
+}
+
+template< class T >
+inline T ConfigManager::getValue(std::string path) {
 	return getConfig().get(path, getDefaults().get<T>(path));
+}
+
+template< class T >
+inline void ConfigManager::setValue(std::string path, T value) {
+	return getConfig().put(path, value);
 }
 
 } /* namespace p2pnet */

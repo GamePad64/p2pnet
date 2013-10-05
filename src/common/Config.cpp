@@ -35,26 +35,11 @@ ConfigClient::ConfigClient(ConfigManager& parent_config) : parent_config_manager
 }
 
 ConfigClient::~ConfigClient() {
-	parent_config_manager.registerClient(this);
-}
-
-config_t ConfigClient::getConfig(){
-	return parent_config_manager.getConfig();
-};
-
-void ConfigClient::putConfig(config_t config){
-	parent_config_manager.putConfig(config);
-};
-
-config_t ConfigClient::getDefaults(){
-	return parent_config_manager.getDefaults();
+	parent_config_manager.unregisterClient(this);
 }
 
 // ConfigManager
-ConfigManager::ConfigManager() {
-	this->setDefaultConfigFilepath();
-	this->loadFromFile();
-}
+ConfigManager::ConfigManager() : ConfigManager(getDefaultConfigFilepath()) {}
 
 ConfigManager::ConfigManager(std::string config_filepath) {
 	this->setConfigFilepath(config_filepath);
@@ -69,7 +54,9 @@ std::string ConfigManager::getDefaultConfigFilepath() {
 	// First, check P2PNET_CONFIG environment variable
 	char* env_filename = getenv("P2PNET_CONFIG");
 	if(env_filename){
-		return env_filename;
+		std::string s(env_filename);
+		delete[] env_filename;
+		return s;
 	}
 
 	#ifdef _WIN32
@@ -91,16 +78,13 @@ std::string ConfigManager::getDefaultConfigFilepath() {
 	return config_file;
 }
 
-void ConfigManager::setDefaultConfigFilepath() {
-	this->setConfigFilepath(this->getDefaultConfigFilepath());
-}
-
 void ConfigManager::setConfigFilepath(std::string filepath){
+	log() << "Configuration path set: " << filepath << std::endl;
 	config_file = filepath;
 }
 
 void ConfigManager::putConfig(config_t config) {
-	config_io_mutex.lock();	// No RAII, only hardcore!
+	config_io_mutex.lock();	// No RAII, hardcore only!
 
 	internal_config = config;
 	saveToFile();	// TODO: This will be created in a separate thread.
@@ -123,22 +107,25 @@ void ConfigManager::loadFromFile() {
 	read_xml(config_file, internal_config);
 
 	config_io_mutex.unlock();
+	log() << "Configuration file loaded" << std::endl;
 }
 
 void ConfigManager::saveToFile() {
+	boost::filesystem::create_directory(config_directory);
 	write_xml(config_file, internal_config);
+	log() << "Configuration file saved" << std::endl;
 }
 
 void ConfigManager::registerClient(ConfigClient* client) {
 	config_clients.insert(client);
 }
 
-void ConfigManager::removeClient(ConfigClient* client) {
+void ConfigManager::unregisterClient(ConfigClient* client) {
 	config_clients.erase(client);
 }
 
 void ConfigManager::configChanged() {
-	for(auto &client : config_clients){
+	for(auto client : config_clients){
 		client->configChanged();
 	}
 }
