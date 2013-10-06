@@ -13,24 +13,25 @@
  */
 
 #include "TransportSocket.h"
-#include "TransportSocketListener.h"
 #include "TransportSocketEndpoint.h"
+#include "../../common/Loggable.h"
 #include <boost/range/adaptor/map.hpp>
 #include <iostream>
+#include <cstdlib>
 
 namespace p2pnet {
 namespace transport {
 
 TransportSocket::~TransportSocket(){};
 
-TransportInterface* TransportSocket::getInterfaceByID(uint32_t id){
+std::shared_ptr<TransportInterface> TransportSocket::getInterfaceByID(uint32_t id){
 	return interfaces[id];
 }
-TransportInterface* TransportSocket::getInterfaceByPrefix(std::string prefix) {
+std::shared_ptr<TransportInterface> TransportSocket::getInterfaceByPrefix(std::string prefix) {
 	return readable_strings_prefixes[prefix];
 }
 
-void TransportSocket::registerInterface(TransportInterface* interface){
+void TransportSocket::registerInterface(std::shared_ptr<TransportInterface> interface){
 	interfaces.insert(std::make_pair(interface->getInterfaceID(), interface));
 	readable_strings_prefixes.insert(std::make_pair(interface->getInterfacePrefix(), interface));
 }
@@ -42,6 +43,10 @@ void TransportSocket::registerInterface(TransportInterface* interface){
 //}
 
 void TransportSocket::receive() {
+	if(interfaces.empty){
+		Loggable::log("TransportSocket", Loggable::ERROR) << "P2PNet found no interfaces on your system or all of them are disabled. The program will now terminate";
+		exit(-1);
+	}
 	for(auto& interface : interfaces | boost::adaptors::map_values){
 		interface->receive();
 	}

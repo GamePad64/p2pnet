@@ -38,7 +38,10 @@ protected:
 public:
 	TransportSocketEndpoint(){};
 	TransportSocketEndpoint(const TransportSocketEndpoint& tse);
+
+	//TransportSocketEndpoint(const TransportInterfaceEndpoint& interface_endpoint);	// maybe, later. Now it will involve protobuf serialize+parse actions.
 	TransportSocketEndpoint(const std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint);
+
 	~TransportSocketEndpoint(){};
 
 	// Operators

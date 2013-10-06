@@ -31,8 +31,8 @@ class TransportSocketEndpoint;
 
 class TransportSocket : public abstract::Singleton<TransportSocket> {
 protected:
-	std::map<uint32_t, TransportInterface*> interfaces;
-	std::map<std::string, TransportInterface*> readable_strings_prefixes;
+	std::map<uint32_t, std::shared_ptr<TransportInterface>> interfaces;
+	std::map<std::string, std::shared_ptr<TransportInterface>> readable_strings_prefixes;
 
 	/**
 	 * Set of pointers to TransportSocketListener, like an array from GoF.
@@ -43,9 +43,9 @@ protected:
 public:
 	virtual ~TransportSocket();
 
-	TransportInterface* getInterfaceByID(uint32_t id);
-	TransportInterface* getInterfaceByPrefix(std::string prefix);
-	void registerInterface(TransportInterface* interface);
+	std::shared_ptr<TransportInterface> getInterfaceByID(uint32_t id);
+	std::shared_ptr<TransportInterface> getInterfaceByPrefix(std::string prefix);
+	void registerInterface(std::shared_ptr<TransportInterface> interface);
 
 //	This was used in the past, now uplevel-interconnection is handled by TransportConnection.
 //	// All data I/O is processed using classic GoF Observer pattern.
