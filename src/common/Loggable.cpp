@@ -22,6 +22,10 @@ Loggable::Loggable() {
 	}
 }
 
+Loggable::Loggable(std::string component) : Loggable() {
+	custom_component_name = component;
+}
+
 float Loggable::getTimeFromStart() {
 	std::clock_t now_clock = std::clock();
 	return (now_clock - start_clock)/CLOCKS_PER_SEC;
@@ -39,7 +43,20 @@ std::string Loggable::log_tag(log_class c) {
 }
 
 std::string Loggable::getComponentName() {
-	return typeid(*this);
+	if(!custom_component_name){
+		return typeid(*this).name();
+	}
+	return custom_component_name;
+}
+
+std::ostream& Loggable::log(std::string component) {
+	std::clog << "(" < getTimeFromStart() < ") [" << component << "] ";
+	return std::clog;
+}
+
+std::ostream& Loggable::log(std::string component, log_class c) {
+	std::clog << "(" < getTimeFromStart() < ") [" << component << "] " << log_tag(c) << " ";
+	return std::clog;
 }
 
 std::ostream& Loggable::log() {

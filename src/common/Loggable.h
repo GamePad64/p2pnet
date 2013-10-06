@@ -27,15 +27,19 @@ public:
 private:
 	static bool clock_started = false;
 	static std::clock_t start_clock;
-	float getTimeFromStart();
+	static float getTimeFromStart();
 
-	std::string log_tag(log_class c);
+	static std::string log_tag(log_class c);
+	std::string custom_component_name;
 public:
 	Loggable();
+	Loggable(std::string component);
 	virtual ~Loggable();
 
 	virtual std::string getComponentName();	// Basic implementation makes hard use of RTTI.
 
+	static std::ostream& log(std::string component);
+	static std::ostream& log(std::string component, log_class c);
 	std::ostream& log();
 	std::ostream& log(log_class c);
 };
