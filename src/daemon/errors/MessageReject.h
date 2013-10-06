@@ -12,35 +12,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REJECTEXCEPTION_H_
-#define REJECTEXCEPTION_H_
-
-#include <exception>
-#include <string>
+//BIG SHIT! This exception is made using streams, strings, and other memory-allocating stuff.
+//So, now we know, that this is out-of-guideliney stuff.
+#ifndef MESSAGEREJECT_H_
+#define MESSAGEREJECT_H_
 
 namespace p2pnet {
-namespace messaging {
+namespace errors {
 
-enum Reason {
-	CUSTOM,
-	CRC_MISMATCH,
-	KEY_INVALID,
-	PARSE_ERROR,
-	ENCRYPTION_NEEDED
-};
-
-class RejectException {
+class MessageReject {
+public:
+	enum Reason {
+		CUSTOM,
+		CRC_MISMATCH,
+		KEY_INVALID,
+		PARSE_ERROR,
+		ENCRYPTION_NEEDED
+	};
+private:
 	std::string m_comment;
 	Reason m_reason;
-	std::string m_component;
 public:
-	RejectException(Reason reason, std::string component);
-	RejectException(std::string custom_reason, std::string component);
-	RejectException(Reason reason, std::string comment, std::string component);
+	MessageReject(Reason reason);
+	MessageReject(std::string custom_reason);
+	MessageReject(Reason reason, std::string comment);
 
 	std::string what() const;
 };
 
-} /* namespace messaging */
+} /* namespace errors */
 } /* namespace p2pnet */
-#endif /* REJECTEXCEPTION_H_ */
+
+#endif /* MESSAGEREJECT_H_ */

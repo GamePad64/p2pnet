@@ -11,31 +11,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include "RejectException.h"
-#include <iostream>
+#include "MessageReject.h"
 #include <sstream>
 
 namespace p2pnet {
-namespace messaging {
+namespace errors {
 
-RejectException::RejectException(Reason reason, std::string component) :
-		m_reason(reason),
-		m_component(component) {}
+MessageReject::MessageReject(Reason reason) :
+		m_reason(reason) {}
 
-RejectException::RejectException(std::string custom_reason, std::string component) :
+MessageReject::MessageReject(std::string custom_reason) :
 		m_comment(custom_reason),
-		m_reason(Reason::CUSTOM),
-		m_component(component) {}
+		m_reason(Reason::CUSTOM) {}
 
-RejectException::RejectException(Reason reason, std::string comment, std::string component) :
+MessageReject::MessageReject(Reason reason, std::string comment) :
 		m_comment(comment),
-		m_reason(reason),
-		m_component(component) {}
+		m_reason(reason) {}
 
-std::string p2pnet::messaging::RejectException::what() const {
+std::string MessageReject::what() const {
 	std::ostringstream what;
-	what << "[" << m_component << "] (EE) Rejected";
+	what << "Rejected";
 	if(m_reason != CUSTOM){
 		what << ". ";
 		switch(m_reason){
@@ -63,5 +58,5 @@ std::string p2pnet::messaging::RejectException::what() const {
 	return what.str();
 }
 
-} /* namespace messaging */
+} /* namespace errors */
 } /* namespace p2pnet */
