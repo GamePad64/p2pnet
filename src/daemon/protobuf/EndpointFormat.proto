@@ -15,7 +15,7 @@
 syntax = "proto2";
 package p2pnet.transport.proto;
 
-message TransportInterfaceEndpoint_s {
+message TransportSocketEndpoint_s {
 	/*
 	 *  Well, this needs to be standardized somehow.
 	 *  Default: 0 (invalid id!)

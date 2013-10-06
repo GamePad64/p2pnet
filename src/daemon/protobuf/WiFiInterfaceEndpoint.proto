@@ -17,7 +17,7 @@ syntax = "proto2";
 import "EndpointFormat.proto";
 package p2pnet.transport.proto;
 
-extend TransportInterfaceEndpoint_s {
+extend TransportSocketEndpoint_s {
 	/*
 	 * Okay, this will be in next releases. This is needed for Wi-Fi mesh network.
 	 */

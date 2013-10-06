@@ -21,7 +21,7 @@ message NetDBEntry {
 	optional bytes ecdsa_public_key = 1;
 	optional bytes aes_key = 2;
 
-	repeated .p2pnet.transport.proto.TransportInterfaceEndpoint_s endpoints = 4;
+	repeated .p2pnet.transport.proto.TransportSocketEndpoint_s endpoints = 4;
 
 	optional bool local = 16 [default = false];
 	optional bool dht = 17 [default = false];
