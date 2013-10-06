@@ -21,7 +21,5 @@ int main(int argc, char** argv){
 	Botan::LibraryInitializer init("thread_safe=true");
 
 	Daemon d;
-	d.run();
-
-	return 0;
+	return d.run();
 }

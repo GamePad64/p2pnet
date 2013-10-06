@@ -16,6 +16,7 @@
 #define DAEMON_H_
 
 #include "../common/Config.h"
+#include "../common/Loggable.h"
 #include "AsioIOService.h"
 
 #include "databases/NetDBStorage.h"
@@ -24,15 +25,14 @@
 
 #include "messaging/MessageSocket.h"
 
-#include "net/TransportSocket.h"
+#include "transport/TransportSocket.h"
 
-#include "net/udp/UDPTransportInterface.h"
-#include "net/lpd/UDPLPDv4.h"
-#include "net/lpd/UDPLPDv6.h"
+#include "discovery/UDPLPDv4.h"
+#include "discovery/UDPLPDv6.h"
 
 namespace p2pnet {
 
-class Daemon {
+class Daemon : public Loggable {
 	void initTransportSocket();
 	void initLPD();
 public:
@@ -40,22 +40,17 @@ public:
 
 	databases::NetDBStorage* m_netdb_storage;
 	databases::PersonalKeyStorage* m_pk_storage;
-	messaging::SessionMap* m_sessionmap;
+	messaging::SessionStorage* m_sessionstorage;
 
-	// TransportSocket with its interfaces.
-	net::TransportSocket* m_transport_socket;
-	net::UDPTransportInterface* m_udp_interface;
+	transport::TransportSocket* m_transport_socket;
 
-	// MessageSocket
-	messaging::MessageSocket* m_message_socket;
-
-	net::lpd::UDPLPDv4* m_lpd_udpv4;
-	net::lpd::UDPLPDv6* m_lpd_udpv6;
+	std::unique_ptr<discovery::UDPLPDv4> discovery_udpv4;
+	std::unique_ptr<discovery::UDPLPDv6> discovery_udpv6;
 
 	Daemon();
 	virtual ~Daemon();
 
-	void run();
+	int run();
 };
 
 } /* namespace p2pnet */
