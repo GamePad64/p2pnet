@@ -17,6 +17,8 @@
 #ifndef MESSAGEREJECT_H_
 #define MESSAGEREJECT_H_
 
+#include <string>
+
 namespace p2pnet {
 namespace errors {
 
