@@ -15,12 +15,10 @@
 #include "GenericLPD.h"
 
 namespace p2pnet {
-namespace transport {
-namespace lpd {
+namespace discovery {
 
 GenericLPD::GenericLPD(ConfigManager& parent_config) : ConfigClient(parent_config) {}
 GenericLPD::~GenericLPD() {}
 
-} /* namespace lpd */
-} /* namespace net */
+} /* namespace discovery */
 } /* namespace p2pnet */

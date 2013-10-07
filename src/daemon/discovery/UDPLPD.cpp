@@ -14,9 +14,10 @@
 
 #include "UDPLPD.h"
 #include "../AsioIOService.h"
-#include "../udp/UDPTransportInterface.h"
+#include "../transport/udp/UDPTransportInterface.h"
 #include "../protobuf/Protocol.pb.h"
 #include "../../common/Version.h"
+#include "../errors/MessageReject.h"
 
 #include <memory>
 #include <functional>
@@ -45,15 +46,16 @@ void UDPLPD::waitBeforeSend() {
 	m_timer.async_wait(boost::bind(&UDPLPD::send, this));
 }
 
-void UDPLPD::processReceived(std::shared_ptr<boost::asio::streambuf> recv_buffer,
+void UDPLPD::processReceived(char* recv_buffer,
 		size_t recv_bytes,
 		std::shared_ptr<ip::udp::endpoint> mcast_endpoint_ptr) {
-	std::istream buffer_stream(recv_buffer);
+
 	// Create Protocol Buffer message
 	protocol::UDPDiscoveryMessage message;
 
 	try {
-		bool parsed_well = message.ParseFromIstream(&buffer_stream);
+		bool parsed_well = message.ParseFromString(std::string(recv_buffer, recv_bytes));
+
 		if(!parsed_well){
 			throw(new errors::MessageReject(errors::MessageReject::Reason::PARSE_ERROR));
 		}
@@ -74,6 +76,8 @@ void UDPLPD::processReceived(std::shared_ptr<boost::asio::streambuf> recv_buffer
 		delete e;
 	}
 
+	delete[] recv_buffer;
+
 	// We received message, continue receiving others
 	receive();
 }
@@ -91,9 +95,9 @@ void UDPLPD::send() {
 }
 
 void UDPLPD::receive() {
-	auto udp_buffer = std::make_shared<boost::asio::streambuf>();
+	char udp_buffer[MAX_UDP_PACKET_SIZE];
 	auto endpoint = std::make_shared<ip::udp::endpoint>(bind_endpoint);
-	m_lpd_socket.async_receive_from(*udp_buffer, *endpoint,
+	m_lpd_socket.async_receive_from(boost::asio::buffer(udp_buffer, MAX_UDP_PACKET_SIZE), *endpoint,
 			std::bind(&UDPLPD::processReceived, this, udp_buffer, std::placeholders::_2, endpoint));
 }
 

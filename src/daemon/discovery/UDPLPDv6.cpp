@@ -21,7 +21,7 @@ UDPLPDv6::UDPLPDv6(ConfigManager& config) : UDPLPD(config) {
 	readConfig();
 
 	m_lpd_socket.open(ip::udp::v6());
-	m_lpd_socket.set_option(ip::multicast::join_group(target_endpoint));
+	m_lpd_socket.set_option(ip::multicast::join_group(target_endpoint.address()));
 	m_lpd_socket.set_option(ip::multicast::enable_loopback(false));
 	m_lpd_socket.set_option(ip::udp::socket::reuse_address(true));
 	m_lpd_socket.set_option(ip::v6_only(true));

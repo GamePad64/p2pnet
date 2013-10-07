@@ -15,11 +15,10 @@
 #ifndef GENERICLPD_H_
 #define GENERICLPD_H_
 
-#include "../../../common/Config.h"
+#include "../../common/Config.h"
 
 namespace p2pnet {
-namespace transport {
-namespace lpd {
+namespace discovery {
 
 class GenericLPD : public ConfigClient {
 public:
@@ -29,7 +28,6 @@ public:
 
 };
 
-} /* namespace lpd */
-} /* namespace net */
+} /* namespace discovery */
 } /* namespace p2pnet */
 #endif /* GENERICLPD_H_ */

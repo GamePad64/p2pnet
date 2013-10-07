@@ -34,7 +34,7 @@ class UDPLPD: public GenericLPD, Loggable {
 	 * This function is invoked on receiving packets. It must perform necessary checks for packet integrity.
 	 * Its arguments are from asio::socket, as it works as callback.
 	 */
-	void processReceived(std::shared_ptr<boost::asio::streambuf> recv_buffer,
+	void processReceived(char* recv_buffer,
 			size_t recv_bytes,
 			std::shared_ptr<ip::udp::endpoint> mcast_endpoint_ptr);
 
