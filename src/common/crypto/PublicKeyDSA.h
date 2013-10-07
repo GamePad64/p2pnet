@@ -27,6 +27,7 @@ class PublicKeyDSA : public MathString<PublicKeyDSA> {
 protected:
 	friend class PrivateKeyDSA;
 	PublicKeyDSA(std::shared_ptr<Botan::ECDSA_PublicKey> botan_key);
+	//TODO: write a normal copy ctor, asst operator. Without these this is a footgun.
 public:
 	PublicKeyDSA();
 	virtual ~PublicKeyDSA();

@@ -28,6 +28,7 @@ protected:
 
 public:
 	PrivateKeyDSA();
+	//TODO: write a normal copy ctor, asst operator. Without these this is a footgun.
 	virtual ~PrivateKeyDSA();
 
 	void renewKey();
