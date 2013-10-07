@@ -48,7 +48,7 @@ void TransportSocketEndpoint::operator =(const TransportSocketEndpoint& tse) {
 	*interface_endpoint = *(tse.interface_endpoint);
 }
 
-bool TransportSocketEndpoint::operator ==(const TransportSocketEndpoint& tse) {
+bool TransportSocketEndpoint::operator ==(const TransportSocketEndpoint& tse) const {
 	if(interface_endpoint && tse.interface_endpoint){
 		if(interface_endpoint->toProtobuf().SerializeAsString() == tse.interface_endpoint->toProtobuf().SerializeAsString()){	// It is the most correct way to compare them, using protobuf.
 			return true;
@@ -58,7 +58,7 @@ bool TransportSocketEndpoint::operator ==(const TransportSocketEndpoint& tse) {
 	return interface_endpoint == tse.interface_endpoint ? true : false;
 }
 
-bool TransportSocketEndpoint::operator <(const TransportSocketEndpoint& tse) {
+bool TransportSocketEndpoint::operator <(const TransportSocketEndpoint& tse) const {
 	if(interface_endpoint && tse.interface_endpoint){
 		if(interface_endpoint->toProtobuf().SerializeAsString() < tse.interface_endpoint->toProtobuf().SerializeAsString()){	// It is not ideal, but using virtual operators is super dirty.
 			return true;

@@ -27,9 +27,7 @@ class TransportSocketEndpoint final {
 	friend class TransportSocket;
 protected:
 	std::shared_ptr<TransportInterfaceEndpoint> interface_endpoint;
-	inline TransportInterfaceEndpoint getInterfaceEndpoint(){
-		return interface_endpoint;
-	}
+
 	/**
 	 * Creates new endpoint instance using specified interface ID.
 	 * @param id
@@ -46,12 +44,15 @@ public:
 
 	// Operators
 	void operator =(const TransportSocketEndpoint& tse);
-	bool operator ==(const TransportSocketEndpoint& tse);
-	bool operator <(const TransportSocketEndpoint& tse);
+	bool operator ==(const TransportSocketEndpoint& tse) const;
+	bool operator <(const TransportSocketEndpoint& tse) const;
 
 	explicit operator bool();
 
 	uint32_t getInterfaceID() const;
+	inline std::shared_ptr<TransportInterfaceEndpoint> getInterfaceEndpoint(){
+		return interface_endpoint;
+	}
 
 	/*
 	 * Serialization

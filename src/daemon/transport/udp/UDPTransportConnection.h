@@ -19,6 +19,8 @@
 namespace p2pnet {
 namespace transport {
 
+class UDPTransportInterface;
+
 class UDPTransportConnection : public TransportConnection {
 	UDPTransportInterface* m_parent_interface;
 public:

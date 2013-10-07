@@ -17,10 +17,7 @@ namespace p2pnet {
 namespace transport {
 
 TransportConnection::TransportConnection(TransportSocketEndpoint endpoint) : m_endpoint(endpoint) {}
-
-TransportConnection::~TransportConnection() {
-	// TODO Auto-generated destructor stub
-}
+TransportConnection::~TransportConnection() {}
 
 void TransportConnection::process(std::string data) {
 	overlay::OverlaySocket::getInstance()->process(data, m_endpoint);

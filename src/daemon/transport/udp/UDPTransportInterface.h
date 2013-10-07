@@ -29,6 +29,8 @@ namespace transport {
 #define IPv4_MTU 1438
 #define IPv6_MTU 1280
 
+#define MAX_UDP_PACKET_SIZE 64 * 1024
+
 class UDPTransportInterface : public TransportInterface {
 	unsigned short mtu;	// MTU value is for future use. Maybe, we will treat it correctly some day.
 
@@ -38,7 +40,7 @@ class UDPTransportInterface : public TransportInterface {
 	void readConfig();
 protected:
 	void sentMessageHandler(std::string data, std::shared_ptr<udp::endpoint> endpoint);
-	void receivedMessageHandler(std::shared_ptr<boost::asio::streambuf> buffer,
+	void receivedMessageHandler(char* buffer,
 			size_t bytes_received,
 			std::shared_ptr<udp::endpoint> endpoint);
 public:

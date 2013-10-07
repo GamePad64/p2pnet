@@ -14,6 +14,7 @@
 
 #include "TransportSocket.h"
 #include "TransportSocketEndpoint.h"
+#include "TransportConnection.h"
 #include "../../common/Loggable.h"
 #include <boost/range/adaptor/map.hpp>
 #include <iostream>
@@ -43,7 +44,7 @@ void TransportSocket::registerInterface(std::shared_ptr<TransportInterface> inte
 //}
 
 void TransportSocket::receive() {
-	if(interfaces.empty){
+	if(interfaces.empty()){
 		Loggable::log("TransportSocket", Loggable::ERROR) << "P2PNet found no interfaces on your system or all of them are disabled. The program will now terminate";
 		exit(-1);
 	}

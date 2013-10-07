@@ -28,6 +28,7 @@ namespace transport {
 
 class TransportSocketListener;
 class TransportSocketEndpoint;
+class TransportConnection;
 
 class TransportSocket : public abstract::Singleton<TransportSocket> {
 protected:
@@ -39,9 +40,11 @@ protected:
 	 * These will be updated of a message is sent or received on this socket.
 	 */
 	std::list<TransportSocketListener*> m_listenerlist;
-	std::map<TransportSocketEndpoint, std::shared_ptr<TransportConnection>> m_connections;
 public:
 	virtual ~TransportSocket();
+
+	// Made it public, because interfaces, connections and other stuff have to lookup this table.
+	std::map<TransportSocketEndpoint, std::shared_ptr<TransportConnection>> m_connections;
 
 	std::shared_ptr<TransportInterface> getInterfaceByID(uint32_t id);
 	std::shared_ptr<TransportInterface> getInterfaceByPrefix(std::string prefix);

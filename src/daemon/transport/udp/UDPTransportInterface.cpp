@@ -13,6 +13,7 @@
  */
 
 #include "UDPTransportInterface.h"
+#include "UDPTransportConnection.h"
 #include "../../AsioIOService.h"
 #include <boost/bind.hpp>
 #include <string>
@@ -40,13 +41,16 @@ void UDPTransportInterface::readConfig() {
 }
 
 void UDPTransportInterface::sentMessageHandler(std::string data, std::shared_ptr<udp::endpoint> endpoint) {}
-void UDPTransportInterface::receivedMessageHandler(std::shared_ptr<boost::asio::streambuf> buffer,
+void UDPTransportInterface::receivedMessageHandler(char* buffer,
 		size_t bytes_received,
 		std::shared_ptr<udp::endpoint> endpoint) {
 
-	std::string message(buffer->data(), bytes_received);
+	std::string message(buffer, bytes_received);
+	delete[] buffer;
 
-	TransportSocketEndpoint socket_endpoint(endpoint);
+	auto interface_endpoint_ptr = std::make_shared<UDPTransportInterfaceEndpoint>(*endpoint);
+	TransportSocketEndpoint socket_endpoint(interface_endpoint_ptr);
+
 	auto connection_it = TransportSocket::getInstance()->m_connections.find(socket_endpoint);
 
 	if(connection_it == TransportSocket::getInstance()->m_connections.end()){
@@ -69,17 +73,21 @@ std::string UDPTransportInterface::getInterfacePrefix() const {
 //Inherited from TransportSocket
 void UDPTransportInterface::receive() {
 	auto received_from = std::make_shared<udp::endpoint>(local);
+	char buffer[ MAX_UDP_PACKET_SIZE ];
 
-	auto data_received = std::make_shared<boost::asio::streambuf>();
-	m_socket.async_receive_from(*data_received, *received_from,
-			boost::bind(&UDPTransportInterface::receivedMessageHandler, this, data_received,
+	m_socket.async_receive_from(boost::asio::buffer(buffer, MAX_UDP_PACKET_SIZE), *received_from,
+			boost::bind(&UDPTransportInterface::receivedMessageHandler, this, buffer,
 					boost::asio::placeholders::bytes_transferred, received_from));
 }
 
 void UDPTransportInterface::send(TransportSocketEndpoint dest, const std::string& data) {
 	auto socketendpoint_ptr = new TransportSocketEndpoint(dest);
 	// Creating new asio endpoint pointer from TransportSocketEndpoint below. "Braindanger ahead!"
-	auto asiosocketendpoint_ptr = std::make_shared<udp::endpoint>(static_cast<UDPTransportInterfaceEndpoint>(socketendpoint_ptr->getInterfaceEndpoint()).getEndpoint());
+	auto asiosocketendpoint_ptr = std::make_shared<udp::endpoint>(
+			std::static_pointer_cast<UDPTransportInterfaceEndpoint>(
+					socketendpoint_ptr->getInterfaceEndpoint()
+					)->getEndpoint()
+			);
 
 	m_socket.async_send_to(boost::asio::buffer(data), *asiosocketendpoint_ptr,
 			boost::bind(&UDPTransportInterface::sentMessageHandler, this, data, asiosocketendpoint_ptr));

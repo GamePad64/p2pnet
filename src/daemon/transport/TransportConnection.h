@@ -20,7 +20,7 @@
 namespace p2pnet {
 namespace transport {
 
-class TransportConnection : std::enable_shared_from_this<TransportConnection> {
+class TransportConnection : public std::enable_shared_from_this<TransportConnection> {
 protected:
 	TransportSocketEndpoint m_endpoint;
 public:

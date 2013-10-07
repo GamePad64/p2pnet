@@ -26,9 +26,7 @@ UDPTransportInterfaceEndpoint::~UDPTransportInterfaceEndpoint(){};
 
 TransportInterfaceEndpoint& UDPTransportInterfaceEndpoint::operator =(const TransportInterfaceEndpoint& rvalue){
 	auto pTIE = dynamic_cast<const UDPTransportInterfaceEndpoint&>(rvalue);
-	if(pTIE){
-		asio_endpoint = pTIE.asio_endpoint;
-	}
+	asio_endpoint = pTIE.asio_endpoint;
 	return *this;
 }
 

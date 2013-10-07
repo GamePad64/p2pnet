@@ -15,8 +15,10 @@
 #ifndef TRANSPORTINTERFACE_H_
 #define TRANSPORTINTERFACE_H_
 
+#include "../../common/Config.h"
+#include "TransportSocketEndpoint.h"
 #include <memory>
-#include <stdint.h>
+#include <cstdint>
 
 namespace p2pnet {
 namespace transport {
@@ -24,13 +26,7 @@ namespace transport {
 class TransportInterfaceEndpoint;
 class TransportSocketEndpoint;
 
-class TransportInterface : ConfigClient {
-protected:
-	inline bool checkEndpoint(TransportSocketEndpoint endpoint) const {
-		return (getInterfaceID() == endpoint.getInterfaceID());
-	}
-
-	virtual std::shared_ptr<TransportInterfaceEndpoint> createInterfaceEndpoint() = 0;
+class TransportInterface : public ConfigClient {
 public:
 	TransportInterface(ConfigManager& config) : ConfigClient(config) {};
 	virtual ~TransportInterface(){};
@@ -40,6 +36,11 @@ public:
 	 */
 	virtual uint32_t getInterfaceID() const = 0;
 	virtual std::string getInterfacePrefix() const = 0;
+	inline bool checkEndpoint(TransportSocketEndpoint endpoint) const {
+		return (getInterfaceID() == endpoint.getInterfaceID());
+	}
+
+	virtual std::shared_ptr<TransportInterfaceEndpoint> createInterfaceEndpoint() = 0;
 
 	/*
 	 * Interface network I/O functions.
