@@ -76,6 +76,8 @@ public:
 		config.put("transport.udp.local_ip", "0::0");
 		config.put("transport.udp.port", 2185);
 
+		config.put("databases.pks.history_size", 10);
+
 		config.put("discovery.udpv4.enabled", true);
 		config.put("discovery.udpv4.timer", 10);
 		config.put("discovery.udpv4.local_ip", "0.0.0.0");

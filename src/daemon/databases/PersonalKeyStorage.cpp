@@ -20,51 +20,56 @@
 namespace p2pnet {
 namespace databases {
 
-PersonalKeyStorage::PersonalKeyStorage() : timer(timer_service) {
-	// TEMP: We shouldn't regenerate keys every execution, so some sort of caching is required.
+PersonalKeyStorage::PersonalKeyStorage() : timer(AsioIOService::getIOService()) {
+	/*
+	 * TODO: We shouldn't regenerate keys every execution, so some sort of caching is required.
+	 * Caching will enable our program to start up faster.
+	 */
 	regenerateKeys();
 }
-PersonalKeyStorage::~PersonalKeyStorage() {
-	delete my_private_key;
-	delete my_transport_hash;
-}
+PersonalKeyStorage::~PersonalKeyStorage() {}
 
 void PersonalKeyStorage::regenerateKeys() {
 	// Generating all this. This should be asynchronous.
-	auto my_new_private_key = new crypto::PrivateKeyDSA(crypto::PrivateKeyDSA::generateKey());
-	auto my_new_transport_hash = new crypto::Hash(
-			crypto::Hash::compute(my_new_private_key->derivePublicKey().toBinaryString()));
+	auto my_new_private_key = std::unique_ptr<crypto::PrivateKeyDSA>(new crypto::PrivateKeyDSA(crypto::PrivateKeyDSA::generateKey()));
+	auto my_new_transport_hash = std::unique_ptr<crypto::Hash>(new crypto::Hash(
+			crypto::Hash::compute(my_new_private_key->derivePublicKey().toBinaryString())));
 
 	// LOCK! Moving faster now!
 	key_lock.lock();
 	// Synchronous zone. Now we freeze all the system.
-	//delete my_private_key;
-	//delete my_transport_hash;
-	my_private_key = my_new_private_key;	// We will not delete my_new_private_key after =, it's ok.
-	my_transport_hash = my_new_transport_hash;
+	my_private_key_history.push_front(my_new_private_key);
+	my_transport_hash_history.push_front(my_new_transport_hash);
 	// UNLOCK! It's safe now.
 	key_lock.unlock();
 
-	std::clog << "[Crypto] Keys regenerated. New TH: " << my_transport_hash->toBase58() << std::endl;
+	if(my_private_key_history.size() > getValue<unsigned int>("databases.pks.history_size") + 1 ){	//Yes, +1 means newly generated key.
+		my_private_key_history.pop_back();
+	}
+	if(my_transport_hash_history.size() > getValue<unsigned int>("databases.pks.history_size") + 1 ){	//Yes, +1 means newly computed TH.
+		my_transport_hash_history.pop_back();
+	}
+
+	log() << "Keys regenerated. New TH: " << my_transport_hash_history.front()->toBase58() << std::endl;
 }
 
-crypto::Hash PersonalKeyStorage::getMyTransportHash() {
+overlay::TH PersonalKeyStorage::getMyTransportHash() {
 	key_lock.lock();
-	auto ret = crypto::Hash(*my_transport_hash);
+	auto ret = crypto::Hash(*(my_transport_hash_history.front()));
 	key_lock.unlock();
 	return ret;
 }
 
 crypto::PublicKeyDSA PersonalKeyStorage::getMyPublicKey() {
 	key_lock.lock();
-	auto ret = my_private_key->derivePublicKey();
+	auto ret = my_private_key_history.front()->derivePublicKey();
 	key_lock.unlock();
 	return ret;
 }
 
 crypto::PrivateKeyDSA PersonalKeyStorage::getMyPrivateKey() {
 	key_lock.lock();
-	auto ret = crypto::PrivateKeyDSA(*my_private_key);
+	auto ret = crypto::PrivateKeyDSA(*(my_private_key_history.front()));
 	key_lock.unlock();
 	return ret;
 }

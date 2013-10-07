@@ -16,8 +16,10 @@
 #define PERSONALKEYSTORAGE_H_
 
 #include "../../common/crypto/PrivateKeyDSA.h"
-#include "../peer/TH.h"
+#include "../overlay/TH.h"
 #include "../abstract/Singleton.h"
+#include "../../common/Config.h"
+#include "../../common/Loggable.h"
 
 #include <boost/asio.hpp>
 #include <thread>
@@ -25,29 +27,40 @@
 namespace p2pnet {
 namespace databases {
 
-class PersonalKeyStorage : public abstract::Singleton<PersonalKeyStorage>{
-	crypto::PrivateKeyDSA* my_private_key;
-	peer::TH* my_transport_hash;
+class PersonalKeyStorage;
+class PersonalKeyStorageClient {
+	PersonalKeyStorageClient();
+	~PersonalKeyStorageClient();
+
+	// Signals
+	void keysUpdated();
+
+	// Getters
+	overlay::TH getMyTransportHash();
+
+	crypto::PublicKeyDSA getMyPublicKey();
+	crypto::PrivateKeyDSA getMyPrivateKey();
+};
+
+class PersonalKeyStorage : public abstract::Singleton<PersonalKeyStorage>, public Loggable, public ConfigClient {
+	std::deque<std::unique_ptr<crypto::PrivateKeyDSA>> my_private_key_history;
+	std::deque<std::unique_ptr<overlay::TH>> my_transport_hash_history;
 	std::mutex key_lock;
 
-	/*
-	 * Well, I hoped to abstract from boost::asio, but here it is. This ... thing is not about networking,
-	 * it is about asynchronous operations.
-	 */
-	boost::asio::io_service timer_service;
 	boost::asio::deadline_timer timer;
 
+	std::set<PersonalKeyStorageClient*> clients;
+
+	void regenerateKeys();
 public:
 	PersonalKeyStorage();
 	virtual ~PersonalKeyStorage();
-
-	void regenerateKeys();
 
 	/**
 	 * This function returns own transport hash from cache. If there is no such hash, then regenerate keys and hashes.
 	 * @return My transport hash
 	 */
-	peer::TH getMyTransportHash();
+	overlay::TH getMyTransportHash();
 
 	crypto::PublicKeyDSA getMyPublicKey();
 	crypto::PrivateKeyDSA getMyPrivateKey();
