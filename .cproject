@@ -39,7 +39,7 @@
 							<tool command="ccache ${CC}" id="cdt.managedbuild.tool.gnu.c.compiler.base.533858670" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.258825205" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.1761422294" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.misc.other.1145427918" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -std=c11" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1145427918" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -std=c11" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1590373015" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1093704893" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -67,7 +67,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="contrib|test" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="src/daemon/messaging|test|contrib" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -84,10 +84,10 @@
 		</configuration>
 		<configuration configurationName="Test"/>
 		<configuration configurationName="D_linamd64"/>
+		<configuration configurationName="T_linamd64"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/p2pnet"/>
 		</configuration>
-		<configuration configurationName="T_linamd64"/>
 		<configuration configurationName="R_linamd64"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings">
