@@ -18,6 +18,8 @@
 #include "../version.h"
 #include <string>
 #include <sstream>
+#include <iostream>
+#include <iomanip>
 
 namespace p2pnet {
 
