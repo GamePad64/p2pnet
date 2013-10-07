@@ -25,7 +25,7 @@ public:
 		ERROR
 	};
 private:
-	static bool clock_started = false;
+	static bool clock_started;
 	static std::clock_t start_clock;
 	static float getTimeFromStart();
 

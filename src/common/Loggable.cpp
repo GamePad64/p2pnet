@@ -15,6 +15,8 @@
 
 namespace p2pnet {
 
+bool Loggable::clock_started = false;
+
 Loggable::Loggable() {
 	if(!clock_started){
 		start_clock = std::clock();
