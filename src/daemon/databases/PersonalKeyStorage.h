@@ -68,6 +68,7 @@ public:
 	 * @return My transport hash
 	 */
 	overlay::TH getMyTransportHash();
+	std::deque<std::unique_ptr<overlay::TH>> getMyTransportHashHistory();
 
 	crypto::PublicKeyDSA getMyPublicKey();
 	crypto::PrivateKeyDSA getMyPrivateKey();

@@ -12,17 +12,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "OverlaySocket.h"
+#include "../protobuf/Protocol.pb.h"
 
 namespace p2pnet {
 namespace overlay {
 
-OverlaySocket::OverlaySocket() {
-	// TODO Auto-generated constructor stub
+OverlaySocket::OverlaySocket() {}
 
+OverlaySocket::~OverlaySocket() {}
+
+void OverlaySocket::send(overlay::TH dest, std::string data) {
 }
 
-OverlaySocket::~OverlaySocket() {
-	// TODO Auto-generated destructor stub
+void OverlaySocket::process(std::string data, transport::TransportSocketEndpoint from) {
+	protocol::OverlayMessageStructure overlay_message;
+	overlay_message.ParseFromString(data);
+	auto header = overlay_message.header();
 }
 
 } /* namespace overlay */
