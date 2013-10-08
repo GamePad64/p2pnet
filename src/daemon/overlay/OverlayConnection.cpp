@@ -19,5 +19,11 @@ namespace overlay {
 OverlayConnection::OverlayConnection(overlay::TH th) : th_endpoint(th) {}
 OverlayConnection::~OverlayConnection() {}
 
+void OverlayConnection::send(std::string data) {
+}
+
+void OverlayConnection::process(std::string data, transport::TransportSocketEndpoint from) {
+}
+
 } /* namespace overlay */
 } /* namespace p2pnet */

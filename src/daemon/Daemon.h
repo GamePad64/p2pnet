@@ -19,7 +19,6 @@
 #include "../common/Loggable.h"
 #include "AsioIOService.h"
 
-#include "databases/NetDBStorage.h"
 #include "databases/PersonalKeyStorage.h"
 #include "messaging/SessionMap.h"
 
@@ -38,7 +37,6 @@ class Daemon : public Loggable {
 public:
 	ConfigManager config_manager;
 
-	databases::NetDBStorage* m_netdb_storage;
 	databases::PersonalKeyStorage* m_pk_storage;
 	messaging::SessionStorage* m_sessionstorage;
 

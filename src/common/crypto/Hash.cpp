@@ -79,5 +79,9 @@ std::vector<unsigned char> Hash::operator^(const Hash& rhash) const {
 	return ( std::vector<unsigned char>(result_v.begin(), result_v.end()) );
 }
 
+bool Hash::operator <(const Hash& lhash) const {
+	return hash < lhash.hash;
+}
+
 } /* namespace crypto */
 } /* namespace p2pnet */

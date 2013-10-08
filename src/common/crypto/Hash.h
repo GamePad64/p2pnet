@@ -49,6 +49,7 @@ public:
 	unsigned short computeDistance(Hash rhash);
 
 	std::vector<unsigned char> operator^(const Hash& lhash) const;
+	bool operator<(const Hash& lhash) const;
 
 	/**
 	 * This function returns hashing algorithm name as Botan library does. It is needed for internal encryption operations.

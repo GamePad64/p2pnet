@@ -21,9 +21,14 @@ namespace overlay {
 
 class OverlayConnection {
 	overlay::TH th_endpoint;
+
+	bool ready = false;
 public:
 	OverlayConnection(overlay::TH th);
 	virtual ~OverlayConnection();
+
+	void send(std::string data);
+	void process(std::string data, transport::TransportSocketEndpoint from);
 };
 
 } /* namespace overlay */
