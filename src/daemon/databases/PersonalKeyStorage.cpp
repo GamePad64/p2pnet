@@ -20,16 +20,43 @@
 namespace p2pnet {
 namespace databases {
 
+PersonalKeyStorageClient::PersonalKeyStorageClient() {
+	storage = PersonalKeyStorage::getInstance();
+	storage->registerClient(this);
+}
+
+PersonalKeyStorageClient::~PersonalKeyStorageClient() {
+	storage->unregisterClient(this);
+}
+
+overlay::TH PersonalKeyStorageClient::getMyTransportHash() {
+	return storage->getMyTransportHash();
+}
+
+crypto::PublicKeyDSA PersonalKeyStorageClient::getMyPublicKey() {
+	return storage->getMyPublicKey();
+}
+
+crypto::PrivateKeyDSA PersonalKeyStorageClient::getMyPrivateKey() {
+	return storage->getMyPrivateKey();
+}
+
 PersonalKeyStorage::PersonalKeyStorage() : timer(AsioIOService::getIOService()) {
 	/*
 	 * TODO: We shouldn't regenerate keys every execution, so some sort of caching is required.
 	 * Caching will enable our program to start up faster.
 	 */
-	regenerateKeys();
+	loopGenerate();
+	generator_thread.join();
 }
-PersonalKeyStorage::~PersonalKeyStorage() {}
+PersonalKeyStorage::~PersonalKeyStorage() {
+	timer.cancel();
+	if(generator_thread.joinable()){
+		generator_thread.join();
+	}
+}
 
-void PersonalKeyStorage::regenerateKeys() {
+void PersonalKeyStorage::renewKeys() {
 	// Generating all this. This should be asynchronous.
 	auto my_new_private_key = std::unique_ptr<crypto::PrivateKeyDSA>(new crypto::PrivateKeyDSA(crypto::PrivateKeyDSA::generateKey()));
 	auto my_new_transport_hash = std::unique_ptr<crypto::Hash>(new crypto::Hash(
@@ -50,7 +77,17 @@ void PersonalKeyStorage::regenerateKeys() {
 		my_transport_hash_history.pop_back();
 	}
 
-	log() << "Keys regenerated. New TH: " << my_transport_hash_history.front()->toBase58() << std::endl;
+	log() << "New keys generated. TH: " << my_transport_hash_history.front()->toBase58() << std::endl;
+}
+
+void PersonalKeyStorage::loopGenerate(){
+	if(generator_thread.joinable()){
+		generator_thread.join();
+	}
+	generator_thread = std::thread(&PersonalKeyStorage::renewKeys, this);
+
+	timer.expires_from_now(boost::posix_time::minutes(getValue<unsigned int>("databases.pks.renew_interval")));
+	timer.async_wait(boost::bind(&PersonalKeyStorage::loopGenerate, this));
 }
 
 overlay::TH PersonalKeyStorage::getMyTransportHash() {
@@ -72,6 +109,14 @@ crypto::PrivateKeyDSA PersonalKeyStorage::getMyPrivateKey() {
 	auto ret = crypto::PrivateKeyDSA(*(my_private_key_history.front()));
 	key_lock.unlock();
 	return ret;
+}
+
+void PersonalKeyStorage::registerClient(PersonalKeyStorageClient* client) {
+	clients.insert(client);
+}
+
+void PersonalKeyStorage::unregisterClient(PersonalKeyStorageClient* client) {
+	clients.erase(client);
 }
 
 } /* namespace databases */

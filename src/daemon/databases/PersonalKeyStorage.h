@@ -29,12 +29,15 @@ namespace databases {
 
 class PersonalKeyStorage;
 class PersonalKeyStorageClient {
+	PersonalKeyStorage* storage;
+public:
 	PersonalKeyStorageClient();
 	~PersonalKeyStorageClient();
 
 	// Signals
-	void keysUpdated();
+	void keysUpdated(){};
 
+protected:
 	// Getters
 	overlay::TH getMyTransportHash();
 
@@ -51,7 +54,11 @@ class PersonalKeyStorage : public abstract::Singleton<PersonalKeyStorage>, publi
 
 	std::set<PersonalKeyStorageClient*> clients;
 
-	void regenerateKeys();
+	void renewKeys();
+
+	std::thread generator_thread;
+
+	void loopGenerate();
 public:
 	PersonalKeyStorage();
 	virtual ~PersonalKeyStorage();
@@ -64,6 +71,9 @@ public:
 
 	crypto::PublicKeyDSA getMyPublicKey();
 	crypto::PrivateKeyDSA getMyPrivateKey();
+
+	void registerClient(PersonalKeyStorageClient* client);
+	void unregisterClient(PersonalKeyStorageClient* client);
 };
 
 } /* namespace databases */
