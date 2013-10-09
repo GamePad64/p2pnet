@@ -44,9 +44,8 @@ message OverlayMessageStructure {
 		 * This payload is used when we know only TH. So, we need to get remote public key.
 		 */
 		message KeyRequestPart {
-			required bytes src_pubkey = 1;
+			required bytes src_ecdsa_pubkey = 1;
 			required bytes signature = 2;
-			optional bool response_expected = 3 [default = false];	// It means "I haven't your ECDSA public key, send me one.
 		}
 
 		/*
@@ -54,8 +53,6 @@ message OverlayMessageStructure {
 		 * So, it consists of our ECDSA public key (our identity, in other words) and of ECDH public key,
 		 * specially generated for use in connection to [dest_th]. So, the remote will get our ECDSA key (it can derive
 		 * our TH, check src_th) and ECDH key.
-		 *
-		 * We expect ConnectionPart without [src_ecdsa_pubkey] as the answer.
 		 */
 		message ConnectionPart {
 			required bytes src_ecdsa_pubkey = 1;	// Our ECDSA key.

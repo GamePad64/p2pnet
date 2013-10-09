@@ -26,6 +26,7 @@ class OverlayConnection;
 class OverlaySocket : public abstract::Singleton<OverlaySocket> {
 protected:
 	std::map<overlay::TH, std::shared_ptr<OverlayConnection>> m_connections;
+	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// For future use.
 public:
 	OverlaySocket();
 	virtual ~OverlaySocket();

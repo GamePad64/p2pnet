@@ -15,17 +15,28 @@
 #define OVERLAYCONNECTION_H_
 
 #include "TH.h"
+#include "../transport/TransportConnection.h"
+#include <forward_list>
 
 namespace p2pnet {
 namespace overlay {
 
 class OverlayConnection {
 	overlay::TH th_endpoint;
+	crypto::PublicKeyDSA public_key;
 
-	bool ready = false;
+	crypto::ECDH ecdh_key;
+
+	std::deque<transport::TransportSocketEndpoint> m_tse;
+	std::deque<protocol::OverlayMessageStructure> suspended_messages;
+
+	bool connected = false;
+
 public:
 	OverlayConnection(overlay::TH th);
 	virtual ~OverlayConnection();
+
+	bool isReady() const;
 
 	void send(std::string data);
 	void process(std::string data, transport::TransportSocketEndpoint from);
