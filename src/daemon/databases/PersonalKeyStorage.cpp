@@ -41,6 +41,10 @@ crypto::PrivateKeyDSA PersonalKeyStorageClient::getMyPrivateKey() {
 	return storage->getMyPrivateKey();
 }
 
+std::shared_ptr<crypto::PrivateKeyDSA> PersonalKeyStorageClient::getPrivateKeyOfTH(overlay::TH hash) {
+	return storage->getPrivateKeyOfTH(hash);
+}
+
 PersonalKeyStorage::PersonalKeyStorage() : timer(AsioIOService::getIOService()) {
 	/*
 	 * TODO: We shouldn't regenerate keys every execution, so some sort of caching is required.
@@ -111,6 +115,15 @@ crypto::PrivateKeyDSA PersonalKeyStorage::getMyPrivateKey() {
 	return ret;
 }
 
+std::shared_ptr<crypto::PrivateKeyDSA> PersonalKeyStorage::getPrivateKeyOfTH(overlay::TH th){
+	auto it = std::find(my_private_key_history.begin(), my_private_key_history.end(), th);
+	if(it == my_private_key_history.end()){
+		return nullptr;
+	}
+	auto private_key_ptr = std::make_shared<crypto::PrivateKeyDSA>(*it);
+	return private_key_ptr;
+}
+
 void PersonalKeyStorage::registerClient(PersonalKeyStorageClient* client) {
 	clients.insert(client);
 }
@@ -121,4 +134,3 @@ void PersonalKeyStorage::unregisterClient(PersonalKeyStorageClient* client) {
 
 } /* namespace databases */
 } /* namespace p2pnet */
-

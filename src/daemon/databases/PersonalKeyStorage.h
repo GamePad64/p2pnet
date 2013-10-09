@@ -43,6 +43,8 @@ protected:
 
 	crypto::PublicKeyDSA getMyPublicKey();
 	crypto::PrivateKeyDSA getMyPrivateKey();
+
+	std::shared_ptr<crypto::PrivateKeyDSA> getPrivateKeyOfTH(overlay::TH);
 };
 
 class PersonalKeyStorage : public abstract::Singleton<PersonalKeyStorage>, public Loggable, public ConfigClient {
@@ -68,10 +70,11 @@ public:
 	 * @return My transport hash
 	 */
 	overlay::TH getMyTransportHash();
-	std::deque<std::unique_ptr<overlay::TH>> getMyTransportHashHistory();
 
 	crypto::PublicKeyDSA getMyPublicKey();
 	crypto::PrivateKeyDSA getMyPrivateKey();
+
+	std::shared_ptr<crypto::PrivateKeyDSA> getPrivateKeyOfTH(overlay::TH th);
 
 	void registerClient(PersonalKeyStorageClient* client);
 	void unregisterClient(PersonalKeyStorageClient* client);
