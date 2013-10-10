@@ -23,6 +23,8 @@ namespace crypto {
 
 const short HASH_LENGTH = 224;
 
+class PublicKeyDSA;
+
 /**
  * Base class for hashing operations.
  * Now it represents Keccak algorithm, which was selected as SHA-3.
@@ -31,13 +33,19 @@ class Hash : public MathString< Hash > {
 	friend class MathString;
 private:
 	binary_vector_t hash;
-	static Botan::Keccak_1600 hasher;
+	std::unique_ptr<Botan::Keccak_1600> hasher;
 public:
 	Hash();
+	Hash(const Hash& rhash);
+	Hash(Hash&& rhash);
+	Hash(PublicKeyDSA dsa_pubkey);
 	virtual ~Hash();
 
-	static Hash compute(std::string data);
-	bool check(std::string data);
+	Hash& operator = (const Hash& rhash);
+	Hash& operator = (Hash&& rhash);
+
+	void compute(const std::string& data);
+	bool check(const std::string& data);
 
 	void setAsBinaryVector(binary_vector_t serialized_vector) {
 		hash = serialized_vector;

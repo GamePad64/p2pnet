@@ -13,30 +13,48 @@
  */
 
 #include "Hash.h"
-#include <deque>
+#include "PublicKeyDSA.h"
+#include <list>
 
 namespace p2pnet {
 namespace crypto {
 
-Botan::Keccak_1600 Hash::hasher(HASH_LENGTH);
-
 std::string Hash::getAlgoName() {
-	return hasher.name();
+	return hasher->name();
 }
 
-Hash::Hash() {}
-
-Hash::~Hash() {
+Hash::Hash() {
+	hasher = new Botan::Keccak_1600(HASH_LENGTH);
+}
+Hash::Hash(const Hash& rhash){
+	hash = rhash.hash;
+}
+Hash::Hash(Hash&& rhash){
+	std::swap(hash, rhash.hash);
+}
+Hash::Hash(PublicKeyDSA dsa_pubkey) : Hash() {
+	compute(dsa_pubkey.toBinaryString());
 }
 
-Hash Hash::compute(std::string data) {
+Hash::~Hash() {}
+
+Hash& Hash::operator =(const Hash& rhash) {
+	hash = rhash.hash;
+	return *this;
+}
+
+Hash& Hash::operator =(Hash&& rhash) {
+	std::swap(hash, rhash.hash);
+	return *this;
+}
+
+void Hash::compute(const std::string& data) {
+	setAsBinaryVector(hasher->process(data));
+}
+
+bool Hash::check(const std::string& data) {
 	Hash h;
-	h.setAsBinaryVector(h.hasher.process(data));
-	return h;
-}
-
-bool Hash::check(std::string data) {
-	Hash h = Hash::compute(data);
+	h.compute(data);
 
 	return (h.toBinaryString() == this->toBinaryString());
 }
@@ -65,7 +83,7 @@ unsigned short Hash::computeDistance(Hash rhash) {
 }
 
 std::vector<unsigned char> Hash::operator^(const Hash& rhash) const {
-	std::deque<unsigned char> result_v;
+	std::list<unsigned char> result_v;
 	binary_vector_t this_v = this->toBinaryVector();
 	binary_vector_t right_v = rhash.toBinaryVector();
 
