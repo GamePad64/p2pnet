@@ -32,8 +32,9 @@ message OverlayMessageStructure {
 			ONION = 2;
 
 			// Key exchange cryptographic messages.
-			KEY_REQUEST = 3;	// Not encrypted.
-			CONNECTION = 4;	// Encrypted using ECDSA.
+			CONNECTION_PUBKEY = 3;
+			CONNECTION_ECDH = 4;
+			CONNECTION_ACK = 5;
 		}
 
 		optional MessageType message_type = 1 [default = ENCRYPTED];
@@ -41,23 +42,18 @@ message OverlayMessageStructure {
 		// End of MessageType section.
 
 		/*
-		 * This payload is used when we know only TH. So, we need to get remote public key.
-		 */
-		message KeyRequestPart {
-			required bytes src_ecdsa_pubkey = 1;
-			required bytes signature = 2;
-		}
-
-		/*
-		 * This payload is used, when we know remote public key and we want to establish the connection.
-		 * So, it consists of our ECDSA public key (our identity, in other words) and of ECDH public key,
-		 * specially generated for use in connection to [dest_th]. So, the remote will get our ECDSA key (it can derive
-		 * our TH, check src_th) and ECDH key.
+		 * This payload is used, when we know (well, or don't know, if dest_th is empty!) TH of the remote client. It uses standard TCP-like
+		 * "3-way handshake", but with ECDH generation. This is transmission+crypto-handshake control payload.
 		 */
 		message ConnectionPart {
-			required bytes src_ecdsa_pubkey = 1;	// Our ECDSA key.
-			required bytes src_ecdh_pubkey = 2;	// This connection ECDH key.
-			required bytes signature = 3;	// The signature of (src_ecdsa_pubkey + src_ecdh_pubkey) using our ECDSA key.
+			optional bool ACK = 1 [default = false];
+			// PUBKEY, PUBKEY_ACK, unencrypted!
+			optional bytes src_ecdsa_pubkey = 2;	// Our ECDSA key.
+			// ECDH, ECDH_ACK, ECDSA encrypted, ECDSA signed.
+			optional bytes src_ecdh_pubkey = 3;	// This connection (ECDH key, signed with our ECDSA key) and then encrypted with their ECDSA pubkey.
+			optional bytes signature = 4; // OUR_ECDSA_SIG(src_ecdh_pubkey+dest_th)
+			// ACK, AES encrypted. optional bool ACK doesn't make any sense.
+			optional bytes aes_ack = 5;	// AES(dest_th), because it is easily-verified, even after TH regeneration using peer's history. Also, checks for stale TH in database.
 		}
 
 		optional bytes serialized_payload = 2;
