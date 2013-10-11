@@ -23,16 +23,19 @@ namespace crypto {
 const std::string dsa_curve = "secp256r1";
 
 class PrivateKeyDSA : virtual public MathString<PrivateKeyDSA> {
-	std::shared_ptr<Botan::ECDSA_PrivateKey> key_private;
-protected:
-
+	friend class PublicKeyDSA;
+	std::unique_ptr<Botan::ECDSA_PrivateKey> key_private;
 public:
 	PrivateKeyDSA();
-	//TODO: write a normal copy ctor, asst operator. Without these this is a footgun.
+	PrivateKeyDSA(const PrivateKeyDSA& rvalue);
+	PrivateKeyDSA(PrivateKeyDSA&& rvalue);
 	virtual ~PrivateKeyDSA();
 
-	void renewKey();
-	static PrivateKeyDSA generateKey();
+	PrivateKeyDSA& operator =(const PrivateKeyDSA& rvalue);
+	PrivateKeyDSA& operator =(PrivateKeyDSA&& rvalue);
+
+	static PrivateKeyDSA generateNewKey();
+	void generateKey();
 
 	std::string decrypt(std::string enc_data);
 

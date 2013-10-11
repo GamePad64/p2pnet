@@ -20,10 +20,31 @@ namespace p2pnet {
 namespace crypto {
 
 PublicKeyDSA::PublicKeyDSA() {}
-PublicKeyDSA::PublicKeyDSA(std::shared_ptr<Botan::ECDSA_PublicKey> botan_key) {
-	key_public = botan_key;
+PublicKeyDSA::PublicKeyDSA(const PrivateKeyDSA& privkey_dsa) {
+	key_public = std::unique_ptr<Botan::ECDSA_PublicKey>(
+			new Botan::ECDSA_PublicKey(*(privkey_dsa.key_private))
+	);
+}
+PublicKeyDSA::PublicKeyDSA(const PublicKeyDSA& rvalue) {
+	key_public = std::unique_ptr<Botan::ECDSA_PublicKey>(
+			new Botan::ECDSA_PublicKey(*(rvalue.key_public))
+	);
+}
+PublicKeyDSA::PublicKeyDSA(PublicKeyDSA&& rvalue) {
+	std::swap(key_public, rvalue.key_public);
 }
 PublicKeyDSA::~PublicKeyDSA() {}
+PublicKeyDSA& PublicKeyDSA::operator =(const PublicKeyDSA& rvalue) {
+	key_public = std::unique_ptr<Botan::ECDSA_PublicKey>(
+			new Botan::ECDSA_PublicKey(*(rvalue.key_public))
+	);
+	return *this;
+}
+
+PublicKeyDSA& PublicKeyDSA::operator =(PublicKeyDSA&& rvalue) {
+	std::swap(key_public, rvalue.key_public);
+	return *this;
+}
 
 std::string PublicKeyDSA::encrypt(std::string data) {
 	Botan::PK_Encryptor_EME pk_encryptor(*key_public, "EME1(" + Hash::getAlgoName() + ")");
@@ -54,7 +75,7 @@ bool PublicKeyDSA::verifyRaw(std::string data, std::string signature) {
 void PublicKeyDSA::fromPEM(std::string pem) {
 	std::vector<Botan::byte> pem_v(pem.begin(), pem.end());
 	Botan::DataSource_Memory botan_source(pem_v);
-	key_public = std::shared_ptr<Botan::ECDSA_PublicKey>(dynamic_cast<Botan::ECDSA_PublicKey*>(Botan::X509::load_key(botan_source)));
+	key_public = std::unique_ptr<Botan::ECDSA_PublicKey>(dynamic_cast<Botan::ECDSA_PublicKey*>(Botan::X509::load_key(botan_source)));
 }
 
 std::string PublicKeyDSA::toPEM() {
@@ -69,7 +90,7 @@ bool PublicKeyDSA::validate() {
 void PublicKeyDSA::setAsBinaryVector(binary_vector_t serialized_vector) {
 	Botan::DataSource_Memory botan_source(serialized_vector);
 	Botan::ECDSA_PublicKey* pubkey = dynamic_cast<Botan::ECDSA_PublicKey*>(Botan::X509::load_key(botan_source));
-	key_public = std::shared_ptr<Botan::ECDSA_PublicKey>(pubkey);
+	key_public = std::unique_ptr<Botan::ECDSA_PublicKey>(pubkey);
 }
 
 const PublicKeyDSA::binary_vector_t PublicKeyDSA::toBinaryVector() const {

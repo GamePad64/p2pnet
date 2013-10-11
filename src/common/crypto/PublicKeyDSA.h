@@ -21,16 +21,21 @@
 namespace p2pnet {
 namespace crypto {
 
+class PrivateKeyDSA;
+
 class PublicKeyDSA : public MathString<PublicKeyDSA> {
-	std::shared_ptr<Botan::ECDSA_PublicKey> key_public;
+	std::unique_ptr<Botan::ECDSA_PublicKey> key_public;
 
 protected:
 	friend class PrivateKeyDSA;
-	PublicKeyDSA(std::shared_ptr<Botan::ECDSA_PublicKey> botan_key);
-	//TODO: write a normal copy ctor, asst operator. Without these this is a footgun.
 public:
 	PublicKeyDSA();
+	PublicKeyDSA(const PrivateKeyDSA& privkey_dsa);
+	PublicKeyDSA(PublicKeyDSA&& rvalue);
 	virtual ~PublicKeyDSA();
+
+	PublicKeyDSA& operator =(const PublicKeyDSA& rvalue);
+	PublicKeyDSA& operator =(PublicKeyDSA&& rvalue);
 
 	std::string encrypt(std::string data);
 

@@ -13,6 +13,7 @@
  */
 
 #include "PrivateKeyDSA.h"
+#include "PublicKeyDSA.h"
 #include "Hash.h"
 #include <botan/pubkey.h>
 #include <memory>
@@ -21,17 +22,39 @@ namespace p2pnet {
 namespace crypto {
 
 PrivateKeyDSA::PrivateKeyDSA() {}
-PrivateKeyDSA::~PrivateKeyDSA() {}
-
-void PrivateKeyDSA::renewKey() {
-	Botan::AutoSeeded_RNG rng;
-	key_private = std::make_shared<Botan::ECDSA_PrivateKey>(rng, Botan::EC_Group(dsa_curve));
+PrivateKeyDSA::PrivateKeyDSA(const PrivateKeyDSA& rvalue) {
+	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(
+			new Botan::ECDSA_PrivateKey(*(rvalue.key_private))
+	);
 }
 
-PrivateKeyDSA PrivateKeyDSA::generateKey(){
-	PrivateKeyDSA new_key;
-	new_key.renewKey();
-	return new_key;
+PrivateKeyDSA::PrivateKeyDSA(PrivateKeyDSA&& rvalue) {
+	std::swap(key_private, rvalue.key_private);
+}
+PrivateKeyDSA::~PrivateKeyDSA() {}
+
+PrivateKeyDSA& PrivateKeyDSA::operator =(const PrivateKeyDSA& rvalue) {
+	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(
+			new Botan::ECDSA_PrivateKey(*(rvalue.key_private))
+	);
+	return *this;
+}
+PrivateKeyDSA& PrivateKeyDSA::operator =(PrivateKeyDSA&& rvalue) {
+	std::swap(key_private, rvalue.key_private);
+	return *this;
+}
+
+PrivateKeyDSA PrivateKeyDSA::generateNewKey(){
+	PrivateKeyDSA privkey;
+	privkey.generateKey();
+	return privkey;
+}
+
+void PrivateKeyDSA::generateKey() {
+	Botan::AutoSeeded_RNG rng;
+	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(
+			new Botan::ECDSA_PrivateKey(rng, Botan::EC_Group(dsa_curve))
+	);
 }
 
 std::string PrivateKeyDSA::decrypt(std::string enc_data) {
@@ -67,7 +90,7 @@ void PrivateKeyDSA::fromPEM(std::string pem) {
 	std::vector<Botan::byte> pem_v(pem.begin(), pem.end());
 	Botan::DataSource_Memory botan_source(pem_v);
 	auto key_private_ptr = Botan::PKCS8::load_key(botan_source, rng);
-	key_private = std::shared_ptr<Botan::ECDSA_PrivateKey>(dynamic_cast<Botan::ECDSA_PrivateKey*>(key_private_ptr));
+	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(dynamic_cast<Botan::ECDSA_PrivateKey*>(key_private_ptr));
 }
 
 std::string PrivateKeyDSA::toPEM() {
@@ -78,7 +101,7 @@ void PrivateKeyDSA::setAsBinaryVector(binary_vector_t serialized_vector) {
 	Botan::DataSource_Memory botan_source(serialized_vector);
 	Botan::AutoSeeded_RNG rng;
 	Botan::ECDSA_PrivateKey* privkey = dynamic_cast<Botan::ECDSA_PrivateKey*>(Botan::PKCS8::load_key(botan_source, rng));
-	key_private = std::shared_ptr<Botan::ECDSA_PrivateKey>(privkey);
+	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(privkey);
 }
 
 const PrivateKeyDSA::binary_vector_t PrivateKeyDSA::toBinaryVector() const {
@@ -86,7 +109,7 @@ const PrivateKeyDSA::binary_vector_t PrivateKeyDSA::toBinaryVector() const {
 }
 
 PublicKeyDSA PrivateKeyDSA::derivePublicKey() {
-	return PublicKeyDSA(key_private);
+	return PublicKeyDSA(*this);
 }
 
 } /* namespace crypto */
