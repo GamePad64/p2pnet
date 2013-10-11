@@ -23,6 +23,7 @@
 
 #include <boost/asio.hpp>
 #include <thread>
+#include <deque>
 
 namespace p2pnet {
 namespace databases {
