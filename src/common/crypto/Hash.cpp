@@ -31,6 +31,7 @@ Hash::Hash(const Hash& rhash){
 }
 Hash::Hash(Hash&& rhash){
 	std::swap(hash, rhash.hash);
+	std::swap(hasher, rhash.hasher);
 }
 Hash::Hash(PublicKeyDSA dsa_pubkey) : Hash() {
 	compute(dsa_pubkey.toBinaryString());
@@ -45,7 +46,18 @@ Hash& Hash::operator =(const Hash& rhash) {
 
 Hash& Hash::operator =(Hash&& rhash) {
 	std::swap(hash, rhash.hash);
+	std::swap(hasher, rhash.hasher);
 	return *this;
+}
+
+bool Hash::operator == (const Hash& rhash){
+	return hash == rhash.hash;
+}
+
+Hash Hash::computeNew(const std::string& data) {
+	Hash h;
+	h.compute(data);
+	return h;
 }
 
 void Hash::compute(const std::string& data) {

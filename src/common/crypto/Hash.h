@@ -44,7 +44,11 @@ public:
 	Hash& operator = (const Hash& rhash);
 	Hash& operator = (Hash&& rhash);
 
+	bool operator == (const Hash& rhash);
+
+	static Hash computeNew(const std::string& data);
 	void compute(const std::string& data);
+
 	bool check(const std::string& data);
 
 	void setAsBinaryVector(binary_vector_t serialized_vector) {
