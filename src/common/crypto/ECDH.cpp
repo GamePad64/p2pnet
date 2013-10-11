@@ -28,15 +28,17 @@ ECDH::ECDH(binary_vector_t serialized_vector) {
 ECDH::~ECDH() {
 }
 
-void ECDH::renewKey() {
-	Botan::AutoSeeded_RNG rng;
-	key_private = std::make_shared<Botan::ECDH_PrivateKey>(rng, Botan::EC_Group(ecdh_curve));
+ECDH ECDH::generateNewKey() {
+	ECDH ecdh;
+	ecdh.generateKey();
+	return ecdh;
 }
 
-ECDH ECDH::generateKey() {
-	ECDH new_ecdh;
-	new_ecdh.renewKey();
-	return new_ecdh;
+void ECDH::generateKey() {
+	Botan::AutoSeeded_RNG rng;
+	key_private = std::unique_ptr<Botan::ECDH_PrivateKey>(
+			new Botan::ECDH_PrivateKey(rng, Botan::EC_Group(ecdh_curve))
+	);
 }
 
 std::string ECDH::deriveSymmetricKey(size_t key_length, std::string other_pubkey, std::string session_param) const {

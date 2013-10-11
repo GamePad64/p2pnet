@@ -25,7 +25,7 @@ namespace crypto {
 const std::string ecdh_curve = "secp256r1";
 
 class ECDH : public MathString<ECDH> {
-	std::shared_ptr<Botan::ECDH_PrivateKey> key_private;
+	std::unique_ptr<Botan::ECDH_PrivateKey> key_private;
 
 public:
 	/**
@@ -36,8 +36,8 @@ public:
 	ECDH(binary_vector_t serialized_vector);
 	virtual ~ECDH();
 
-	void renewKey();
-	static ECDH generateKey();
+	static ECDH generateNewKey();
+	void generateKey();
 
 	std::string deriveSymmetricKey(size_t key_length, std::string other_pubkey, std::string session_param) const;
 	std::string derivePublicKey() const;
