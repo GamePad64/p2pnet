@@ -28,7 +28,7 @@ class TransportSocketEndpoint;
 
 class TransportInterface : public ConfigClient {
 public:
-	TransportInterface(ConfigManager& config) : ConfigClient(config) {};
+	TransportInterface() {};
 	virtual ~TransportInterface(){};
 
 	/*
@@ -40,7 +40,7 @@ public:
 		return (getInterfaceID() == endpoint.getInterfaceID());
 	}
 
-	virtual std::shared_ptr<TransportInterfaceEndpoint> createInterfaceEndpoint() = 0;
+	virtual std::shared_ptr<TransportInterfaceEndpoint> createEndpoint() = 0;
 
 	/*
 	 * Interface network I/O functions.

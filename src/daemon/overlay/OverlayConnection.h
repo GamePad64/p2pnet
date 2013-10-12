@@ -16,7 +16,10 @@
 
 #include "TH.h"
 #include "../transport/TransportConnection.h"
-#include <forward_list>
+#include "../../common/crypto/ECDH.h"
+#include "../../common/crypto/PublicKeyDSA.h"
+#include "../protobuf/Protocol.pb.h"
+#include <deque>
 
 namespace p2pnet {
 namespace overlay {
@@ -30,6 +33,15 @@ class OverlayConnection {
 	std::deque<transport::TransportSocketEndpoint> m_tse;
 	std::deque<protocol::OverlayMessageStructure> suspended_messages;
 
+	enum States {
+		CLOSED,
+		PUBKEY_SENT,
+		PUBKEY_RECEIVED,
+		ECDH_SENT,
+		ECDH_RECEIVED,
+		ESTABLISHED
+	};
+
 	bool connected = false;
 
 public:
@@ -40,6 +52,8 @@ public:
 
 	void send(std::string data);
 	void process(std::string data, transport::TransportSocketEndpoint from);
+
+	void processConnectionMessage(protocol::OverlayMessageStructure message);
 };
 
 } /* namespace overlay */

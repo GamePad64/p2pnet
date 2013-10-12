@@ -44,7 +44,7 @@ protected:
 			size_t bytes_received,
 			std::shared_ptr<udp::endpoint> endpoint);
 public:
-	UDPTransportInterface(ConfigManager& config);
+	UDPTransportInterface();
 	virtual ~UDPTransportInterface();
 
 	virtual std::shared_ptr<TransportInterfaceEndpoint> createEndpoint();

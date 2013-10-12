@@ -16,6 +16,7 @@
 #define UDPTRANSPORTSOCKETENDPOINT_H_
 
 #include "../TransportInterface.h"
+#include "../TransportInterfaceEndpoint.h"
 #include <memory>
 #include <boost/asio.hpp>
 

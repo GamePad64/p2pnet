@@ -15,9 +15,10 @@
 #ifndef PERSONALKEYSTORAGE_H_
 #define PERSONALKEYSTORAGE_H_
 
+#include "../../common/crypto/PublicKeyDSA.h"
 #include "../../common/crypto/PrivateKeyDSA.h"
 #include "../overlay/TH.h"
-#include "../abstract/Singleton.h"
+#include "../../common/Singleton.h"
 #include "../../common/Config.h"
 #include "../../common/Loggable.h"
 
@@ -48,9 +49,10 @@ protected:
 	std::shared_ptr<crypto::PrivateKeyDSA> getPrivateKeyOfTH(overlay::TH);
 };
 
-class PersonalKeyStorage : public abstract::Singleton<PersonalKeyStorage>, public Loggable, public ConfigClient {
-	std::deque<std::unique_ptr<crypto::PrivateKeyDSA>> my_private_key_history;
-	std::deque<std::unique_ptr<overlay::TH>> my_transport_hash_history;
+class PersonalKeyStorage : public Singleton<PersonalKeyStorage>, ConfigClient, public Loggable {
+	//std::deque<std::shared_ptr<crypto::PrivateKeyDSA>> my_private_key_history;
+	//std::deque<std::shared_ptr<overlay::TH>> my_transport_hash_history;
+	std::deque<std::pair<std::shared_ptr<crypto::PrivateKeyDSA>, std::shared_ptr<overlay::TH>>> my_id_history;
 	std::mutex key_lock;
 
 	boost::asio::deadline_timer timer;

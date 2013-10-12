@@ -22,7 +22,7 @@ namespace discovery {
 
 class GenericLPD : public ConfigClient {
 public:
-	GenericLPD(ConfigManager& parent_config);
+	GenericLPD();
 	virtual ~GenericLPD();
 
 

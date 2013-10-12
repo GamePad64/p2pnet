@@ -16,6 +16,7 @@
 #define TRANSPORTINTERFACEENDPOINT_H_
 
 #include "../protobuf/NetDBEntry.pb.h"
+#include "../protobuf/Protocol.pb.h"
 #include <memory>
 
 namespace p2pnet {

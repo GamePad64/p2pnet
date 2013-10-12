@@ -22,7 +22,7 @@
 namespace p2pnet {
 namespace transport {
 
-UDPTransportInterface::UDPTransportInterface(ConfigManager& config) : TransportInterface(config), m_socket(AsioIOService::getIOService()) {
+UDPTransportInterface::UDPTransportInterface() : m_socket(AsioIOService::getIOService()) {
 	readConfig();
 	mtu = IPv4_MTU < IPv6_MTU ? IPv4_MTU : IPv6_MTU;
 

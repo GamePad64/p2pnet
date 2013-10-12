@@ -21,7 +21,7 @@
 #include <memory>
 #include <vector>
 #include <map>
-#include "../abstract/Singleton.h"
+#include "../../common/Singleton.h"
 
 namespace p2pnet {
 namespace transport {
@@ -30,7 +30,7 @@ class TransportSocketListener;
 class TransportSocketEndpoint;
 class TransportConnection;
 
-class TransportSocket : public abstract::Singleton<TransportSocket> {
+class TransportSocket : public Singleton<TransportSocket> {
 protected:
 	std::map<uint32_t, std::shared_ptr<TransportInterface>> interfaces;
 	std::map<std::string, std::shared_ptr<TransportInterface>> readable_strings_prefixes;

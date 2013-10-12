@@ -12,6 +12,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "OverlaySocket.h"
+#include "OverlayConnection.h"
 #include "../protobuf/Protocol.pb.h"
 
 namespace p2pnet {
@@ -26,9 +27,10 @@ void OverlaySocket::send(overlay::TH dest, std::string data) {
 	std::shared_ptr<OverlayConnection> connection;
 
 	if(it != m_connections.end()){
-		connection = *it;
+		connection = (*it).second;
 	}else{
 		connection = std::make_shared<OverlayConnection>(dest);
+		m_connections.insert(std::make_pair(dest, connection));
 	}
 	// TODO: some sort of DHT.
 }
@@ -42,13 +44,13 @@ void OverlaySocket::process(std::string data, transport::TransportSocketEndpoint
 		auto it = m_connections.find(packet_src_th);
 		std::shared_ptr<OverlayConnection> connection;
 		if(it != m_connections.end()){
-			connection = *it;
+			connection = (*it).second;
 		}else{
 			connection = std::make_shared<OverlayConnection>(packet_src_th);
 		}
 
 		connection->process(data, from);
-	}
+	}//else drop.
 }
 
 } /* namespace overlay */

@@ -17,7 +17,7 @@
 namespace p2pnet {
 namespace discovery {
 
-UDPLPDv6::UDPLPDv6(ConfigManager& config) : UDPLPD(config) {
+UDPLPDv6::UDPLPDv6() {
 	readConfig();
 
 	m_lpd_socket.open(ip::udp::v6());

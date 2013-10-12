@@ -25,8 +25,7 @@
 namespace p2pnet {
 namespace discovery {
 
-UDPLPD::UDPLPD(ConfigManager& config) : GenericLPD(config),
-		m_config(config),
+UDPLPD::UDPLPD() :
 		m_timer(AsioIOService::getIOService()),
 		m_lpd_socket(AsioIOService::getIOService()) {
 	m_timer_seconds = 0;

@@ -12,6 +12,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "OverlayConnection.h"
+#include "../databases/PersonalKeyStorage.h"
 #include <algorithm>
 
 namespace p2pnet {
@@ -45,10 +46,21 @@ void OverlayConnection::process(std::string data, transport::TransportSocketEndp
 	}else{
 		auto payload = message.payload();
 
-		switch(payload.message_type()){
-		case payload.KEY_REQUEST:
+		if(payload.message_type() == payload.CONNECTION_PUBKEY || payload.message_type() == payload.CONNECTION_ECDH || payload.message_type() == payload.CONNECTION_ACK){
+			processConnectionMessage(message);
+		}
+	}
+}
 
-			break;
+void OverlayConnection::processConnectionMessage(protocol::OverlayMessageStructure message) {
+	auto payload = message.payload();
+	if(payload.message_type() == payload.CONNECTION_PUBKEY){
+		protocol::OverlayMessageStructure::Payload::ConnectionPart conn_part;
+		if(conn_part.ParseFromString(payload.serialized_payload())){
+			bool ack = conn_part.ack();
+			if(crypto::Hash(crypto::PublicKeyDSA::fromBinaryString(conn_part.src_ecdsa_pubkey())) == th_endpoint){
+
+			}
 		}
 	}
 }

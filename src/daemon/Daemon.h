@@ -20,11 +20,9 @@
 #include "AsioIOService.h"
 
 #include "databases/PersonalKeyStorage.h"
-#include "messaging/SessionMap.h"
-
-#include "messaging/MessageSocket.h"
 
 #include "transport/TransportSocket.h"
+#include "overlay/OverlaySocket.h"
 
 #include "discovery/UDPLPDv4.h"
 #include "discovery/UDPLPDv6.h"
@@ -38,9 +36,9 @@ public:
 	ConfigManager config_manager;
 
 	databases::PersonalKeyStorage* m_pk_storage;
-	messaging::SessionStorage* m_sessionstorage;
 
 	transport::TransportSocket* m_transport_socket;
+	overlay::OverlaySocket* m_overlay_socket;
 
 	std::unique_ptr<discovery::UDPLPDv4> discovery_udpv4;
 	std::unique_ptr<discovery::UDPLPDv6> discovery_udpv6;

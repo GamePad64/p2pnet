@@ -12,21 +12,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "transport/udp/UDPTransportInterface.h"
 #include "Daemon.h"
 
 namespace p2pnet {
 
 Daemon::Daemon() {
-	m_netdb_storage = databases::NetDBStorage::getInstance();
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
-	m_sessionstorage = messaging::SessionStorage::getInstance();
 	m_transport_socket = transport::TransportSocket::getInstance();
+	m_overlay_socket = overlay::OverlaySocket::getInstance();
 }
 Daemon::~Daemon() {
+	m_overlay_socket->clear();
 	m_transport_socket->clear();
-	m_sessionstorage->clear();
 	m_pk_storage->clear();
-	m_netdb_storage->clear();
 }
 
 int Daemon::run() {
@@ -56,7 +55,7 @@ void Daemon::initTransportSocket() {
 void Daemon::initLPD() {
 	if(config_manager.getValue<bool>("discovery.udpv4.enabled")){
 		try {
-			discovery_udpv4 = new discovery::UDPLPDv4(config_manager);
+			discovery_udpv4 = std::unique_ptr<discovery::UDPLPDv4>(new discovery::UDPLPDv4());
 
 			discovery_udpv4->startReceiveLoop();
 			discovery_udpv4->startSendLoop();
@@ -68,7 +67,7 @@ void Daemon::initLPD() {
 
 	if(config_manager.getValue<bool>("discovery.udpv6.enabled")){
 		try {
-			discovery_udpv6 = new discovery::UDPLPDv6(config_manager);
+			discovery_udpv6 = std::unique_ptr<discovery::UDPLPDv6>(new discovery::UDPLPDv6());
 
 			discovery_udpv6->startReceiveLoop();
 			discovery_udpv6->startSendLoop();

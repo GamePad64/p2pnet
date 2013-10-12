@@ -14,6 +14,7 @@
 
 #include "PersonalKeyStorage.h"
 #include "../../common/crypto/Hash.h"
+#include "../AsioIOService.h"
 #include <string>
 #include <iostream>
 
@@ -62,26 +63,22 @@ PersonalKeyStorage::~PersonalKeyStorage() {
 
 void PersonalKeyStorage::renewKeys() {
 	// Generating all this. This should be asynchronous.
-	auto my_new_private_key = std::unique_ptr<crypto::PrivateKeyDSA>(new crypto::PrivateKeyDSA(crypto::PrivateKeyDSA::generateKey()));
-	auto my_new_transport_hash = std::unique_ptr<crypto::Hash>(new crypto::Hash(
-			crypto::Hash::compute(my_new_private_key->derivePublicKey().toBinaryString())));
+	auto my_new_private_key = std::make_shared<crypto::PrivateKeyDSA>(crypto::PrivateKeyDSA::generateNewKey());
+	auto my_new_transport_hash = std::make_shared<crypto::Hash>(crypto::Hash::computeNew(my_new_private_key->derivePublicKey().toBinaryString()));
+	auto my_id = std::make_pair(my_new_private_key, my_new_transport_hash);
 
 	// LOCK! Moving faster now!
 	key_lock.lock();
 	// Synchronous zone. Now we freeze all the system.
-	my_private_key_history.push_front(my_new_private_key);
-	my_transport_hash_history.push_front(my_new_transport_hash);
+	my_id_history.push_front(my_id);
 	// UNLOCK! It's safe now.
 	key_lock.unlock();
 
-	if(my_private_key_history.size() > getValue<unsigned int>("databases.pks.history_size") + 1 ){	//Yes, +1 means newly generated key.
-		my_private_key_history.pop_back();
-	}
-	if(my_transport_hash_history.size() > getValue<unsigned int>("databases.pks.history_size") + 1 ){	//Yes, +1 means newly computed TH.
-		my_transport_hash_history.pop_back();
+	if(my_id_history.size() > getValue<unsigned int>("databases.pks.history_size") + 1 ){	//Yes, +1 means newly generated key.
+		my_id_history.pop_back();
 	}
 
-	log() << "New keys generated. TH: " << my_transport_hash_history.front()->toBase58() << std::endl;
+	log() << "New keys generated. TH: " << my_id_history.front().second->toBase58() << std::endl;
 }
 
 void PersonalKeyStorage::loopGenerate(){
@@ -96,31 +93,38 @@ void PersonalKeyStorage::loopGenerate(){
 
 overlay::TH PersonalKeyStorage::getMyTransportHash() {
 	key_lock.lock();
-	auto ret = crypto::Hash(*(my_transport_hash_history.front()));
+	auto ret = crypto::Hash(*(my_id_history.front().second));
 	key_lock.unlock();
 	return ret;
 }
 
 crypto::PublicKeyDSA PersonalKeyStorage::getMyPublicKey() {
 	key_lock.lock();
-	auto ret = my_private_key_history.front()->derivePublicKey();
+	auto ret = my_id_history.front().first->derivePublicKey();
 	key_lock.unlock();
 	return ret;
 }
 
 crypto::PrivateKeyDSA PersonalKeyStorage::getMyPrivateKey() {
 	key_lock.lock();
-	auto ret = crypto::PrivateKeyDSA(*(my_private_key_history.front()));
+	auto ret = crypto::PrivateKeyDSA(*(my_id_history.front().first));
 	key_lock.unlock();
 	return ret;
 }
 
 std::shared_ptr<crypto::PrivateKeyDSA> PersonalKeyStorage::getPrivateKeyOfTH(overlay::TH th){
-	auto it = std::find(my_private_key_history.begin(), my_private_key_history.end(), th);
-	if(it == my_private_key_history.end()){
+	key_lock.lock();
+	auto it = std::find_if(
+			my_id_history.begin(),
+			my_id_history.end(),
+			[&] (const std::pair<std::shared_ptr<crypto::PrivateKeyDSA>, std::shared_ptr<overlay::TH>> id_pair) {
+		return *(id_pair.second) == th;
+	});
+	if(it == my_id_history.end()){
 		return nullptr;
 	}
-	auto private_key_ptr = std::make_shared<crypto::PrivateKeyDSA>(*it);
+	auto private_key_ptr = std::make_shared<crypto::PrivateKeyDSA>(*((*it).first));	// Create a copy and pass by shared_ptr.
+	key_lock.unlock();
 	return private_key_ptr;
 }
 

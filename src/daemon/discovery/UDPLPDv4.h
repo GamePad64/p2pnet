@@ -23,7 +23,7 @@ namespace discovery {
 
 class UDPLPDv4: public UDPLPD {
 public:
-	UDPLPDv4(ConfigManager& config);
+	UDPLPDv4();
 	virtual ~UDPLPDv4();
 
 	virtual void readConfig();

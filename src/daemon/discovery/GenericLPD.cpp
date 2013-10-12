@@ -17,7 +17,7 @@
 namespace p2pnet {
 namespace discovery {
 
-GenericLPD::GenericLPD(ConfigManager& parent_config) : ConfigClient(parent_config) {}
+GenericLPD::GenericLPD() {}
 GenericLPD::~GenericLPD() {}
 
 } /* namespace discovery */

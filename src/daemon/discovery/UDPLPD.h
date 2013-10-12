@@ -43,8 +43,6 @@ class UDPLPD: public GenericLPD, Loggable {
 	void send();
 	void receive();
 protected:
-	ConfigManager& m_config;
-
 	/**
 	 * This timer is used between sending two messages. Default is to wait 10 seconds.
 	 */
@@ -57,7 +55,7 @@ protected:
 	ip::udp::endpoint bind_endpoint;
 	ip::udp::endpoint target_endpoint;
 public:
-	UDPLPD(ConfigManager& config);
+	UDPLPD();
 	virtual ~UDPLPD();
 
 	// Configuration part.

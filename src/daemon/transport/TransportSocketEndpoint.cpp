@@ -38,7 +38,7 @@ TransportSocketEndpoint::TransportSocketEndpoint(const std::shared_ptr<Transport
 
 void TransportSocketEndpoint::resetEndpointByID(uint32_t id) {
 	auto interface_ptr = TransportSocket::getInstance()->getInterfaceByID(id);
-	interface_endpoint = interface_ptr->createInterfaceEndpoint();
+	interface_endpoint = interface_ptr->createEndpoint();
 }
 
 // Operators
