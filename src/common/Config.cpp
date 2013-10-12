@@ -16,6 +16,8 @@
 
 #ifdef __unix__
 #include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 #elif defined _WIN32
 #include <windows.h>
 #endif
@@ -39,57 +41,62 @@ ConfigClient::~ConfigClient() {
 }
 
 // ConfigManager
-ConfigManager::ConfigManager() : ConfigManager(getDefaultConfigFilepath()) {}
-
-ConfigManager::ConfigManager(std::string config_filepath) {
-	this->setConfigFilepath(config_filepath);
-	this->loadFromFile();
+ConfigManager::ConfigManager() {
+	config_directory = getDefaultDirectory();
+	config_file = getDefaultFile();
 }
 
 ConfigManager::~ConfigManager() {this->saveToFile();}
 
-std::string ConfigManager::getDefaultConfigFilepath() {
+std::string ConfigManager::getDefaultDirectory() {
 	// Setting up paths on multiple platforms
 
 	// First, check P2PNET_CONFIG environment variable
-	char* env_filename = getenv("P2PNET_CONFIG");
-	if(env_filename){
-		std::string s(env_filename);
-		delete[] env_filename;
+	char* env_config_directory = getenv("P2PNET_CONFIG_DIR");
+	if(env_config_directory){
+		std::string s(env_config_directory);
 		return s;
 	}
 
-	#ifdef _WIN32
-	// Windows part:
-	config_directory = getenv("AppData");
-	config_directory += "\\P2PNet\\";
-	#elif defined __unix__
-	// Linux, Mac OS X, etc.
+	std::string ret_config_directory;
+
+	#ifdef _WIN32	// Windows part:
+
+	ret_config_directory = getenv("APPDATA");
+	ret_config_directory += "\\P2PNet\\";
+
+	#elif defined __unix__	// Linux. Mac OS X and other Unix systems are not supported now (but they will be).
+
 	if(getuid() == 0){
-		config_directory = "/etc/p2pnet/";
+		ret_config_directory = "/etc/p2pnet/";
 	}else{
-		config_directory = getenv("HOME");
-		config_directory += "/.p2pnet/";
+		char* env_home_directory = getenv("HOME");
+		if(env_home_directory){
+			ret_config_directory = env_home_directory;
+		}else{	// HOME is empty or inaccessible.
+			passwd *pw = getpwuid(getuid());
+			ret_config_directory = pw->pw_dir;
+		}
+		ret_config_directory += "/.p2pnet/";
 	}
+
 	#endif
 
-	config_file = config_directory+"p2pnet.xml";
-
-	return config_file;
+	return ret_config_directory;
 }
 
-void ConfigManager::setConfigFilepath(std::string filepath){
-	log() << "Configuration path set: " << filepath << std::endl;
-	config_file = filepath;
+void ConfigManager::setDirectory(std::string directory){
+	log() << "Configuration directory set: " << directory << std::endl;
+	config_directory = directory;
 }
 
-void ConfigManager::putConfig(config_t config) {
-	config_io_mutex.lock();	// No RAII, hardcore only!
+std::string ConfigManager::getDefaultFile(){
+	return "p2pnet.xml";
+}
 
-	internal_config = config;
-	saveToFile();	// TODO: This will be created in a separate thread.
-
-	config_io_mutex.unlock();
+void ConfigManager::setFile(std::string filename){
+	log() << "Configuration file set: " << filename << std::endl;
+	config_file = filename;
 }
 
 void ConfigManager::resetToDefaults() {
@@ -102,7 +109,7 @@ void ConfigManager::loadFromFile() {
 	boost::filesystem::create_directory(config_directory);
 	config_io_mutex.lock();
 
-	std::ofstream file(config_file);
+	std::ofstream file(config_directory+config_file);
 	file.close();
 	read_xml(config_file, internal_config);
 
@@ -112,7 +119,7 @@ void ConfigManager::loadFromFile() {
 
 void ConfigManager::saveToFile() {
 	boost::filesystem::create_directory(config_directory);
-	write_xml(config_file, internal_config);
+	write_xml(config_directory+config_file, internal_config);
 	log() << "Configuration file saved" << std::endl;
 }
 

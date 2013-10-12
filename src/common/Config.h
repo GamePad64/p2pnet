@@ -48,27 +48,6 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 
 	std::mutex config_io_mutex;
 
-	/**
-	 * Returns full path to configuration file.
-	 * @note Platform-dependent. Also, if superuser, it tries to save config system-wide (in /etc).
-	 * @return
-	 */
-	void setDefaultConfigFilepath();
-
-	void resetToDefaults();
-	void loadFromFile();
-	void saveToFile();
-public:
-	ConfigManager();
-	ConfigManager(std::string config_filepath);
-	virtual ~ConfigManager();
-
-	inline config_t getConfig(){
-		return internal_config;
-	};
-
-	void putConfig(config_t config);
-
 	config_t getDefaults(){
 		config_t config;
 
@@ -94,14 +73,24 @@ public:
 		return config;
 	};
 
-	std::string getDefaultConfigFilepath();
-	void setConfigFilepath(std::string filepath);
+	std::string getDefaultDirectory();
+	void setDirectory(std::string directory);
+
+	std::string getDefaultFile();
+	void setFile(std::string filename);
+
+	void configChanged();
+
+	void resetToDefaults();
+	void loadFromFile();
+	void saveToFile();
+public:
+	ConfigManager();
+	virtual ~ConfigManager();
 
 	std::set<ConfigClient*> config_clients;
 	void registerClient(ConfigClient* client);
 	void unregisterClient(ConfigClient* client);
-
-	void configChanged();
 
 	template<class T>
 	T getValue(std::string path);
@@ -121,12 +110,12 @@ inline void ConfigClient::setValue(std::string path, T value){
 
 template< class T >
 inline T ConfigManager::getValue(std::string path) {
-	return getConfig().get(path, getDefaults().get<T>(path));
+	return internal_config.get(path, getDefaults().get<T>(path));
 }
 
 template< class T >
 inline void ConfigManager::setValue(std::string path, T value) {
-	return getConfig().put(path, value);
+	return internal_config.put(path, value);
 }
 
 } /* namespace p2pnet */
