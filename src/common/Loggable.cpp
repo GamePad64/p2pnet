@@ -11,10 +11,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "Loggable.h"
+#include <typeinfo>
 
 namespace p2pnet {
 
+std::clock_t Loggable::start_clock = 0;
 bool Loggable::clock_started = false;
 
 Loggable::Loggable() {
@@ -28,13 +31,15 @@ Loggable::Loggable(std::string component) : Loggable() {
 	custom_component_name = component;
 }
 
+Loggable::~Loggable() {}
+
 float Loggable::getTimeFromStart() {
 	std::clock_t now_clock = std::clock();
 	return (now_clock - start_clock)/CLOCKS_PER_SEC;
 }
 
 std::string Loggable::log_tag(log_class c) {
-	switch(log_class){
+	switch(c){
 	case ERROR:
 		return "(EE)";
 		break;
@@ -45,29 +50,29 @@ std::string Loggable::log_tag(log_class c) {
 }
 
 std::string Loggable::getComponentName() {
-	if(!custom_component_name){
+	if(!custom_component_name.empty()){
 		return typeid(*this).name();
 	}
 	return custom_component_name;
 }
 
 std::ostream& Loggable::log(std::string component) {
-	std::clog << "(" < getTimeFromStart() < ") [" << component << "] ";
+	std::clog << "(" << getTimeFromStart() << ") [" << component << "] ";
 	return std::clog;
 }
 
 std::ostream& Loggable::log(std::string component, log_class c) {
-	std::clog << "(" < getTimeFromStart() < ") [" << component << "] " << log_tag(c) << " ";
+	std::clog << "(" << getTimeFromStart() << ") [" << component << "] " << log_tag(c) << " ";
 	return std::clog;
 }
 
 std::ostream& Loggable::log() {
-	std::clog << "(" < getTimeFromStart() < ") [" << getComponentName() << "] ";
+	std::clog << "(" << getTimeFromStart() << ") [" << getComponentName() << "] ";
 	return std::clog;
 }
 
 std::ostream& Loggable::log(log_class c) {
-	std::clog << "(" < getTimeFromStart() < ") [" << getComponentName() << "] " << log_tag(c) << " ";
+	std::clog << "(" << getTimeFromStart() << ") [" << getComponentName() << "] " << log_tag(c) << " ";
 	return std::clog;
 }
 
