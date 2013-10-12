@@ -13,6 +13,7 @@
  */
 
 #include "PublicKeyDSA.h"
+#include "PrivateKeyDSA.h"
 #include "Hash.h"
 #include <botan/pubkey.h>
 
@@ -93,7 +94,7 @@ void PublicKeyDSA::setAsBinaryVector(binary_vector_t serialized_vector) {
 	key_public = std::unique_ptr<Botan::ECDSA_PublicKey>(pubkey);
 }
 
-const PublicKeyDSA::binary_vector_t PublicKeyDSA::toBinaryVector() const {
+PublicKeyDSA::binary_vector_t PublicKeyDSA::toBinaryVector() const {
 	std::vector<Botan::byte> pubkey_encoded_v = Botan::X509::BER_encode(*key_public);
 	binary_vector_t pubkey_encoded_bv(pubkey_encoded_v.begin(), pubkey_encoded_v.end());
 	return pubkey_encoded_bv;

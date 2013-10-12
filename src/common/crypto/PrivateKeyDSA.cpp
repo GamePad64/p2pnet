@@ -104,7 +104,7 @@ void PrivateKeyDSA::setAsBinaryVector(binary_vector_t serialized_vector) {
 	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(privkey);
 }
 
-const PrivateKeyDSA::binary_vector_t PrivateKeyDSA::toBinaryVector() const {
+PrivateKeyDSA::binary_vector_t PrivateKeyDSA::toBinaryVector() const {
 	return Botan::PKCS8::BER_encode(*key_private);
 }
 

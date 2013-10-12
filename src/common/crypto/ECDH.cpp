@@ -25,7 +25,24 @@ ECDH::ECDH(binary_vector_t serialized_vector) {
 	setAsBinaryVector(serialized_vector);
 }
 
+ECDH::ECDH(const ECDH& rvalue){
+	key_private = std::unique_ptr<Botan::ECDH_PrivateKey>(new Botan::ECDH_PrivateKey(*(rvalue.key_private)));
+}
+ECDH::ECDH(ECDH&& rvalue){
+	std::swap(key_private, rvalue.key_private);
+}
+
 ECDH::~ECDH() {
+}
+
+ECDH& ECDH::operator =(const ECDH& rvalue){
+	key_private = std::unique_ptr<Botan::ECDH_PrivateKey>(new Botan::ECDH_PrivateKey(*(rvalue.key_private)));
+	return *this;
+}
+
+ECDH& ECDH::operator =(ECDH&& rvalue){
+	std::swap(key_private, rvalue.key_private);
+	return *this;
 }
 
 ECDH ECDH::generateNewKey() {
@@ -58,10 +75,10 @@ void ECDH::setAsBinaryVector(binary_vector_t serialized_vector) {
 	Botan::DataSource_Memory botan_source(serialized_vector);
 	Botan::AutoSeeded_RNG rng;
 	Botan::ECDH_PrivateKey* privkey = dynamic_cast<Botan::ECDH_PrivateKey*>(Botan::PKCS8::load_key(botan_source, rng));
-	key_private = std::shared_ptr<Botan::ECDH_PrivateKey>(privkey);
+	key_private = std::unique_ptr<Botan::ECDH_PrivateKey>(privkey);
 }
 
-const ECDH::binary_vector_t ECDH::toBinaryVector() const {
+ECDH::binary_vector_t ECDH::toBinaryVector() const {
 	return Botan::PKCS8::BER_encode(*key_private);
 }
 

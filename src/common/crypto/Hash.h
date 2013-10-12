@@ -54,7 +54,7 @@ public:
 	void setAsBinaryVector(binary_vector_t serialized_vector) {
 		hash = serialized_vector;
 	}
-	const binary_vector_t toBinaryVector() const {
+	binary_vector_t toBinaryVector() const {
 		return hash;
 	}
 

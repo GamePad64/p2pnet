@@ -30,8 +30,11 @@ protected:
 	friend class PrivateKeyDSA;
 public:
 	PublicKeyDSA();
-	PublicKeyDSA(const PrivateKeyDSA& privkey_dsa);
+	PublicKeyDSA(const PublicKeyDSA& rvalue);
 	PublicKeyDSA(PublicKeyDSA&& rvalue);
+
+	PublicKeyDSA(const PrivateKeyDSA& privkey_dsa);
+
 	virtual ~PublicKeyDSA();
 
 	PublicKeyDSA& operator =(const PublicKeyDSA& rvalue);
@@ -48,7 +51,7 @@ public:
 	virtual std::string toPEM();
 
 	void setAsBinaryVector(binary_vector_t serialized_vector);
-	virtual const binary_vector_t toBinaryVector() const;
+	virtual binary_vector_t toBinaryVector() const;
 };
 
 } /* namespace crypto */

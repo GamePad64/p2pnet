@@ -15,12 +15,15 @@
 #ifndef PRIVATEKEYDSA_H_
 #define PRIVATEKEYDSA_H_
 
-#include "PublicKeyDSA.h"
+#include "MathString.h"
+#include <botan/ecdsa.h>
 
 namespace p2pnet {
 namespace crypto {
 
 const std::string dsa_curve = "secp256r1";
+
+class PublicKeyDSA;
 
 class PrivateKeyDSA : virtual public MathString<PrivateKeyDSA> {
 	friend class PublicKeyDSA;
@@ -46,7 +49,7 @@ public:
 	virtual std::string toPEM();
 
 	void setAsBinaryVector(binary_vector_t serialized_vector);
-	virtual const binary_vector_t toBinaryVector() const;
+	virtual binary_vector_t toBinaryVector() const;
 
 	PublicKeyDSA derivePublicKey();
 };

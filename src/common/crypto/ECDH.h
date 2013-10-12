@@ -33,8 +33,13 @@ public:
 	 * empty initializes it, generating new key pair.
 	 */
 	ECDH();
+	ECDH(const ECDH& rvalue);
+	ECDH(ECDH&& rvalue);
 	ECDH(binary_vector_t serialized_vector);
 	virtual ~ECDH();
+
+	ECDH& operator =(const ECDH& rvalue);
+	ECDH& operator =(ECDH&& rvalue);
 
 	static ECDH generateNewKey();
 	void generateKey();
@@ -43,7 +48,7 @@ public:
 	std::string derivePublicKey() const;
 
 	void setAsBinaryVector(binary_vector_t serialized_vector);
-	virtual const binary_vector_t toBinaryVector() const;
+	virtual binary_vector_t toBinaryVector() const;
 };
 
 } /* namespace crypto */

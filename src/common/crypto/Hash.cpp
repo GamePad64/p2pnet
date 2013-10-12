@@ -20,11 +20,12 @@ namespace p2pnet {
 namespace crypto {
 
 std::string Hash::getAlgoName() {
-	return hasher->name();
+	Hash h;
+	return h.hasher->name();
 }
 
 Hash::Hash() {
-	hasher = new Botan::Keccak_1600(HASH_LENGTH);
+	hasher = std::unique_ptr<Botan::Keccak_1600>(new Botan::Keccak_1600(HASH_LENGTH));
 }
 Hash::Hash(const Hash& rhash){
 	hash = rhash.hash;
