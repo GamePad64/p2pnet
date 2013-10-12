@@ -15,7 +15,7 @@
 #define LOGGABLE_H_
 
 #include <iostream>
-#include <ctime>
+#include <chrono>
 
 namespace p2pnet {
 
@@ -26,7 +26,7 @@ public:
 	};
 private:
 	static bool clock_started;
-	static std::clock_t start_clock;
+	static std::chrono::steady_clock::time_point start_clock;
 	static float getTimeFromStart();
 
 	static std::string log_tag(log_class c);

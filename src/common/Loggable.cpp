@@ -17,12 +17,12 @@
 
 namespace p2pnet {
 
-std::clock_t Loggable::start_clock = 0;
+std::chrono::steady_clock::time_point Loggable::start_clock;
 bool Loggable::clock_started = false;
 
 Loggable::Loggable() {
 	if(!clock_started){
-		start_clock = std::clock();
+		start_clock = std::chrono::steady_clock::now();
 		clock_started = true;
 	}
 }
@@ -34,8 +34,9 @@ Loggable::Loggable(std::string component) : Loggable() {
 Loggable::~Loggable() {}
 
 float Loggable::getTimeFromStart() {
-	std::clock_t now_clock = std::clock();
-	return (now_clock - start_clock)/CLOCKS_PER_SEC;
+	std::chrono::steady_clock::time_point now_clock = std::chrono::steady_clock::now();
+	auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(now_clock - start_clock);
+	return time_span.count();
 }
 
 std::string Loggable::log_tag(log_class c) {
