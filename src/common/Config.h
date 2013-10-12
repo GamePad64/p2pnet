@@ -16,6 +16,7 @@
 #define CONFIG_H_
 
 #include "Loggable.h"
+#include "Singleton.h"
 #include <boost/property_tree/ptree.hpp>
 #include <mutex>
 #include <set>
@@ -28,12 +29,11 @@ class ConfigManager;
 
 class ConfigClient {
 	friend class ConfigManager;
-	ConfigManager& parent_config_manager;
 protected:
-	ConfigClient(ConfigManager& parent_config);
+	ConfigClient();
 	virtual ~ConfigClient();
 
-	virtual void configChanged();	// It is permitted not to handle this, but it is not good though.
+	virtual void configChanged(){};	// It is permitted not to handle this, but it is not good though.
 
 	template<class T>
 	T getValue(std::string path);
@@ -41,7 +41,7 @@ protected:
 	void setValue(std::string path, T value);
 };
 
-class ConfigManager : public Loggable {
+class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 	config_t internal_config;
 	std::string config_directory;
 	std::string config_file;
@@ -111,12 +111,12 @@ public:
 
 template< class T >
 inline T ConfigClient::getValue(std::string path){
-	return parent_config_manager.getValue<T>(path);
+	return ConfigManager::getInstance()->getValue<T>(path);
 }
 
 template< class T >
 inline void ConfigClient::setValue(std::string path, T value){
-	return parent_config_manager.setValue(path, value);
+	return ConfigManager::getInstance()->setValue(path, value);
 }
 
 template< class T >

@@ -30,12 +30,12 @@
 namespace p2pnet {
 
 // ConfigClient
-ConfigClient::ConfigClient(ConfigManager& parent_config) : parent_config_manager(parent_config){
-	parent_config_manager.registerClient(this);
+ConfigClient::ConfigClient() {
+	ConfigManager::getInstance()->registerClient(this);
 }
 
 ConfigClient::~ConfigClient() {
-	parent_config_manager.unregisterClient(this);
+	ConfigManager::getInstance()->unregisterClient(this);
 }
 
 // ConfigManager
