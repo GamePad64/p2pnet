@@ -94,7 +94,7 @@ void UDPLPD::send() {
 }
 
 void UDPLPD::receive() {
-	char udp_buffer[MAX_UDP_PACKET_SIZE];
+	char* udp_buffer = new char[MAX_UDP_PACKET_SIZE];
 	auto endpoint = std::make_shared<ip::udp::endpoint>(bind_endpoint);
 	m_lpd_socket.async_receive_from(boost::asio::buffer(udp_buffer, MAX_UDP_PACKET_SIZE), *endpoint,
 			std::bind(&UDPLPD::processReceived, this, udp_buffer, std::placeholders::_2, endpoint));
