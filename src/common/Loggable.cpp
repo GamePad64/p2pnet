@@ -27,10 +27,6 @@ Loggable::Loggable() {
 	}
 }
 
-Loggable::Loggable(std::string component) : Loggable() {
-	custom_component_name = component;
-}
-
 Loggable::~Loggable() {}
 
 float Loggable::getTimeFromStart() {
@@ -51,10 +47,7 @@ std::string Loggable::log_tag(log_class c) {
 }
 
 std::string Loggable::getComponentName() {
-	if(!custom_component_name.empty()){
-		return typeid(*this).name();
-	}
-	return custom_component_name;
+	return typeid(*this).name();
 }
 
 std::ostream& Loggable::log(std::string component) {

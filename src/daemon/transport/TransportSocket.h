@@ -30,7 +30,7 @@ class TransportSocketListener;
 class TransportSocketEndpoint;
 class TransportConnection;
 
-class TransportSocket : public Singleton<TransportSocket> {
+class TransportSocket : public Singleton<TransportSocket>, public Loggable {
 protected:
 	std::map<uint32_t, std::shared_ptr<TransportInterface>> interfaces;
 	std::map<std::string, std::shared_ptr<TransportInterface>> readable_strings_prefixes;
@@ -41,6 +41,7 @@ protected:
 	 */
 	std::list<TransportSocketListener*> m_listenerlist;
 public:
+	TransportSocket();
 	virtual ~TransportSocket();
 
 	// Made it public, because interfaces, connections and other stuff have to lookup this table.

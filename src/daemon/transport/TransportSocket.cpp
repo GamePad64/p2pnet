@@ -23,6 +23,9 @@
 namespace p2pnet {
 namespace transport {
 
+TransportSocket::TransportSocket(){
+	log() << "Transport socket initialized" << std::endl;
+}
 TransportSocket::~TransportSocket(){};
 
 std::shared_ptr<TransportInterface> TransportSocket::getInterfaceByID(uint32_t id){
@@ -35,6 +38,7 @@ std::shared_ptr<TransportInterface> TransportSocket::getInterfaceByPrefix(std::s
 void TransportSocket::registerInterface(std::shared_ptr<TransportInterface> interface){
 	interfaces.insert(std::make_pair(interface->getInterfaceID(), interface));
 	readable_strings_prefixes.insert(std::make_pair(interface->getInterfacePrefix(), interface));
+	log() << interface->getInterfacePrefix() << " registered as interface #" << interface->getInterfaceID() << std::endl;
 }
 
 //void TransportSocket::updateOnReceive(TransportSocketCallback callback) {
@@ -45,7 +49,7 @@ void TransportSocket::registerInterface(std::shared_ptr<TransportInterface> inte
 
 void TransportSocket::receive() {
 	if(interfaces.empty()){
-		Loggable::log("TransportSocket", Loggable::ERROR) << "P2PNet found no interfaces on your system or all of them are disabled. The program will now terminate";
+		log(Loggable::ERROR) << "P2PNet found no interfaces on your system or all of them are disabled. The program will now terminate";
 		exit(-1);
 	}
 	for(auto& interface : interfaces | boost::adaptors::map_values){

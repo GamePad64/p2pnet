@@ -101,12 +101,12 @@ void UDPLPD::receive() {
 }
 
 void UDPLPD::startSendLoop() {
-	std::clog << "[" << getComponentName() << "] Started sending broadcasts to: " << target_endpoint << std::endl;
+	log() << "Started sending broadcasts to: " << target_endpoint << std::endl;
 	send();
 }
 
 void UDPLPD::startReceiveLoop() {
-	std::clog << "[" << getComponentName() << "] Started receiving broadcasts from: " << target_endpoint << std::endl;
+	log() << "Started receiving broadcasts from: " << target_endpoint << std::endl;
 	receive();
 }
 

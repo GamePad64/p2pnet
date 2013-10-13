@@ -30,10 +30,8 @@ private:
 	static float getTimeFromStart();
 
 	static std::string log_tag(log_class c);
-	std::string custom_component_name;
 public:
 	Loggable();
-	Loggable(std::string component);
 	virtual ~Loggable();
 
 	virtual std::string getComponentName();	// Basic implementation makes hard use of RTTI.
