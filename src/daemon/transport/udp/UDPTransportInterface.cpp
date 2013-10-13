@@ -73,7 +73,7 @@ std::string UDPTransportInterface::getInterfacePrefix() const {
 //Inherited from TransportSocket
 void UDPTransportInterface::receive() {
 	auto received_from = std::make_shared<udp::endpoint>(local);
-	char buffer[ MAX_UDP_PACKET_SIZE ];
+	char* buffer = new char[MAX_UDP_PACKET_SIZE];
 
 	m_socket.async_receive_from(boost::asio::buffer(buffer, MAX_UDP_PACKET_SIZE), *received_from,
 			boost::bind(&UDPTransportInterface::receivedMessageHandler, this, buffer,
