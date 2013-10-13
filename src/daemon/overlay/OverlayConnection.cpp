@@ -18,7 +18,9 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlayConnection::OverlayConnection(overlay::TH th) : th_endpoint(th) {}
+OverlayConnection::OverlayConnection(overlay::TH th) : th_endpoint(th) {
+	log() << "New OverlayConnection initiated with TH:" << th_endpoint.toBase58();
+}
 OverlayConnection::~OverlayConnection() {}
 
 bool OverlayConnection::isReady() const {

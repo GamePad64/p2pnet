@@ -16,7 +16,9 @@
 namespace p2pnet {
 namespace transport {
 
-TransportConnection::TransportConnection(TransportSocketEndpoint endpoint) : m_endpoint(endpoint) {}
+TransportConnection::TransportConnection(TransportSocketEndpoint endpoint) : m_endpoint(endpoint) {
+	log() << "New TransportConnection initiated with " << m_endpoint.toReadableString();
+}
 TransportConnection::~TransportConnection() {}
 
 void TransportConnection::process(std::string data) {

@@ -16,11 +16,12 @@
 
 #include "TransportSocketEndpoint.h"
 #include "../overlay/OverlaySocket.h"
+#include "../../common/Loggable.h"
 
 namespace p2pnet {
 namespace transport {
 
-class TransportConnection : public std::enable_shared_from_this<TransportConnection> {
+class TransportConnection : public std::enable_shared_from_this<TransportConnection>, public Loggable {
 protected:
 	TransportSocketEndpoint m_endpoint;
 public:
@@ -34,6 +35,8 @@ public:
 	 * @param data
 	 */
 	void process(std::string data);
+
+	std::string getComponentName(){return "TransportConnection";}
 };
 
 } /* namespace net */

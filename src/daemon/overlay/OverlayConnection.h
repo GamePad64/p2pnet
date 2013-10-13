@@ -24,7 +24,7 @@
 namespace p2pnet {
 namespace overlay {
 
-class OverlayConnection {
+class OverlayConnection : public Loggable {
 	overlay::TH th_endpoint;
 	crypto::PublicKeyDSA public_key;
 
