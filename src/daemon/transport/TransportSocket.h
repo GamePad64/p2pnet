@@ -30,7 +30,7 @@ class TransportSocketListener;
 class TransportSocketEndpoint;
 class TransportConnection;
 
-class TransportSocket : public Singleton<TransportSocket>, public Loggable {
+class TransportSocket : public Singleton<TransportSocket>, Loggable {
 protected:
 	std::map<uint32_t, std::shared_ptr<TransportInterface>> interfaces;
 	std::map<std::string, std::shared_ptr<TransportInterface>> readable_strings_prefixes;
