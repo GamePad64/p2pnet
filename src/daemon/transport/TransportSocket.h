@@ -65,6 +65,8 @@ public:
 //	void removeListener(TransportSocketListener* listener){m_listenerlist.remove(listener);};
 //	void updateOnReceive(TransportSocketCallback callback);
 
+	std::string getComponentName(){return "TransportSocket";}
+
 	// Basically, I/O
 	void receive();
 	void send(TransportSocketEndpoint endpoint, const std::string& data);

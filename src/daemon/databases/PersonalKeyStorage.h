@@ -79,6 +79,8 @@ public:
 
 	std::shared_ptr<crypto::PrivateKeyDSA> getPrivateKeyOfTH(overlay::TH th);
 
+	std::string getComponentName(){return "PersonalKeyStorage";}
+
 	void registerClient(PersonalKeyStorageClient* client);
 	void unregisterClient(PersonalKeyStorageClient* client);
 };
