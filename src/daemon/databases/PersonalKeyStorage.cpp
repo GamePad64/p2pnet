@@ -68,11 +68,11 @@ void PersonalKeyStorage::renewKeys() {
 	auto my_id = std::make_pair(my_new_private_key, my_new_transport_hash);
 
 	// LOCK! Moving faster now!
-	key_lock.lock();
+	//key_lock.lock();
 	// Synchronous zone. Now we freeze all the system.
 	my_id_history.push_front(my_id);
 	// UNLOCK! It's safe now.
-	key_lock.unlock();
+	//key_lock.unlock();
 
 	if(my_id_history.size() > getValue<unsigned int>("databases.pks.history_size") + 1 ){	//Yes, +1 means newly generated key.
 		my_id_history.pop_back();
@@ -92,28 +92,28 @@ void PersonalKeyStorage::loopGenerate(){
 }
 
 overlay::TH PersonalKeyStorage::getMyTransportHash() {
-	key_lock.lock();
+	//key_lock.lock();
 	auto ret = crypto::Hash(*(my_id_history.front().second));
-	key_lock.unlock();
+	//key_lock.unlock();
 	return ret;
 }
 
 crypto::PublicKeyDSA PersonalKeyStorage::getMyPublicKey() {
-	key_lock.lock();
+	//key_lock.lock();
 	auto ret = my_id_history.front().first->derivePublicKey();
-	key_lock.unlock();
+	//key_lock.unlock();
 	return ret;
 }
 
 crypto::PrivateKeyDSA PersonalKeyStorage::getMyPrivateKey() {
-	key_lock.lock();
+	//key_lock.lock();
 	auto ret = crypto::PrivateKeyDSA(*(my_id_history.front().first));
-	key_lock.unlock();
+	//key_lock.unlock();
 	return ret;
 }
 
 std::shared_ptr<crypto::PrivateKeyDSA> PersonalKeyStorage::getPrivateKeyOfTH(overlay::TH th){
-	key_lock.lock();
+	//key_lock.lock();
 	auto it = std::find_if(
 			my_id_history.begin(),
 			my_id_history.end(),
@@ -124,7 +124,7 @@ std::shared_ptr<crypto::PrivateKeyDSA> PersonalKeyStorage::getPrivateKeyOfTH(ove
 		return nullptr;
 	}
 	auto private_key_ptr = std::make_shared<crypto::PrivateKeyDSA>(*((*it).first));	// Create a copy and pass by shared_ptr.
-	key_lock.unlock();
+	//key_lock.unlock();
 	return private_key_ptr;
 }
 

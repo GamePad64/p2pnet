@@ -53,7 +53,7 @@ class PersonalKeyStorage : public Singleton<PersonalKeyStorage>, ConfigClient, p
 	//std::deque<std::shared_ptr<crypto::PrivateKeyDSA>> my_private_key_history;
 	//std::deque<std::shared_ptr<overlay::TH>> my_transport_hash_history;
 	std::deque<std::pair<std::shared_ptr<crypto::PrivateKeyDSA>, std::shared_ptr<overlay::TH>>> my_id_history;
-	std::mutex key_lock;
+	//std::mutex key_lock;
 
 	boost::asio::deadline_timer timer;
 
