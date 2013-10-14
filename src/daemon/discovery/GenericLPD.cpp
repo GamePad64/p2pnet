@@ -13,12 +13,31 @@
  */
 
 #include "GenericLPD.h"
+#include "../protobuf/Protocol.pb.h"
+#include "../databases/PersonalKeyStorage.h"
+#include "../transport/TransportConnection.h"
+#include "../transport/TransportSocket.h"
 
 namespace p2pnet {
 namespace discovery {
 
 GenericLPD::GenericLPD() {}
 GenericLPD::~GenericLPD() {}
+
+void GenericLPD::handshake(transport::TransportSocketEndpoint endpoint) {
+	auto transport_socket = transport::TransportSocket::getInstance();
+
+	protocol::OverlayMessageStructure message;
+	message.mutable_header()->set_src_th(databases::PersonalKeyStorage::getInstance()->getMyTransportHash().toBinaryString());
+	message.mutable_payload()->set_message_type(message.payload().CONNECTION_PUBKEY);
+
+	protocol::OverlayMessageStructure_Payload_ConnectionPart payload_s;
+	payload_s.set_src_ecdsa_pubkey(databases::PersonalKeyStorage::getInstance()->getMyPublicKey().toBinaryString());
+
+	message.mutable_payload()->set_serialized_payload(payload_s.SerializeAsString());
+
+	transport_socket->send(endpoint, message.SerializeAsString());
+}
 
 } /* namespace discovery */
 } /* namespace p2pnet */

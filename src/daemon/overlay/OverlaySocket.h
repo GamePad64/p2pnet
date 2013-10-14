@@ -17,13 +17,14 @@
 #include "TH.h"
 #include "../transport/TransportSocketEndpoint.h"
 #include "../../common/Singleton.h"
+#include "../../common/Loggable.h"
 
 namespace p2pnet {
 namespace overlay {
 
 class OverlayConnection;
 
-class OverlaySocket : public Singleton<OverlaySocket> {
+class OverlaySocket : public Singleton<OverlaySocket>, Loggable {
 protected:
 	std::map<overlay::TH, std::shared_ptr<OverlayConnection>> m_connections;
 	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// For future use.

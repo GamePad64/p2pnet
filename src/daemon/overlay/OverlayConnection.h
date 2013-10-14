@@ -54,6 +54,8 @@ public:
 	void process(std::string data, transport::TransportSocketEndpoint from);
 
 	void processConnectionMessage(protocol::OverlayMessageStructure message);
+
+	std::string getComponentName(){return "OverlayConnection";}
 };
 
 } /* namespace overlay */

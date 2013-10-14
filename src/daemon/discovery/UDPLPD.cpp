@@ -70,6 +70,7 @@ void UDPLPD::processReceived(char* recv_buffer,
 		auto interface_endpoint = std::make_shared<transport::UDPTransportInterfaceEndpoint>(dest_endpoint);
 		transport::TransportSocketEndpoint socket_endpoint(interface_endpoint);
 		// Well, trying to handshake it.
+		handshake(socket_endpoint);
 	} catch(errors::MessageReject *e) {
 		log(ERROR) << e->what();
 		delete e;

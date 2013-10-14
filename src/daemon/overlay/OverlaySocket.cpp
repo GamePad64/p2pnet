@@ -47,6 +47,7 @@ void OverlaySocket::process(std::string data, transport::TransportSocketEndpoint
 			connection = (*it).second;
 		}else{
 			connection = std::make_shared<OverlayConnection>(packet_src_th);
+			m_connections.insert(std::make_pair(packet_src_th, connection));
 		}
 
 		connection->process(data, from);

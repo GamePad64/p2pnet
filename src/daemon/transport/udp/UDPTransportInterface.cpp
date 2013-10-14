@@ -60,6 +60,8 @@ void UDPTransportInterface::receivedMessageHandler(char* buffer,
 	}else{
 		connection_it->second->process(message);
 	}
+
+	receive();
 }
 
 std::shared_ptr<TransportInterfaceEndpoint> UDPTransportInterface::createEndpoint() {

@@ -16,8 +16,6 @@
 #define UDPLPD_H_
 
 #include "GenericLPD.h"
-#include "../../common/Config.h"
-#include "../../common/Loggable.h"
 #include "../protobuf/Protocol.pb.h"
 #include <boost/asio.hpp>
 #include <string>
@@ -27,7 +25,7 @@ using namespace boost::asio;
 namespace p2pnet {
 namespace discovery {
 
-class UDPLPD: public GenericLPD, Loggable {
+class UDPLPD: public GenericLPD {
 	void waitBeforeSend();
 
 	/**

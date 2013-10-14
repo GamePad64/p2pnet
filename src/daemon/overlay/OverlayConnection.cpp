@@ -19,7 +19,7 @@ namespace p2pnet {
 namespace overlay {
 
 OverlayConnection::OverlayConnection(overlay::TH th) : th_endpoint(th) {
-	log() << "New OverlayConnection initiated with TH:" << th_endpoint.toBase58();
+	log() << "New Overlay Connection initiated with TH:" << th_endpoint.toBase58() << std::endl;
 }
 OverlayConnection::~OverlayConnection() {}
 
@@ -37,6 +37,9 @@ void OverlayConnection::process(std::string data, transport::TransportSocketEndp
 
 	auto it = std::find(m_tse.begin(), m_tse.end(), from);
 	if(it == m_tse.end()){
+		m_tse.push_front(from);
+	}else{
+		m_tse.erase(it);	// TODO: some spoofing attack could be attempted here. For example, one packet from malicious ip could block any connection to this peer.
 		m_tse.push_front(from);
 	}
 

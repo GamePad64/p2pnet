@@ -16,16 +16,18 @@
 #define GENERICLPD_H_
 
 #include "../../common/Config.h"
+#include "../../common/Loggable.h"
+#include "../transport/TransportSocketEndpoint.h"
 
 namespace p2pnet {
 namespace discovery {
 
-class GenericLPD : public ConfigClient {
+class GenericLPD : public ConfigClient, public Loggable {
 public:
 	GenericLPD();
 	virtual ~GenericLPD();
 
-
+	void handshake(transport::TransportSocketEndpoint endpoint);
 };
 
 } /* namespace discovery */
