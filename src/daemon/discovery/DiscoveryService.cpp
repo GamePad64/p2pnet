@@ -12,7 +12,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "GenericLPD.h"
+#include "DiscoveryService.h"
 #include "../protobuf/Protocol.pb.h"
 #include "../databases/PersonalKeyStorage.h"
 #include "../transport/TransportConnection.h"
@@ -21,10 +21,10 @@
 namespace p2pnet {
 namespace discovery {
 
-GenericLPD::GenericLPD() {}
-GenericLPD::~GenericLPD() {}
+DiscoveryService::DiscoveryService() {}
+DiscoveryService::~DiscoveryService() {}
 
-void GenericLPD::handshake(transport::TransportSocketEndpoint endpoint) {
+void DiscoveryService::handshake(transport::TransportSocketEndpoint endpoint) {
 	auto transport_socket = transport::TransportSocket::getInstance();
 
 	protocol::OverlayMessageStructure message;

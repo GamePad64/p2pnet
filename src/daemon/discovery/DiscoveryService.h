@@ -12,8 +12,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GENERICLPD_H_
-#define GENERICLPD_H_
+#ifndef DISCOVERYSERVICE_H_
+#define DISCOVERYSERVICE_H_
 
 #include "../../common/Config.h"
 #include "../../common/Loggable.h"
@@ -22,14 +22,14 @@
 namespace p2pnet {
 namespace discovery {
 
-class GenericLPD : public ConfigClient, public Loggable {
+class DiscoveryService : public ConfigClient, public Loggable {
 public:
-	GenericLPD();
-	virtual ~GenericLPD();
+	DiscoveryService();
+	virtual ~DiscoveryService();
 
 	void handshake(transport::TransportSocketEndpoint endpoint);
 };
 
 } /* namespace discovery */
 } /* namespace p2pnet */
-#endif /* GENERICLPD_H_ */
+#endif /* DISCOVERYSERVICE_H_ */

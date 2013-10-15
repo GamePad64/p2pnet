@@ -30,7 +30,7 @@ Daemon::~Daemon() {
 
 int Daemon::run() {
 	this->initTransportSocket();
-	this->initLPD();
+	this->initDiscoveryServices();
 	AsioIOService::getIOService().run();
 	return 0;
 }
@@ -52,7 +52,7 @@ void Daemon::initTransportSocket() {
 	m_transport_socket->receive();
 }
 
-void Daemon::initLPD() {
+void Daemon::initDiscoveryServices() {
 	if(config_manager.getValue<bool>("discovery.udpv4.enabled")){
 		try {
 			discovery_udpv4 = std::unique_ptr<discovery::UDPLPDv4>(new discovery::UDPLPDv4());

@@ -31,7 +31,7 @@ namespace p2pnet {
 
 class Daemon : public Loggable {
 	void initTransportSocket();
-	void initLPD();
+	void initDiscoveryServices();
 public:
 	ConfigManager config_manager;
 
