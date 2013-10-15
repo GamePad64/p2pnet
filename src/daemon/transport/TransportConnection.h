@@ -32,9 +32,12 @@ public:
 	/**
 	 * Used for transferring data from TransportConnection to OverlayConnection.
 	 * This method is something like an elevator, transferring data from low-level class to high-level.
+	 * May be overrided to provide some additional functionality. For ex. UDP ping.
 	 * @param data
 	 */
-	void process(std::string data);
+	virtual void process(std::string data);
+
+	virtual bool connected() = 0;
 
 	std::string getComponentName(){return "TransportConnection";}
 };

@@ -14,6 +14,10 @@
 #ifndef UDPTRANSPORTCONNECTION_H_
 #define UDPTRANSPORTCONNECTION_H_
 
+#define KEEP_ALIVE_MSG "UDP_KEEP_ALIVE"
+#define SEND_TIMER 5
+#define RECEIVE_TIMEOUT 10
+
 #include "../TransportConnection.h"
 
 namespace p2pnet {
@@ -23,12 +27,20 @@ class UDPTransportInterface;
 
 class UDPTransportConnection : public TransportConnection {
 	UDPTransportInterface* m_parent_interface;
+
+	bool m_connected = false;
+	boost::asio::deadline_timer conn_send_timer;	// Send "keep-alive" every 5 seconds.
+	boost::asio::deadline_timer conn_receive_timeout;	// Wait for "keep-alive" every 10 seconds.
+
+	void sendKeepAlive();
 public:
 	UDPTransportConnection(TransportSocketEndpoint endpoint) = delete;
 	UDPTransportConnection(TransportSocketEndpoint endpoint, UDPTransportInterface* parent_interface);
 	virtual ~UDPTransportConnection();
 
 	virtual void send(std::string data);
+	virtual void process(std::string data);
+	virtual bool connected();
 };
 
 } /* namespace transport */

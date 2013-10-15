@@ -17,14 +17,42 @@
 namespace p2pnet {
 namespace transport {
 
-UDPTransportConnection::UDPTransportConnection(TransportSocketEndpoint endpoint, UDPTransportInterface* parent_interface) : TransportConnection(endpoint) {
+UDPTransportConnection::UDPTransportConnection(TransportSocketEndpoint endpoint, UDPTransportInterface* parent_interface) :
+		TransportConnection(endpoint),
+		conn_send_timer(AsioIOService::getIOService()),
+		conn_receive_timeout(AsioIOService::getIOService()) {
 	m_parent_interface = parent_interface;
+
+	sendKeepAlive();
 }
 
 UDPTransportConnection::~UDPTransportConnection() {}
 
+void UDPTransportConnection::sendKeepAlive() {
+	send(KEEP_ALIVE_MSG);
+
+	conn_send_timer.expires_from_now(boost::posix_time::seconds(SEND_TIMER));
+	conn_send_timer.async_wait(std::bind(&UDPTransportConnection::sendKeepAlive, this));
+}
+
 void UDPTransportConnection::send(std::string data) {
 	m_parent_interface->send(m_endpoint, data);
+}
+
+void UDPTransportConnection::process(std::string data) {
+	conn_receive_timeout.expires_from_now(boost::posix_time::seconds(RECEIVE_TIMEOUT));
+	conn_receive_timeout.async_wait([&](const boost::system::error_code& error){
+		if(error != boost::asio::error::operation_aborted)
+			m_connected = false;
+	});
+	m_connected = true;
+
+	if(data != KEEP_ALIVE_MSG)
+		this->TransportConnection::process(data);
+}
+
+bool UDPTransportConnection::connected() {
+	return m_connected;
 }
 
 } /* namespace transport */
