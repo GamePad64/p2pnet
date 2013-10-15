@@ -24,6 +24,8 @@ public:
 	BootstrapDiscovery();
 	virtual ~BootstrapDiscovery();
 
+	std::string getComponentName(){return "BootstrapDiscovery";}
+
 	void run();
 };
 

@@ -40,7 +40,19 @@ void UDPTransportInterface::readConfig() {
 	local.port(getValue<unsigned short>("transport.udp.port"));
 }
 
-void UDPTransportInterface::sentMessageHandler(std::string data, std::shared_ptr<udp::endpoint> endpoint) {}
+void UDPTransportInterface::sentMessageHandler(std::string data, std::shared_ptr<udp::endpoint> endpoint) {
+	auto interface_endpoint_ptr = std::make_shared<UDPTransportInterfaceEndpoint>(*endpoint);
+	TransportSocketEndpoint socket_endpoint(interface_endpoint_ptr);
+
+	auto connection_it = TransportSocket::getInstance()->m_connections.find(socket_endpoint);
+	std::shared_ptr<transport::UDPTransportConnection> connection_ptr;
+
+	if(connection_it == TransportSocket::getInstance()->m_connections.end()){
+		connection_ptr = std::make_shared<UDPTransportConnection>(socket_endpoint, this);
+		TransportSocket::getInstance()->m_connections.insert(std::make_pair(socket_endpoint, connection_ptr));
+	}
+}
+
 void UDPTransportInterface::receivedMessageHandler(char* buffer,
 		size_t bytes_received,
 		std::shared_ptr<udp::endpoint> endpoint) {
@@ -52,14 +64,15 @@ void UDPTransportInterface::receivedMessageHandler(char* buffer,
 	TransportSocketEndpoint socket_endpoint(interface_endpoint_ptr);
 
 	auto connection_it = TransportSocket::getInstance()->m_connections.find(socket_endpoint);
+	std::shared_ptr<transport::UDPTransportConnection> connection_ptr;
 
 	if(connection_it == TransportSocket::getInstance()->m_connections.end()){
-		auto new_connection = std::make_shared<UDPTransportConnection>(socket_endpoint, this);
-		TransportSocket::getInstance()->m_connections.insert(std::make_pair(socket_endpoint, new_connection));
-		new_connection->process(message);
+		connection_ptr = std::make_shared<UDPTransportConnection>(socket_endpoint, this);
+		TransportSocket::getInstance()->m_connections.insert(std::make_pair(socket_endpoint, connection_ptr));
 	}else{
-		connection_it->second->process(message);
+		connection_ptr = std::static_pointer_cast<transport::UDPTransportConnection>(connection_it->second);
 	}
+	connection_ptr->process(message);
 
 	receive();
 }
