@@ -23,12 +23,31 @@ OverlayConnection::OverlayConnection(overlay::TH th) : th_endpoint(th) {
 }
 OverlayConnection::~OverlayConnection() {}
 
+void OverlayConnection::sendRaw(std::string data) {
+	auto& transport_socket_connections = transport::TransportSocket::getInstance()->m_connections;
+
+	std::shared_ptr<transport::TransportConnection> conn;
+
+	// Searching for at least one "living" TransportConnection
+	for(auto& conn_it : m_tse){
+		auto sock_it = transport_socket_connections.find(conn_it);
+		if(sock_it->second->connected()){
+			conn = sock_it->second;
+			break;
+		}
+	}
+
+	if(!conn){
+		suspended_connection_messages.push_front(data);
+	}
+	conn->send(data);
+}
+
 bool OverlayConnection::isReady() const {
 	return !(m_tse.empty());
 }
 
 void OverlayConnection::send(std::string data) {
-
 }
 
 void OverlayConnection::process(std::string data, transport::TransportSocketEndpoint from) {
@@ -62,9 +81,21 @@ void OverlayConnection::processConnectionMessage(protocol::OverlayMessageStructu
 	if(payload.message_type() == payload.CONNECTION_PUBKEY){
 		protocol::OverlayMessageStructure::Payload::ConnectionPart conn_part;
 		if(conn_part.ParseFromString(payload.serialized_payload())){
-			bool ack = conn_part.ack();
-			if(crypto::Hash(crypto::PublicKeyDSA::fromBinaryString(conn_part.src_ecdsa_pubkey())) == th_endpoint){
+			bool ack = conn_part.ack();	// It means, that this is an answer.
 
+			auto message_dsa_pubkey = crypto::PublicKeyDSA::fromBinaryString(conn_part.src_ecdsa_pubkey());
+
+			if(crypto::Hash(message_dsa_pubkey) == th_endpoint && message_dsa_pubkey.validate()){
+				public_key = message_dsa_pubkey;
+			}else{
+				return;	// Drop.
+			}
+
+			if(!ack){	// We received PUBKEY message, so we need to send back PUBKEY_ACK.
+				state = PUBKEY_RECEIVED;
+			}else{
+				// We received PUBKEY_ACK message, so we need to send back ECDH.
+				state = ECDH_SENT;
 			}
 		}
 	}

@@ -31,7 +31,8 @@ class OverlayConnection : public Loggable {
 	crypto::ECDH ecdh_key;
 
 	std::deque<transport::TransportSocketEndpoint> m_tse;
-	std::deque<protocol::OverlayMessageStructure> suspended_messages;
+	std::deque<std::string> suspended_raw_messages;
+	std::deque<std::string> suspended_encrypted_messages;
 
 	enum States {
 		CLOSED,
@@ -40,9 +41,14 @@ class OverlayConnection : public Loggable {
 		ECDH_SENT,
 		ECDH_RECEIVED,
 		ESTABLISHED
-	};
+	} state = CLOSED;
 
-	bool connected = false;
+	/**
+	 * It is a function, that tries to manage TransportConnection directly.
+	 * This function is about connectivity, and "send" is about encryption.
+	 * @param data
+	 */
+	void sendRaw(std::string data);
 
 public:
 	OverlayConnection(overlay::TH th);
