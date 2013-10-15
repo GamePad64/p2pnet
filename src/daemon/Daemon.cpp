@@ -53,6 +53,11 @@ void Daemon::initTransportSocket() {
 }
 
 void Daemon::initDiscoveryServices() {
+	if(config_manager.getValue<std::string>("discovery.bootstrap.filename") != ""){
+		discovery_bootstrap = std::unique_ptr<discovery::BootstrapDiscovery>(new discovery::BootstrapDiscovery());
+		discovery_bootstrap->run();
+	}
+
 	if(config_manager.getValue<bool>("discovery.udpv4.enabled")){
 		try {
 			discovery_udpv4 = std::unique_ptr<discovery::UDPLPDv4>(new discovery::UDPLPDv4());

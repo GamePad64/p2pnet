@@ -44,6 +44,7 @@ ConfigClient::~ConfigClient() {
 ConfigManager::ConfigManager() {
 	config_directory = getDefaultDirectory();
 	config_file = getDefaultFile();
+	loadFromFile();
 }
 
 ConfigManager::~ConfigManager() {this->saveToFile();}

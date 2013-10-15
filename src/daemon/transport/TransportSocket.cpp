@@ -16,6 +16,7 @@
 #include "TransportSocketEndpoint.h"
 #include "TransportConnection.h"
 #include "../../common/Loggable.h"
+#include "../errors/NoInterface.h"
 #include <boost/range/adaptor/map.hpp>
 #include <iostream>
 #include <cstdlib>
@@ -29,10 +30,18 @@ TransportSocket::TransportSocket(){
 TransportSocket::~TransportSocket(){};
 
 std::shared_ptr<TransportInterface> TransportSocket::getInterfaceByID(uint32_t id){
-	return interfaces[id];
+	auto it = interfaces.find(id);
+	if(it == interfaces.end()){
+		throw new errors::NoInterface();
+	}
+	return it->second;
 }
 std::shared_ptr<TransportInterface> TransportSocket::getInterfaceByPrefix(std::string prefix) {
-	return readable_strings_prefixes[prefix];
+	auto it = readable_strings_prefixes.find(prefix);
+	if(it == readable_strings_prefixes.end()){
+		throw new errors::NoInterface();
+	}
+	return it->second;
 }
 
 void TransportSocket::registerInterface(std::shared_ptr<TransportInterface> interface){

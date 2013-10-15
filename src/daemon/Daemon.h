@@ -24,6 +24,7 @@
 #include "transport/TransportSocket.h"
 #include "overlay/OverlaySocket.h"
 
+#include "discovery/BootstrapDiscovery.h"
 #include "discovery/UDPLPDv4.h"
 #include "discovery/UDPLPDv6.h"
 
@@ -40,6 +41,7 @@ public:
 	transport::TransportSocket* m_transport_socket;
 	overlay::OverlaySocket* m_overlay_socket;
 
+	std::unique_ptr<discovery::BootstrapDiscovery> discovery_bootstrap;
 	std::unique_ptr<discovery::UDPLPDv4> discovery_udpv4;
 	std::unique_ptr<discovery::UDPLPDv6> discovery_udpv6;
 
