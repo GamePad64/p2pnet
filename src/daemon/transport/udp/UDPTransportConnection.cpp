@@ -14,6 +14,8 @@
 #include "UDPTransportConnection.h"
 #include "UDPTransportInterface.h"
 
+#include "../../AsioIOService.h"
+
 namespace p2pnet {
 namespace transport {
 

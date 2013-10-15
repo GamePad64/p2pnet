@@ -14,6 +14,8 @@
 #ifndef UDPTRANSPORTCONNECTION_H_
 #define UDPTRANSPORTCONNECTION_H_
 
+#include <boost/asio.hpp>
+
 #define KEEP_ALIVE_MSG "UDP_KEEP_ALIVE"
 #define SEND_TIMER 5
 #define RECEIVE_TIMEOUT 10
