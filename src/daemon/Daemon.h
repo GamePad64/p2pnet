@@ -34,7 +34,7 @@ class Daemon : public Loggable {
 	void initTransportSocket();
 	void initDiscoveryServices();
 public:
-	ConfigManager config_manager;
+	ConfigManager* config_manager;
 
 	databases::PersonalKeyStorage* m_pk_storage;
 

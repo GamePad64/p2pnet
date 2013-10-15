@@ -25,18 +25,18 @@ BootstrapDiscovery::BootstrapDiscovery() {}
 BootstrapDiscovery::~BootstrapDiscovery() {}
 
 void BootstrapDiscovery::run(){
+	log() << "Starting bootstrap" << std::endl;
 	std::fstream bootstrapfile(ConfigManager::getInstance()->getDirectory()+getValue<std::string>("discovery.bootstrap.filename"));
 
 	std::string peer_readable_tse;
 
 	while(getline(bootstrapfile, peer_readable_tse)){
-		auto transport_socket = transport::TransportSocket::getInstance();
 		transport::TransportSocketEndpoint tse;
 		try {
 			tse.fromReadableString(peer_readable_tse);
 			handshake(tse);
 		} catch(errors::NoInterface* e){
-			log() << e->what();
+			log() << e->what() << std::endl;
 			delete e;
 		}
 	}

@@ -18,6 +18,7 @@
 namespace p2pnet {
 
 Daemon::Daemon() {
+	config_manager = ConfigManager::getInstance();
 	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 	m_transport_socket = transport::TransportSocket::getInstance();
 	m_overlay_socket = overlay::OverlaySocket::getInstance();
@@ -26,6 +27,7 @@ Daemon::~Daemon() {
 	m_overlay_socket->clear();
 	m_transport_socket->clear();
 	m_pk_storage->clear();
+	config_manager->clear();
 }
 
 int Daemon::run() {
@@ -40,7 +42,7 @@ void Daemon::initTransportSocket() {
 	m_transport_socket = transport::TransportSocket::getInstance();
 
 	// Creating interfaces
-	if(config_manager.getValue<bool>("transport.udp.enabled")){
+	if(config_manager->getValue<bool>("transport.udp.enabled")){
 		try {
 			auto m_udp_interface = std::make_shared<transport::UDPTransportInterface>();
 			m_transport_socket->registerInterface(m_udp_interface);
@@ -53,12 +55,12 @@ void Daemon::initTransportSocket() {
 }
 
 void Daemon::initDiscoveryServices() {
-	if(config_manager.getValue<std::string>("discovery.bootstrap.filename") != ""){
+	if(config_manager->getValue<std::string>("discovery.bootstrap.filename") != ""){
 		discovery_bootstrap = std::unique_ptr<discovery::BootstrapDiscovery>(new discovery::BootstrapDiscovery());
 		discovery_bootstrap->run();
 	}
 
-	if(config_manager.getValue<bool>("discovery.udpv4.enabled")){
+	if(config_manager->getValue<bool>("discovery.udpv4.enabled")){
 		try {
 			discovery_udpv4 = std::unique_ptr<discovery::UDPLPDv4>(new discovery::UDPLPDv4());
 
@@ -70,7 +72,7 @@ void Daemon::initDiscoveryServices() {
 		}
 	}
 
-	if(config_manager.getValue<bool>("discovery.udpv6.enabled")){
+	if(config_manager->getValue<bool>("discovery.udpv6.enabled")){
 		try {
 			discovery_udpv6 = std::unique_ptr<discovery::UDPLPDv6>(new discovery::UDPLPDv6());
 
