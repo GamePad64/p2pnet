@@ -44,7 +44,9 @@ ConfigClient::~ConfigClient() {
 ConfigManager::ConfigManager() {
 	config_directory = getDefaultDirectory();
 	config_file = getDefaultFile();
+
 	loadFromFile();
+	write_xml(config_directory+"defaults.xml", getDefaults());
 }
 
 ConfigManager::~ConfigManager() {this->saveToFile();}
@@ -107,19 +109,23 @@ void ConfigManager::resetToDefaults() {
 }
 
 void ConfigManager::loadFromFile() {
-	boost::filesystem::create_directory(config_directory);
+	boost::filesystem::create_directories(config_directory);
 	config_io_mutex.lock();
 
-	std::ofstream file(config_directory+config_file);
+	std::fstream file(config_directory+config_file);
+	try {
+		read_xml(file, internal_config);
+	}catch(boost::property_tree::file_parser_error& parser_error){
+		log() << "Configuration file not found. Using default values." << std::endl;
+	}
 	file.close();
-	read_xml(config_file, internal_config);
 
 	config_io_mutex.unlock();
 	log() << "Configuration file loaded" << std::endl;
 }
 
 void ConfigManager::saveToFile() {
-	boost::filesystem::create_directory(config_directory);
+	boost::filesystem::create_directories(config_directory);
 	write_xml(config_directory+config_file, internal_config);
 	log() << "Configuration file saved" << std::endl;
 }

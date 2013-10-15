@@ -97,6 +97,8 @@ public:
 	std::string getDirectory();
 	std::string getFile();
 
+	std::string getComponentName(){return "ConfigManager";}
+
 	template<class T>
 	T getValue(std::string path);
 	template<class T>
