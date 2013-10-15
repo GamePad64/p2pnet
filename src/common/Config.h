@@ -92,6 +92,9 @@ public:
 	void registerClient(ConfigClient* client);
 	void unregisterClient(ConfigClient* client);
 
+	std::string getDirectory();
+	std::string getFile();
+
 	template<class T>
 	T getValue(std::string path);
 	template<class T>

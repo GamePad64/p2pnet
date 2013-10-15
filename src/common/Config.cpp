@@ -131,6 +131,13 @@ void ConfigManager::unregisterClient(ConfigClient* client) {
 	config_clients.erase(client);
 }
 
+std::string ConfigManager::getDirectory(){
+	return config_directory;
+}
+std::string ConfigManager::getFile(){
+	return config_file;
+}
+
 void ConfigManager::configChanged() {
 	for(auto client : config_clients){
 		client->configChanged();
