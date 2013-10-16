@@ -29,6 +29,7 @@ class OverlayConnection : public Loggable {
 	crypto::PublicKeyDSA public_key;
 
 	crypto::ECDH ecdh_key;
+	crypto::AES aes_key;
 
 	std::deque<transport::TransportSocketEndpoint> m_tse;
 	// This is about messages, that we can't deliver, because all the TransportSockets are inactive.
@@ -64,6 +65,7 @@ public:
 
 	void processConnectionMessage(protocol::OverlayMessageStructure message);
 	void processConnectionPubkeyMessage(protocol::OverlayMessageStructure message);
+	void processConnectionECDHMessage(protocol::OverlayMessageStructure message);
 
 	std::string getComponentName(){return "OverlayConnection";}
 };

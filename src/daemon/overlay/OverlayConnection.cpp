@@ -65,13 +65,22 @@ void OverlayConnection::send(std::string data) {
 }
 
 void OverlayConnection::process(std::string data, transport::TransportSocketEndpoint from) {
+	addTransportSocketEndpoint(from);
+
 	protocol::OverlayMessageStructure message;
 	message.ParseFromString(data);
 
-	addTransportSocketEndpoint(from);
-
 	auto pks = databases::PersonalKeyStorage::getInstance();
 	overlay::TH dest_th = overlay::TH::fromBinaryString(message.header().dest_th());
+
+	if( (!(message.header().has_dest_th()) &&
+			message.payload().message_type() == message.payload().CONNECTION_PUBKEY) ){
+		/*
+		 * This is a situation, in which we accept messages with anonymous destination:
+		 * When we are receiving CONNECTION_PUBKEY.
+		 */
+		processConnectionMessage(message);
+	}
 
 	if(pks->getPrivateKeyOfTH(dest_th) == nullptr){
 		// This message is completely stale, or it is intended to be retransmitted.
@@ -134,6 +143,51 @@ void OverlayConnection::processConnectionPubkeyMessage(protocol::OverlayMessageS
 		sendRaw(new_message.SerializeAsString());
 	}
 }
+
+/*void OverlayConnection::processConnectionECDHMessage(protocol::OverlayMessageStructure message){
+	auto payload = message.payload();
+	protocol::OverlayMessageStructure::Payload::ConnectionPart conn_part;
+	if(conn_part.ParseFromString(payload.serialized_payload())){
+		bool ack = conn_part.ack();	// It means, that this is an answer.
+
+		auto message_dsa_pubkey = crypto::PublicKeyDSA::fromBinaryString(conn_part.src_ecdsa_pubkey());
+
+		if((crypto::Hash(message_dsa_pubkey) == th_endpoint) && message_dsa_pubkey.validate()){
+			log() << "Received public key from: TH:" << th_endpoint.toBase58() << std::endl;
+			public_key = message_dsa_pubkey;
+		}else{
+			return;	// Drop.
+		}
+
+		// Then we generate new message.
+		protocol::OverlayMessageStructure new_message;
+		new_message.mutable_header()->set_src_th(
+				databases::PersonalKeyStorage::getInstance()->getMyTransportHash().toBinaryString());
+		new_message.mutable_header()->set_dest_th(th_endpoint.toBinaryString());
+
+		protocol::OverlayMessageStructure::Payload::ConnectionPart new_conn_part;
+		if(!ack){	// We received PUBKEY message, so we need to send back PUBKEY_ACK.
+			new_message.mutable_payload()->set_message_type(new_message.payload().CONNECTION_PUBKEY);
+			new_conn_part.set_ack(true);
+			new_conn_part.set_src_ecdsa_pubkey(databases::PersonalKeyStorage::getInstance()->getMyPublicKey().toBinaryString());
+			state = PUBKEY_RECEIVED;
+		}else{
+			new_message.mutable_payload()->set_message_type(new_message.payload().CONNECTION_ECDH);
+			// We received PUBKEY_ACK message, so we need to send back ECDH.
+			ecdh_key.generateKey();
+			std::string ecdh_public = ecdh_key.derivePublicKey();
+			new_conn_part.set_src_ecdh_pubkey(ecdh_public);
+
+			std::string signature = databases::PersonalKeyStorage::getInstance()->getMyPrivateKey().sign(ecdh_public+th_endpoint.toBinaryString());
+			new_conn_part.set_signature(signature);
+
+			state = ECDH_SENT;
+		}
+		new_message.mutable_payload()->set_serialized_payload(new_conn_part.SerializeAsString());
+		sendRaw(new_message.SerializeAsString());
+	}
+}*/
+
 
 } /* namespace overlay */
 } /* namespace p2pnet */
