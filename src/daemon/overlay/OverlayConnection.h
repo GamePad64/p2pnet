@@ -17,6 +17,7 @@
 #include "TH.h"
 #include "../transport/TransportConnection.h"
 #include "../../common/crypto/ECDH.h"
+#include "../../common/crypto/AES.h"
 #include "../../common/crypto/PublicKeyDSA.h"
 #include "../protobuf/Protocol.pb.h"
 #include <deque>
@@ -52,20 +53,24 @@ class OverlayConnection : public Loggable {
 	 */
 	void sendRaw(std::string data);
 
+	// This method generates KeyRotation payload using given ECDSA private key.
+	protocol::OverlayMessageStructure_Payload_KeyRotation getKeyRotationPart(crypto::PrivateKeyDSA old_dsa_private);
+
 public:
 	OverlayConnection(overlay::TH th);
 	virtual ~OverlayConnection();
 
 	bool isReady() const;
 
-	void addTransportSocketEndpoint(transport::TransportSocketEndpoint from);
+	void updateTransportSocketEndpoint(transport::TransportSocketEndpoint from);
 
 	void send(std::string data);
 	void process(std::string data, transport::TransportSocketEndpoint from);
 
 	void processConnectionMessage(protocol::OverlayMessageStructure message);
-	void processConnectionPubkeyMessage(protocol::OverlayMessageStructure message);
+	void processConnectionPUBKEYMessage(protocol::OverlayMessageStructure message);
 	void processConnectionECDHMessage(protocol::OverlayMessageStructure message);
+	void processConnectionACKMessage(protocol::OverlayMessageStructure message);
 
 	std::string getComponentName(){return "OverlayConnection";}
 };
