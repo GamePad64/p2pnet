@@ -57,6 +57,17 @@ message OverlayMessageStructure {
 		}
 
 		optional bytes serialized_payload = 2;
+
+		// KeyRotation part.
+		// This is a special part. It is used only when received message was a bit stale.
+		message KeyRotation {
+			optional bytes old_ecdsa_key = 1;
+			optional bytes new_ecdsa_key = 2;
+			optional bytes old_signature = 3;
+			optional bytes new_signature = 4;
+		}
+
+		optional KeyRotation rotation_payload = 3;
 	}
 
 	required Payload payload = 2;
