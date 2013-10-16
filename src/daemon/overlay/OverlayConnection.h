@@ -31,8 +31,9 @@ class OverlayConnection : public Loggable {
 	crypto::ECDH ecdh_key;
 
 	std::deque<transport::TransportSocketEndpoint> m_tse;
-	std::deque<std::string> suspended_raw_messages;
-	std::deque<std::string> suspended_encrypted_messages;
+	// This is about messages, that we can't deliver, because all the TransportSockets are inactive.
+	std::deque<std::string> suspended_messages;
+	std::deque<std::string> suspended_data;	// These messages are not delivered, as we didn't set up encryption.
 
 	enum States {
 		CLOSED,
@@ -56,10 +57,13 @@ public:
 
 	bool isReady() const;
 
+	void addTransportSocketEndpoint(transport::TransportSocketEndpoint from);
+
 	void send(std::string data);
 	void process(std::string data, transport::TransportSocketEndpoint from);
 
 	void processConnectionMessage(protocol::OverlayMessageStructure message);
+	void processConnectionPubkeyMessage(protocol::OverlayMessageStructure message);
 
 	std::string getComponentName(){return "OverlayConnection";}
 };
