@@ -45,6 +45,10 @@ ECDH& ECDH::operator =(ECDH&& rvalue){
 	return *this;
 }
 
+ECDH::operator bool() {
+	return bool(key_private);
+}
+
 ECDH ECDH::generateNewKey() {
 	ECDH ecdh;
 	ecdh.generateKey();

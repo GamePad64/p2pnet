@@ -29,8 +29,7 @@ class ECDH : public MathString<ECDH> {
 
 public:
 	/**
-	 * Generic ECDH constructor. This creates empty ECDH key pair. Any call to function that requires ECDH not to be
-	 * empty initializes it, generating new key pair.
+	 * Generic ECDH constructor. This creates empty ECDH key pair.
 	 */
 	ECDH();
 	ECDH(const ECDH& rvalue);
@@ -40,6 +39,8 @@ public:
 
 	ECDH& operator =(const ECDH& rvalue);
 	ECDH& operator =(ECDH&& rvalue);
+
+	explicit operator bool();
 
 	static ECDH generateNewKey();
 	void generateKey();
