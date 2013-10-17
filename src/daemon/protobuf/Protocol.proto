@@ -19,63 +19,64 @@ message OverlayMessageStructure {
 	message Header {
 		required bytes src_th = 1;
 		optional bytes dest_th = 2;
+
+		enum MessagePriority {
+			REALTIME = 0;	// This is like UDP.
+			RELIABLE = 1;	// This is like SCTP (RFC 4960), but only with delivery control.
+		}
+
+		optional MessagePriority bandwidth_control = 3 [default = REALTIME];
 	}
 
 	required Header header = 1;
 
 	message Payload {
-		// MessageType section.
-		enum MessageType {
-			// AES encrypted message type. serialized_payload must contain serialized Payload type.
-			ENCRYPTED = 0;
-			DATA = 1;
-			ONION = 2;
+		message Part {
+			enum PartType {
+				// AES encrypted message type. serialized_payload must contain serialized Payload type.
+				ENCRYPTED = 0;
+				DATA = 1;
+				ONION = 2;
 
-			// Key exchange cryptographic messages.
-			CONNECTION_PUBKEY = 3;
-			CONNECTION_ECDH = 4;
-			CONNECTION_ACK = 5;
+				// Key exchange cryptographic messages.
+				CONNECTION_PUBKEY = 3;
+				CONNECTION_ECDH = 4;
+				CONNECTION_ACK = 5;
+
+				KEY_ROTATION = 6;
+			}
+			optional PartType payload_type = 1 [default = ENCRYPTED];
+
+			message ConnectionPart {
+				optional bool ACK = 1 [default = false];
+				// PUBKEY, PUBKEY_ACK, unencrypted!
+				optional bytes src_ecdsa_pubkey = 2;	// Our ECDSA key.
+				// ECDH, ECDH_ACK, ECDSA encrypted, ECDSA signed.
+				optional bytes src_ecdh_pubkey = 3;	// This connection (ECDH key, signed with our ECDSA key) and then encrypted with their ECDSA pubkey.
+				optional bytes signature = 4; // OUR_ECDSA_SIG(src_ecdh_pubkey+dest_th)
+				// ACK, AES encrypted. optional bool ACK doesn't make any sense.
+				optional bytes aes_ack = 5;	// AES(aes_key), because it is easily-verified.
+			}
+
+			message KeyRotationPart {
+				optional bytes old_ecdsa_key = 1;
+				optional bytes new_ecdsa_key = 2;
+				optional bytes old_signature = 3;
+				optional bytes new_signature = 4;
+			}
+
+			message TransmissionControlPart {
+				required uint32 seq_num = 1;
+				repeated uint32 ack_num = 2;
+				optional bytes signature = 3;	// Signature of TransmissionControlPart{seq_num, ack_num}. Required by program.
+			}
+
+			optional bytes serialized_part = 2;
 		}
-
-		optional MessageType message_type = 1 [default = ENCRYPTED];
-
-		// End of MessageType section.
-
-		/*
-		 * This payload is used, when we know (well, or don't know, if dest_th is empty!) TH of the remote client. It uses standard TCP-like
-		 * "3-way handshake", but with ECDH generation. This is transmission+crypto-handshake control payload.
-		 */
-		message ConnectionPart {
-			optional bool ACK = 1 [default = false];
-			// PUBKEY, PUBKEY_ACK, unencrypted!
-			optional bytes src_ecdsa_pubkey = 2;	// Our ECDSA key.
-			// ECDH, ECDH_ACK, ECDSA encrypted, ECDSA signed.
-			optional bytes src_ecdh_pubkey = 3;	// This connection (ECDH key, signed with our ECDSA key) and then encrypted with their ECDSA pubkey.
-			optional bytes signature = 4; // OUR_ECDSA_SIG(src_ecdh_pubkey+dest_th)
-			// ACK, AES encrypted. optional bool ACK doesn't make any sense.
-			optional bytes aes_ack = 5;	// AES(dest_th), because it is easily-verified, even after TH regeneration using peer's history. Also, checks for stale TH in database.
-		}
-
-		optional bytes serialized_payload = 2;
-
-		// KeyRotation part.
-		// This is a special part. It is used only when received message was a bit stale.
-		message KeyRotation {
-			optional bytes old_ecdsa_key = 1;
-			optional bytes new_ecdsa_key = 2;
-			optional bytes old_signature = 3;
-			optional bytes new_signature = 4;
-		}
-
-		optional KeyRotation rotation_payload = 3;
+		repeated Part payload_parts = 1;
 	}
 
 	required Payload payload = 2;
-
-	// CRC-32 of serialized message header concatenated with serialized payload. If CRC-32 doesn't match the message, then the message is dropped.
-	// This is optional, because TCP is reliable, so CRC checking is not compulsory.
-	// But UDP or WiFi packets do not have corruption control.
-	optional fixed32 crc32 = 3;
 }
 
 /*
