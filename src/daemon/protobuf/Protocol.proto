@@ -25,7 +25,7 @@ message OverlayMessageStructure {
 			RELIABLE = 1;	// This is like SCTP (RFC 4960), but only with delivery control.
 		}
 
-		optional MessagePriority bandwidth_control = 3 [default = REALTIME];
+		optional MessagePriority bandwidth_control = 3 [default = RELIABLE];
 	}
 
 	required Header header = 1;
