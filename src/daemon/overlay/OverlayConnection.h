@@ -21,6 +21,7 @@
 #include "../../common/crypto/PublicKeyDSA.h"
 #include "../protobuf/Protocol.pb.h"
 #include <deque>
+#include <unordered_map>
 
 namespace p2pnet {
 namespace overlay {
@@ -36,15 +37,19 @@ class OverlayConnection : public Loggable {
 	// This is about messages, that we can't deliver, because all the TransportSockets are inactive.
 	std::deque<std::string> suspended_messages;
 	std::deque<std::string> suspended_data;	// These messages are not delivered, as we didn't set up encryption.
+	std::unordered_map<uint32_t, std::string> sent_message_buffer;
+	std::deque<uint32_t> processed_messages;	// To avoid double-processing. If our ACK messages were not delivered well.
 
 	enum States {
-		CLOSED,
-		PUBKEY_SENT,
-		PUBKEY_RECEIVED,
-		ECDH_SENT,
-		ECDH_RECEIVED,
-		ESTABLISHED
+		CLOSED = 0,
+		PUBKEY_SENT = 1,
+		PUBKEY_RECEIVED = 2,
+		ECDH_SENT = 3,
+		ECDH_RECEIVED = 4,
+		ESTABLISHED = 5
 	} state = CLOSED;
+
+	databases::PersonalKeyStorage* pks;
 
 	/**
 	 * It is a function, that tries to manage TransportConnection directly.
@@ -53,8 +58,14 @@ class OverlayConnection : public Loggable {
 	 */
 	void sendRaw(std::string data);
 
+	protocol::OverlayMessageStructure generateReplySkel(const protocol::OverlayMessageStructure& recv_message);
 	// This method generates KeyRotation payload using given ECDSA private key.
-	protocol::OverlayMessageStructure_Payload_KeyRotation getKeyRotationPart(crypto::PrivateKeyDSA old_dsa_private);
+	void addKeyRotationPart(protocol::OverlayMessageStructure& answ_message,
+			bool& send_answ,
+			std::shared_ptr<crypto::PrivateKeyDSA> old_dsa_private);
+	void addTransmissionControlPart(protocol::OverlayMessageStructure& answ_message,
+			bool& send_answ,
+			const protocol::OverlayMessageStructure& recv_message);
 
 public:
 	OverlayConnection(overlay::TH th);
