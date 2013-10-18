@@ -57,12 +57,38 @@ protocol::OverlayMessageStructure OverlayConnection::generateReplySkel(const pro
 	return new_message;
 }
 
+protocol::OverlayMessageStructure_Payload_Part_ConnectionPart
+OverlayConnection::generateConnectionPartPUBKEY(bool ack){
+	protocol::OverlayMessageStructure_Payload_Part_ConnectionPart conn_part;
+
+	conn_part.set_ack(ack);
+	conn_part.set_src_ecdsa_pubkey(pks->getMyPublicKey().toBinaryString());
+
+	return conn_part;
+}
+
+protocol::OverlayMessageStructure_Payload_Part_ConnectionPart
+OverlayConnection::generateConnectionPartECDH(bool ack){
+	protocol::OverlayMessageStructure_Payload_Part_ConnectionPart conn_part;
+
+	conn_part.set_ack(ack);
+	if(!bool(ecdh_key))
+		ecdh_key.generateKey();
+	std::string ecdh_public = ecdh_key.derivePublicKey();
+	conn_part.set_src_ecdh_pubkey(ecdh_public);
+
+	std::string signature = pks->getMyPrivateKey().sign(ecdh_public+th_endpoint.toBinaryString());
+	conn_part.set_signature(signature);
+
+	return conn_part;
+}
+
 void OverlayConnection::addKeyRotationPart(protocol::OverlayMessageStructure& answ_message,
 		bool& send_answ,
 		std::shared_ptr<crypto::PrivateKeyDSA> old_dsa_private) {
-	if(old_dsa_private != nullptr && pks->getMyPrivateKey() != *old_dsa_private){
+	if(old_dsa_private != nullptr && !(pks->getMyPrivateKey().derivePublicKey() == old_dsa_private->derivePublicKey())){
 		send_answ = true;	// We should notify remote endpoint about our key rotation.
-		protocol::OverlayMessageStructure_Payload_Part_KeyRotationPart payload_to_serialize;
+		protocol::OverlayMessageStructure_Payload_Part_KeyRotationPart part_to_serialize;
 
 		std::string old_key_s = old_dsa_private->derivePublicKey().toBinaryString();
 		std::string new_key_s = pks->getMyPublicKey().toBinaryString();
@@ -70,18 +96,32 @@ void OverlayConnection::addKeyRotationPart(protocol::OverlayMessageStructure& an
 		auto payload_ptr = answ_message.mutable_payload()->add_payload_parts();
 		payload_ptr->set_payload_type(payload_ptr->KEY_ROTATION);
 
-		payload_to_serialize.set_old_ecdsa_key(old_key_s);
-		payload_to_serialize.set_new_ecdsa_key(new_key_s);
+		part_to_serialize.set_old_ecdsa_key(old_key_s);
+		part_to_serialize.set_new_ecdsa_key(new_key_s);
 
-		payload_to_serialize.set_old_signature(old_dsa_private->sign(old_key_s+new_key_s));
-		payload_to_serialize.set_new_signature(pks->getMyPrivateKey().sign(old_key_s+new_key_s));
+		part_to_serialize.set_old_signature(old_dsa_private->sign(old_key_s+new_key_s));
+		part_to_serialize.set_new_signature(pks->getMyPrivateKey().sign(old_key_s+new_key_s));
 	}
 }
 
-void OverlayConnection::addTransmissionControlPart(protocol::OverlayMessageStructure& answ_message,
+void OverlayConnection::processTransmissionControlPart(protocol::OverlayMessageStructure& answ_message,
 		bool& send_answ,
-		const protocol::OverlayMessageStructure& recv_message){
-#error
+		const protocol::OverlayMessageStructure& recv_message,
+		const protocol::OverlayMessageStructure_Payload_Part& part){
+	if(part.payload_type() == part.TRANSMISSION_CONTROL
+			&& answ_message.header().prio() == answ_message.header().RELIABLE){
+		protocol::OverlayMessageStructure_Payload_Part_TransmissionControlPart uns_tcpart;
+		uns_tcpart.ParseFromString(part.serialized_part());
+
+		auto payload_ptr = answ_message.mutable_payload()->add_payload_parts();
+		payload_ptr->set_payload_type(payload_ptr->TRANSMISSION_CONTROL);
+
+		protocol::OverlayMessageStructure_Payload_Part_TransmissionControlPart part_to_serialize;
+
+		part_to_serialize.set_seq_num(seq_counter++);
+		*(part_to_serialize.mutable_ack_num()->Add()) = uns_tcpart.seq_num();
+		payload_ptr->set_serialized_part(part_to_serialize.SerializeAsString());
+	}
 }
 
 bool OverlayConnection::isReady() const {
@@ -124,31 +164,36 @@ void OverlayConnection::process(std::string data, transport::TransportSocketEndp
 		addKeyRotationPart(answ_message, send_answer, our_historic_ecdsa_privkey);
 
 		for(auto& payload_part : recv_message.payload().payload_parts()){
-#error
+			processTransmissionControlPart(answ_message, send_answer, recv_message, payload_part);
+			processConnectionPart(answ_message, send_answer, recv_message, payload_part);
 		}
 
-		addTransmissionControlPart(answ_message, send_answer, recv_message);
+		if(send_answer)
+			sendRaw(answ_message.SerializeAsString());
 	}else{
 		// This message is completely stale, or it is intended to be retransmitted.
 	}
 }
 
-void OverlayConnection::processConnectionMessage(protocol::OverlayMessageStructure message) {
-	auto& payload = message.payload();
-
-	if(payload.message_type() == payload.CONNECTION_PUBKEY){
-		processConnectionPUBKEYMessage(message);
-	}else if(payload.message_type() == payload.CONNECTION_ECDH){
-		processConnectionECDHMessage(message);
-	}else if(payload.message_type() == payload.CONNECTION_ACK){
-		processConnectionACKMessage(message);
+void OverlayConnection::processConnectionPart(protocol::OverlayMessageStructure& answ_message,
+		bool& send_answ,
+		const protocol::OverlayMessageStructure& recv_message,
+		const protocol::OverlayMessageStructure_Payload_Part& part) {
+	if(part.payload_type() == part.CONNECTION_PUBKEY){
+		processConnectionPartPUBKEY(answ_message, send_answ, recv_message, part);
+	}else if(part.payload_type() == part.CONNECTION_ECDH){
+		processConnectionPartECDH(answ_message, send_answ, recv_message, part);
+	}else if(part.payload_type() == part.CONNECTION_ACK){
+		processConnectionPartACK(answ_message, send_answ, recv_message, part);
 	}
 }
 
-void OverlayConnection::processConnectionPUBKEYMessage(protocol::OverlayMessageStructure recv_message){
-	auto payload = recv_message.payload();
-	protocol::OverlayMessageStructure::Payload::ConnectionPart conn_part;
-	if(!conn_part.ParseFromString(payload.serialized_payload())){
+void OverlayConnection::processConnectionPartPUBKEY(protocol::OverlayMessageStructure& answ_message,
+		bool& send_answ,
+		const protocol::OverlayMessageStructure& recv_message,
+		const protocol::OverlayMessageStructure_Payload_Part& part){
+	protocol::OverlayMessageStructure::Payload::Part::ConnectionPart conn_part;
+	if(!conn_part.ParseFromString(part.serialized_part())){
 		return;	// TODO: On parse error we just drop packet now. TODO MessageReject.
 	}
 
@@ -162,36 +207,32 @@ void OverlayConnection::processConnectionPUBKEYMessage(protocol::OverlayMessageS
 		return;	// Drop. TODO MessageReject.
 	}
 
-	// Then we generate new message.
-	protocol::OverlayMessageStructure new_message = generateReplySkel(recv_message);
+	protocol::OverlayMessageStructure::Payload::Part* new_part_ptr = answ_message.mutable_payload()->add_payload_parts();
+	send_answ = true;
 
-	protocol::OverlayMessageStructure::Payload::ConnectionPart new_conn_part;
 	if(!conn_part.ack()){	// We received PUBKEY message, so we need to send back PUBKEY_ACK.
-		new_message.mutable_payload()->set_message_type(new_message.payload().CONNECTION_PUBKEY);
+		new_part_ptr->set_payload_type(new_part_ptr->CONNECTION_PUBKEY);
+		new_part_ptr->set_serialized_part(generateConnectionPartPUBKEY(true).SerializeAsString());
 
-		new_conn_part.set_ack(true);
-		new_conn_part.set_src_ecdsa_pubkey(pks->getMyPublicKey().toBinaryString());
 		state = PUBKEY_RECEIVED;
 	}else{	// We received PUBKEY_ACK message, so we need to send back ECDH.
-		new_message.mutable_payload()->set_message_type(new_message.payload().CONNECTION_ECDH);
-
-		ecdh_key.generateKey();
-		std::string ecdh_public = ecdh_key.derivePublicKey();
-		new_conn_part.set_src_ecdh_pubkey(ecdh_public);
-
-		std::string signature = pks->getMyPrivateKey().sign(ecdh_public+th_endpoint.toBinaryString());
-		new_conn_part.set_signature(signature);
+		new_part_ptr->set_payload_type(new_part_ptr->CONNECTION_ECDH);
+		new_part_ptr->set_serialized_part(generateConnectionPartECDH(false).SerializeAsString());
 
 		state = ECDH_SENT;
 	}
-	new_message.mutable_payload()->set_serialized_payload(new_conn_part.SerializeAsString());
-	sendRaw(new_message.SerializeAsString());
 }
 
-void OverlayConnection::processConnectionECDHMessage(protocol::OverlayMessageStructure recv_message){
+void OverlayConnection::processConnectionPartECDH(protocol::OverlayMessageStructure& answ_message,
+		bool& send_answ,
+		const protocol::OverlayMessageStructure& recv_message,
+		const protocol::OverlayMessageStructure_Payload_Part& part){
 }
 
-void OverlayConnection::processConnectionACKMessage(protocol::OverlayMessageStructure recv_message){
+void OverlayConnection::processConnectionPartACK(protocol::OverlayMessageStructure& answ_message,
+		bool& send_answ,
+		const protocol::OverlayMessageStructure& recv_message,
+		const protocol::OverlayMessageStructure_Payload_Part& part){
 }
 
 /*void OverlayConnection::processConnectionECDHMessage(protocol::OverlayMessageStructure message){

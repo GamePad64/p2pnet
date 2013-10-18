@@ -20,6 +20,7 @@
 #include "../../common/crypto/AES.h"
 #include "../../common/crypto/PublicKeyDSA.h"
 #include "../protobuf/Protocol.pb.h"
+#include "../databases/PersonalKeyStorage.h"
 #include <deque>
 #include <unordered_map>
 
@@ -32,6 +33,8 @@ class OverlayConnection : public Loggable {
 
 	crypto::ECDH ecdh_key;
 	crypto::AES aes_key;
+
+	uint32_t seq_counter = 0;
 
 	std::deque<transport::TransportSocketEndpoint> m_tse;
 	// This is about messages, that we can't deliver, because all the TransportSockets are inactive.
@@ -59,13 +62,32 @@ class OverlayConnection : public Loggable {
 	void sendRaw(std::string data);
 
 	protocol::OverlayMessageStructure generateReplySkel(const protocol::OverlayMessageStructure& recv_message);
+	protocol::OverlayMessageStructure_Payload_Part_ConnectionPart generateConnectionPartPUBKEY(bool ack);
+	protocol::OverlayMessageStructure_Payload_Part_ConnectionPart generateConnectionPartECDH(bool ack);
 	// This method generates KeyRotation payload using given ECDSA private key.
 	void addKeyRotationPart(protocol::OverlayMessageStructure& answ_message,
 			bool& send_answ,
 			std::shared_ptr<crypto::PrivateKeyDSA> old_dsa_private);
-	void addTransmissionControlPart(protocol::OverlayMessageStructure& answ_message,
+	void processTransmissionControlPart(protocol::OverlayMessageStructure& answ_message,
 			bool& send_answ,
-			const protocol::OverlayMessageStructure& recv_message);
+			const protocol::OverlayMessageStructure& recv_message,
+			const protocol::OverlayMessageStructure_Payload_Part& part);
+	void processConnectionPart(protocol::OverlayMessageStructure& answ_message,
+			bool& send_answ,
+			const protocol::OverlayMessageStructure& recv_message,
+			const protocol::OverlayMessageStructure_Payload_Part& part);
+	void processConnectionPartPUBKEY(protocol::OverlayMessageStructure& answ_message,
+			bool& send_answ,
+			const protocol::OverlayMessageStructure& recv_message,
+			const protocol::OverlayMessageStructure_Payload_Part& part);
+	void processConnectionPartECDH(protocol::OverlayMessageStructure& answ_message,
+			bool& send_answ,
+			const protocol::OverlayMessageStructure& recv_message,
+			const protocol::OverlayMessageStructure_Payload_Part& part);
+	void processConnectionPartACK(protocol::OverlayMessageStructure& answ_message,
+			bool& send_answ,
+			const protocol::OverlayMessageStructure& recv_message,
+			const protocol::OverlayMessageStructure_Payload_Part& part);
 
 public:
 	OverlayConnection(overlay::TH th);
@@ -77,11 +99,6 @@ public:
 
 	void send(std::string data);
 	void process(std::string data, transport::TransportSocketEndpoint from);
-
-	void processConnectionMessage(protocol::OverlayMessageStructure message);
-	void processConnectionPUBKEYMessage(protocol::OverlayMessageStructure message);
-	void processConnectionECDHMessage(protocol::OverlayMessageStructure message);
-	void processConnectionACKMessage(protocol::OverlayMessageStructure message);
 
 	std::string getComponentName(){return "OverlayConnection";}
 };
