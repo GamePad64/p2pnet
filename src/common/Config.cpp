@@ -22,8 +22,8 @@
 #include <windows.h>
 #endif
 
-#include <boost/property_tree/xml_parser.hpp>
-//#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/json_parser.hpp>
+//#include <boost/property_tree/xml_parser.hpp>
 //#include <boost/property_tree/ini_parser.hpp>
 //#include <boost/property_tree/info_parser.hpp>
 
@@ -46,7 +46,7 @@ ConfigManager::ConfigManager() {
 	config_file = getDefaultFile();
 
 	loadFromFile();
-	write_xml(config_directory+"defaults.xml", getDefaults());
+	write_json(config_directory+"defaults.json", getDefaults());
 }
 
 ConfigManager::~ConfigManager() {this->saveToFile();}
@@ -94,7 +94,7 @@ void ConfigManager::setDirectory(std::string directory){
 }
 
 std::string ConfigManager::getDefaultFile(){
-	return "p2pnet.xml";
+	return "p2pnet.json";
 }
 
 void ConfigManager::setFile(std::string filename){
@@ -114,19 +114,19 @@ void ConfigManager::loadFromFile() {
 
 	std::fstream file(config_directory+config_file);
 	try {
-		read_xml(file, internal_config);
+		read_json(file, internal_config);
+		log() << "Configuration file loaded" << std::endl;
 	}catch(boost::property_tree::file_parser_error& parser_error){
 		log() << "Configuration file not found. Using default values." << std::endl;
 	}
 	file.close();
 
 	config_io_mutex.unlock();
-	log() << "Configuration file loaded" << std::endl;
 }
 
 void ConfigManager::saveToFile() {
 	boost::filesystem::create_directories(config_directory);
-	write_xml(config_directory+config_file, internal_config);
+	write_json(config_directory+config_file, internal_config);
 	log() << "Configuration file saved" << std::endl;
 }
 
