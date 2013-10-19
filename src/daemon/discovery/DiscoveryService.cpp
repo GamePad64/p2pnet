@@ -24,19 +24,29 @@ namespace discovery {
 DiscoveryService::DiscoveryService() {}
 DiscoveryService::~DiscoveryService() {}
 
+protocol::OverlayMessageStructure DiscoveryService::generateHandshakeMessage() {
+	auto pks = databases::PersonalKeyStorage::getInstance();
+
+	protocol::OverlayMessageStructure message;
+	message.mutable_header()->set_src_th(pks->getMyTransportHash().toBinaryString());
+	// This is realtime message, which is sent directly to TransportSocket.
+	// This is non-standard way to send messages.
+	message.mutable_header()->set_prio(message.mutable_header()->REALTIME);
+
+	auto payload_part_ptr = message.mutable_payload()->add_payload_parts();
+	payload_part_ptr->set_payload_type(payload_part_ptr->CONNECTION_PUBKEY);
+
+	protocol::OverlayMessageStructure_Payload_Part_ConnectionPart part;
+	part.set_src_ecdsa_pubkey(pks->getMyPublicKey().toBinaryString());
+
+	payload_part_ptr->set_serialized_part(part.SerializeAsString());
+	return message;
+}
+
 void DiscoveryService::handshake(transport::TransportSocketEndpoint endpoint) {
 	auto transport_socket = transport::TransportSocket::getInstance();
 
-	protocol::OverlayMessageStructure message;
-	message.mutable_header()->set_src_th(databases::PersonalKeyStorage::getInstance()->getMyTransportHash().toBinaryString());
-	message.mutable_payload()->set_message_type(message.payload().CONNECTION_PUBKEY);
-
-	protocol::OverlayMessageStructure_Payload_ConnectionPart payload_s;
-	payload_s.set_src_ecdsa_pubkey(databases::PersonalKeyStorage::getInstance()->getMyPublicKey().toBinaryString());
-
-	message.mutable_payload()->set_serialized_payload(payload_s.SerializeAsString());
-
-	transport_socket->send(endpoint, message.SerializeAsString());
+	transport_socket->send(endpoint, generateHandshakeMessage().SerializeAsString());
 }
 
 } /* namespace discovery */

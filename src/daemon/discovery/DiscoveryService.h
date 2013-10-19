@@ -18,6 +18,7 @@
 #include "../../common/Config.h"
 #include "../../common/Loggable.h"
 #include "../transport/TransportSocketEndpoint.h"
+#include "../protobuf/Protocol.pb.h"
 
 namespace p2pnet {
 namespace discovery {
@@ -26,6 +27,8 @@ class DiscoveryService : public ConfigClient, public Loggable {
 public:
 	DiscoveryService();
 	virtual ~DiscoveryService();
+
+	protocol::OverlayMessageStructure generateHandshakeMessage();
 
 	void handshake(transport::TransportSocketEndpoint endpoint);
 };
