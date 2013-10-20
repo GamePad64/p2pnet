@@ -40,6 +40,8 @@ public:
 	PublicKeyDSA& operator =(const PublicKeyDSA& rvalue);
 	PublicKeyDSA& operator =(PublicKeyDSA&& rvalue);
 
+	explicit operator bool();
+
 	std::string encrypt(std::string data);
 
 	bool verify(std::string data, std::string signature);

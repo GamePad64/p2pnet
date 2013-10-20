@@ -47,6 +47,10 @@ PublicKeyDSA& PublicKeyDSA::operator =(PublicKeyDSA&& rvalue) {
 	return *this;
 }
 
+PublicKeyDSA::operator bool() {
+	return bool(key_public);
+}
+
 std::string PublicKeyDSA::encrypt(std::string data) {
 	Botan::PK_Encryptor_EME pk_encryptor(*key_public, "EME1(" + Hash::getAlgoName() + ")");
 	Botan::AutoSeeded_RNG rng;
