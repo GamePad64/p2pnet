@@ -51,6 +51,8 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 	config_t getDefaults(){
 		config_t config;
 
+		//config.put("policies.permissions.outgoing_only", false);	// Drops ConnectionRequest and disables UDPLPD.
+
 		config.put("transport.udp.enabled", true);
 		config.put("transport.udp.local_ip", "0::0");
 		config.put("transport.udp.port", 2185);
