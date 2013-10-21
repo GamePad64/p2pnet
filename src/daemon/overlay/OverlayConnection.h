@@ -24,10 +24,13 @@
 #include <deque>
 #include <unordered_map>
 
+// TODO: fetch this thing from configuration
+#define KEY_ROTATION_LIMIT 5
+
 namespace p2pnet {
 namespace overlay {
 
-class OverlayConnection : public Loggable {
+class OverlayConnection : public Loggable, public std::enable_shared_from_this {
 	overlay::TH th_endpoint;
 	crypto::PublicKeyDSA public_key;
 
@@ -42,6 +45,9 @@ class OverlayConnection : public Loggable {
 	std::deque<std::string> suspended_data;	// These messages are not delivered, as we didn't set up encryption.
 	std::unordered_map<uint32_t, std::string> sent_message_buffer;
 	std::deque<uint32_t> processed_messages;	// To avoid double-processing. If our ACK messages were not delivered well.
+
+	boost::asio::deadline_timer udp_key_rotation_limit;
+	bool udp_key_rotation_locked = false;
 
 	enum States {
 		CLOSED = 0,
@@ -59,11 +65,15 @@ class OverlayConnection : public Loggable {
 	 * This function is about connectivity, and "send" is about encryption.
 	 * @param data
 	 */
-	void sendRaw(std::string data);
+	void sendData(std::string data);
+	void sendMessage(const protocol::OverlayMessage& send_message);
 
-	protocol::OverlayMessageStructure generateReplySkel(const protocol::OverlayMessageStructure& recv_message);
-	protocol::OverlayMessageStructure_Payload_Part_ConnectionPart generateConnectionPartPUBKEY(bool ack);
-	protocol::OverlayMessageStructure_Payload_Part_ConnectionPart generateConnectionPartECDH(bool ack);
+	bool performLocalKeyRotation(const protocol::OverlayMessage& recv_message);
+
+	protocol::OverlayMessage generateReplySkel(const protocol::OverlayMessage& recv_message);
+	protocol::OverlayMessage_Payload_ConnectionPart generateConnectionPart(protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage for_stage);
+	protocol::OverlayMessage_Payload_KeyRotationPart generateKeyRotationPart(const protocol::OverlayMessage& send_message, std::shared_ptr<crypto::PrivateKeyDSA> our_hist_key);
+
 	// This method generates KeyRotation payload using given ECDSA private key.
 	void addKeyRotationPart(protocol::OverlayMessageStructure& answ_message,
 			bool& send_answ,
@@ -95,10 +105,11 @@ public:
 
 	bool isReady() const;
 
-	void updateTransportSocketEndpoint(transport::TransportSocketEndpoint from);
+	void updateTSE(const transport::TransportSocketEndpoint& from, bool verified = false);
 
-	void send(std::string data);
-	void process(std::string data, transport::TransportSocketEndpoint from);
+	void send(const protocol::OverlayMessage& send_message);
+	void process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from);
+	void process(const protocol::ConnectionRequestMessage& recv_message, const transport::TransportSocketEndpoint& from);
 
 	std::string getComponentName(){return "OverlayConnection";}
 };
