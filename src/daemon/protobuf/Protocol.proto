@@ -15,10 +15,10 @@
 syntax = "proto2";
 package p2pnet.protocol;
 
-message OverlayMessageStructure {
+message OverlayMessage {
 	message Header {
 		required bytes src_th = 1;
-		optional bytes dest_th = 2;
+		required bytes dest_th = 2;
 
 		enum MessagePriority {
 			REALTIME = 0;	// This is like UDP.
@@ -26,58 +26,50 @@ message OverlayMessageStructure {
 		}
 
 		optional MessagePriority prio = 3 [default = RELIABLE];
+		optional uint32 seq_num = 4;
+		repeated uint32 ack_num = 5 [packed = true];
 	}
 
 	required Header header = 1;
 
 	message Payload {
-		message Part {
-			enum PartType {
-				// AES encrypted message type. serialized_payload must contain serialized Payload type.
-				ENCRYPTED = 0;
-				DATA = 1;
-				ONION = 2;
-
-				// Key exchange cryptographic messages.
-				CONNECTION_PUBKEY = 3;
-				CONNECTION_ECDH = 4;
-				CONNECTION_ACK = 5;
-
-				KEY_ROTATION = 6;
-				TRANSMISSION_CONTROL = 7;
-			}
-			optional PartType payload_type = 1 [default = ENCRYPTED];
-
-			message ConnectionPart {
-				optional bool ACK = 1 [default = false];
-				// PUBKEY, PUBKEY_ACK, unencrypted!
-				optional bytes src_ecdsa_pubkey = 2;	// Our ECDSA key.
-				// ECDH, ECDH_ACK, ECDSA encrypted, ECDSA signed.
-				optional bytes src_ecdh_pubkey = 3;	// This connection (ECDH key, signed with our ECDSA key) and then encrypted with their ECDSA pubkey.
-				optional bytes signature = 4; // OUR_ECDSA_SIG(src_ecdh_pubkey+dest_th)
-				// ACK, AES encrypted. optional bool ACK doesn't make any sense.
-				optional bytes aes_ack = 5;	// AES(aes_key), because it is easily-verified.
+		message ConnectionPart {
+			enum ConnectionStage {
+				PUBKEY = 0; PUBKEY_ACK = 1;
+				ECDH = 2; ECDH_ACK = 3;
+				AES = 4;
 			}
 
-			message KeyRotationPart {
-				optional bytes old_ecdsa_key = 1;
-				optional bytes new_ecdsa_key = 2;
-				optional bytes old_signature = 3;
-				optional bytes new_signature = 4;
-			}
+			required ConnectionStage stage = 1;
 
-			message TransmissionControlPart {
-				required uint32 seq_num = 1;
-				repeated uint32 ack_num = 2;
-				optional bytes signature = 3;	// Signature of TransmissionControlPart{seq_num, ack_num}. Required by program.
-			}
+			/* payload part */
+			optional bytes src_ecdsa_pubkey = 2;	// Our ECDSA key.
+			optional bytes src_ecdh_pubkey = 3;	// This connection ECDH key, signed with our ECDSA key.
+			optional bytes signature = 4; // OUR_ECDSA_SIG(src_ecdh_pubkey)
 
-			optional bytes serialized_part = 2;
+			/* encrypted_payload part */
+			optional bytes aes = 5;
 		}
-		repeated Part payload_parts = 1;
+
+		message KeyRotationPart {
+			optional bytes old_ecdsa_key = 1;
+			optional bytes new_ecdsa_key = 2;
+			optional bytes old_signature = 3;
+			optional bytes new_signature = 4;
+		}
+
+		optional ConnectionPart connection_part = 1;
+		optional KeyRotationPart key_rotation_part = 2;
+
+		extensions 16 to max;
 	}
 
-	required Payload payload = 2;
+	optional Payload payload = 2;
+	optional bytes encrypted_payload = 3;
+}
+
+message ConnectionRequestMessage {
+	required bytes src_th = 1;
 }
 
 /*
