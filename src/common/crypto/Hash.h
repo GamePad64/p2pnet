@@ -39,6 +39,7 @@ public:
 	Hash(const Hash& rhash);
 	Hash(Hash&& rhash);
 	Hash(PublicKeyDSA dsa_pubkey);
+	Hash(const std::string& data);
 	virtual ~Hash();
 
 	Hash& operator = (const Hash& rhash);

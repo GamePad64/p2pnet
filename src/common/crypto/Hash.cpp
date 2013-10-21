@@ -37,6 +37,9 @@ Hash::Hash(Hash&& rhash){
 Hash::Hash(PublicKeyDSA dsa_pubkey) : Hash() {
 	compute(dsa_pubkey.toBinaryString());
 }
+Hash::Hash(const std::string& data) : Hash() {
+	compute(data);
+}
 
 Hash::~Hash() {}
 
