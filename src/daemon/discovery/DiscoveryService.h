@@ -24,11 +24,10 @@ namespace p2pnet {
 namespace discovery {
 
 class DiscoveryService : public ConfigClient, public Loggable {
+	protocol::ConnectionRequestMessage generateConnectionRequest();
 public:
 	DiscoveryService();
 	virtual ~DiscoveryService();
-
-	protocol::OverlayMessageStructure generateHandshakeMessage();
 
 	void handshake(transport::TransportSocketEndpoint endpoint);
 };

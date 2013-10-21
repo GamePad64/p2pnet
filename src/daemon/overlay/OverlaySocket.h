@@ -25,9 +25,11 @@ namespace overlay {
 class OverlayConnection;
 
 class OverlaySocket : public Singleton<OverlaySocket>, Loggable {
+	friend class OverlayConnection;
 protected:
 	std::map<overlay::TH, std::shared_ptr<OverlayConnection>> m_connections;
 	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// For future use.
+	std::shared_ptr<OverlayConnection> addConnection(overlay::TH th);
 public:
 	OverlaySocket();
 	virtual ~OverlaySocket();
