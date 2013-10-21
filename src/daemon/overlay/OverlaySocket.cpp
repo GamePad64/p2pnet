@@ -22,36 +22,35 @@ OverlaySocket::OverlaySocket() {}
 
 OverlaySocket::~OverlaySocket() {}
 
-void OverlaySocket::send(overlay::TH dest, std::string data) {
-	auto it = m_connections.find(dest);
+std::shared_ptr<OverlayConnection> OverlaySocket::addConnection(overlay::TH th) {
+	auto it = m_connections.find(th);
 	std::shared_ptr<OverlayConnection> connection;
-
 	if(it != m_connections.end()){
 		connection = (*it).second;
 	}else{
-		connection = std::make_shared<OverlayConnection>(dest);
-		m_connections.insert(std::make_pair(dest, connection));
+		connection = std::make_shared<OverlayConnection>(th);
+		m_connections.insert(std::make_pair(th, connection));
 	}
+	return connection;
+}
+
+void OverlaySocket::send(overlay::TH dest, std::string data) {
+	auto connection = addConnection(dest);
 	// TODO: some sort of DHT.
 }
 
 void OverlaySocket::process(std::string data, transport::TransportSocketEndpoint from) {
-	protocol::OverlayMessageStructure overlay_message;
+	protocol::OverlayMessage overlay_message;
+	protocol::ConnectionRequestMessage request_message;
 	if(overlay_message.ParseFromString(data)){
-		auto header = overlay_message.header();
-		overlay::TH packet_src_th(overlay::TH::fromBinaryString(header.src_th()));
+		overlay::TH packet_src_th(overlay::TH::fromBinaryString(overlay_message.header().src_th()));
 
-		auto it = m_connections.find(packet_src_th);
-		std::shared_ptr<OverlayConnection> connection;
-		if(it != m_connections.end()){
-			connection = (*it).second;
-		}else{
-			connection = std::make_shared<OverlayConnection>(packet_src_th);
-			m_connections.insert(std::make_pair(packet_src_th, connection));
-		}
+		addConnection(packet_src_th)->process(request_message, from);
+	}else if(request_message.ParseFromString(data)){
+		overlay::TH packet_src_th(overlay::TH::fromBinaryString(request_message.src_th()));
 
-		connection->process(data, from);
-	}//else drop.
+		addConnection(packet_src_th)->process(request_message, from);
+	}
 }
 
 } /* namespace overlay */
