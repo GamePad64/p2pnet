@@ -57,6 +57,8 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 		config.put("transport.udp.local_ip", "0::0");
 		config.put("transport.udp.port", 2185);
 
+		config.put("overlay.connection.processed_queue_size", 100);
+
 		config.put("databases.pks.history_size", 10);
 		config.put("databases.pks.renew_interval", 10);
 

@@ -30,7 +30,7 @@
 namespace p2pnet {
 namespace overlay {
 
-class OverlayConnection : public Loggable, public std::enable_shared_from_this {
+class OverlayConnection : public Loggable, public std::enable_shared_from_this<OverlayConnection> {
 	overlay::TH th_endpoint;
 	crypto::PublicKeyDSA public_key;
 
@@ -44,7 +44,8 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this {
 	std::deque<std::string> suspended_data;
 	std::deque<std::string> suspended_messages;	// These messages are not delivered, as we didn't set up encryption.
 	std::unordered_map<uint32_t, std::string> sent_message_buffer;
-	std::deque<uint32_t> processed_messages;	// To avoid double-processing. If our ACK messages were not delivered well.
+	std::set<uint32_t> processed_messages;	// To avoid double-processing. If our ACK messages were not delivered well.
+	std::set<uint32_t> acked_messages;	// Temporary storage for ACK message numbers.
 
 	boost::asio::deadline_timer udp_key_rotation_limit;
 	bool udp_key_rotation_locked = false;
@@ -78,7 +79,8 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this {
 			const protocol::OverlayMessage_Payload& decrypted_payload = protocol::OverlayMessage_Payload::default_instance());
 	void processConnectionPartPUBKEY(const protocol::OverlayMessage& recv_message);
 	void processConnectionPartECDH(const protocol::OverlayMessage& recv_message);
-	void processConnectionPartACK(const protocol::OverlayMessage& recv_message);
+	void processConnectionPartAES(const protocol::OverlayMessage& recv_message,
+			const protocol::OverlayMessage_Payload& decrypted_payload);
 
 public:
 	OverlayConnection(overlay::TH th);

@@ -66,7 +66,7 @@ void OverlayConnection::sendMessage(const protocol::OverlayMessage& send_message
 				key_rotation_message.mutable_payload()->mutable_connection_part()->CopyFrom(generateKeyRotationPart(send_message, our_hist_key));
 				sendMessage(key_rotation_message);
 				udp_key_rotation_locked = true;
-				udp_key_rotation_limit.async_wait([&](){udp_key_rotation_locked = false;});
+				udp_key_rotation_limit.async_wait(std::bind([&](boost::system::error_code ec){udp_key_rotation_locked = false;}, this));
 			}
 		}
 	}
@@ -197,6 +197,13 @@ void OverlayConnection::process(const protocol::OverlayMessage& recv_message, co
 				updateTSE(from, true);
 		if(recv_message.has_encrypted_payload())
 		processConnectionPart(recv_message);
+		if(recv_message.header().prio() == recv_message.header().RELIABLE){
+			acked_messages.insert(recv_message.header().seq_num());
+			processed_messages.insert(recv_message.header().seq_num());
+			for(auto& it : recv_message.header().ack_num()){
+				sent_message_buffer.erase(it);
+			}
+		}
 	}else{
 		// This message is completely stale, or it is intended to be retransmitted.
 	}
@@ -220,12 +227,7 @@ void OverlayConnection::processConnectionPart(const protocol::OverlayMessage& re
 }
 
 void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessage& recv_message){
-	protocol::OverlayMessageStructure::Payload::Part::ConnectionPart conn_part;
-	if(!conn_part.ParseFromString(part.serialized_part())){
-		return;	// TODO: On parse error we just drop packet now. TODO MessageReject.
-	}
-
-	auto recv_dsa_pubkey = crypto::PublicKeyDSA::fromBinaryString(conn_part.src_ecdsa_pubkey());
+	auto recv_dsa_pubkey = crypto::PublicKeyDSA::fromBinaryString(recv_message.payload().connection_part().src_ecdsa_pubkey());
 
 	if((crypto::Hash(recv_dsa_pubkey) == th_endpoint)	// So, we check if this message contains genuine ECDSA public key of connected TH.
 			&& recv_dsa_pubkey.validate()){	// And then we validate this ECDSA public key using mathematical methods.
@@ -235,72 +237,33 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 		return;	// Drop. TODO MessageReject.
 	}
 
-	protocol::OverlayMessageStructure::Payload::Part* new_part_ptr = answ_message.mutable_payload()->add_payload_parts();
-	send_answ = true;
+	auto reply = generateReplySkel(recv_message);
 
-	if(!conn_part.ack()){	// We received PUBKEY message, so we need to send back PUBKEY_ACK.
-		new_part_ptr->set_payload_type(new_part_ptr->CONNECTION_PUBKEY);
-		new_part_ptr->set_serialized_part(generateConnectionPartPUBKEY(true).SerializeAsString());
+	if(recv_message.payload().connection_part().stage() == recv_message.payload().connection_part().PUBKEY){
+		/* We need to send back PUBKEY_ACK */
+		reply.mutable_header()->set_prio(reply.header().RELIABLE);
+		reply.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(reply.payload().connection_part().PUBKEY_ACK));
 
 		state = PUBKEY_RECEIVED;
-	}else{	// We received PUBKEY_ACK message, so we need to send back ECDH.
-		new_part_ptr->set_payload_type(new_part_ptr->CONNECTION_ECDH);
-		new_part_ptr->set_serialized_part(generateConnectionPartECDH(false).SerializeAsString());
+
+		sendMessage(reply);
+	}else if(recv_message.payload().connection_part().stage() == recv_message.payload().connection_part().PUBKEY_ACK){
+		/* We need to send back ECDH */
+		reply.mutable_header()->set_prio(reply.header().RELIABLE);
+		reply.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(reply.payload().connection_part().ECDH));
 
 		state = ECDH_SENT;
+
+		sendMessage(reply);
 	}
 }
 
 void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage& recv_message){
 }
 
-void OverlayConnection::processConnectionPartACK(const protocol::OverlayMessage& recv_message){
+void OverlayConnection::processConnectionPartAES(const protocol::OverlayMessage& recv_message,
+		const protocol::OverlayMessage_Payload& decrypted_payload){
 }
-
-/*void OverlayConnection::processConnectionECDHMessage(protocol::OverlayMessageStructure message){
-	auto payload = message.payload();
-	protocol::OverlayMessageStructure::Payload::ConnectionPart conn_part;
-	if(conn_part.ParseFromString(payload.serialized_payload())){
-		bool ack = conn_part.ack();	// It means, that this is an answer.
-
-		auto message_dsa_pubkey = crypto::PublicKeyDSA::fromBinaryString(conn_part.src_ecdsa_pubkey());
-
-		if((crypto::Hash(message_dsa_pubkey) == th_endpoint) && message_dsa_pubkey.validate()){
-			log() << "Received public key from: TH:" << th_endpoint.toBase58() << std::endl;
-			public_key = message_dsa_pubkey;
-		}else{
-			return;	// Drop.
-		}
-
-		// Then we generate new message.
-		protocol::OverlayMessageStructure new_message;
-		new_message.mutable_header()->set_src_th(
-				databases::PersonalKeyStorage::getInstance()->getMyTransportHash().toBinaryString());
-		new_message.mutable_header()->set_dest_th(th_endpoint.toBinaryString());
-
-		protocol::OverlayMessageStructure::Payload::ConnectionPart new_conn_part;
-		if(!ack){	// We received PUBKEY message, so we need to send back PUBKEY_ACK.
-			new_message.mutable_payload()->set_message_type(new_message.payload().CONNECTION_PUBKEY);
-			new_conn_part.set_ack(true);
-			new_conn_part.set_src_ecdsa_pubkey(databases::PersonalKeyStorage::getInstance()->getMyPublicKey().toBinaryString());
-			state = PUBKEY_RECEIVED;
-		}else{
-			new_message.mutable_payload()->set_message_type(new_message.payload().CONNECTION_ECDH);
-			// We received PUBKEY_ACK message, so we need to send back ECDH.
-			ecdh_key.generateKey();
-			std::string ecdh_public = ecdh_key.derivePublicKey();
-			new_conn_part.set_src_ecdh_pubkey(ecdh_public);
-
-			std::string signature = databases::PersonalKeyStorage::getInstance()->getMyPrivateKey().sign(ecdh_public+th_endpoint.toBinaryString());
-			new_conn_part.set_signature(signature);
-
-			state = ECDH_SENT;
-		}
-		new_message.mutable_payload()->set_serialized_payload(new_conn_part.SerializeAsString());
-		sendRaw(new_message.SerializeAsString());
-	}
-}*/
-
 
 } /* namespace overlay */
 } /* namespace p2pnet */
