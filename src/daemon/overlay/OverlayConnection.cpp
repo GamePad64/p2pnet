@@ -64,10 +64,15 @@ void OverlayConnection::sendMessage(const protocol::OverlayMessage& send_message
 				protocol::OverlayMessage key_rotation_message;
 				key_rotation_message.mutable_header()->CopyFrom(send_message.header());
 				key_rotation_message.mutable_payload()->mutable_connection_part()->CopyFrom(generateKeyRotationPart(send_message, our_hist_key));
+				sendMessage(key_rotation_message);
 				udp_key_rotation_locked = true;
-				udp_key_rotation_limit.async_wait(boost::bind([&](){udp_key_rotation_locked = false;}, this));
+				udp_key_rotation_limit.async_wait([&](){udp_key_rotation_locked = false;});
 			}
 		}
+	}
+
+	if(send_message.header().prio() == send_message.header().RELIABLE){
+		new_send_message.mutable_header()->set_seq_num(seq_counter++);
 	}
 }
 
@@ -157,26 +162,6 @@ protocol::OverlayMessage_Payload_KeyRotationPart OverlayConnection::generateKeyR
 	return part;
 }
 
-void OverlayConnection::processTransmissionControlPart(protocol::OverlayMessageStructure& answ_message,
-		bool& send_answ,
-		const protocol::OverlayMessageStructure& recv_message,
-		const protocol::OverlayMessageStructure_Payload_Part& part){
-	if(part.payload_type() == part.TRANSMISSION_CONTROL
-			&& answ_message.header().prio() == answ_message.header().RELIABLE){
-		protocol::OverlayMessageStructure_Payload_Part_TransmissionControlPart uns_tcpart;
-		uns_tcpart.ParseFromString(part.serialized_part());
-
-		auto payload_ptr = answ_message.mutable_payload()->add_payload_parts();
-		payload_ptr->set_payload_type(payload_ptr->TRANSMISSION_CONTROL);
-
-		protocol::OverlayMessageStructure_Payload_Part_TransmissionControlPart part_to_serialize;
-
-		part_to_serialize.set_seq_num(seq_counter++);
-		*(part_to_serialize.mutable_ack_num()->Add()) = uns_tcpart.seq_num();
-		payload_ptr->set_serialized_part(part_to_serialize.SerializeAsString());
-	}
-}
-
 bool OverlayConnection::isReady() const {
 	return state == ESTABLISHED;
 }
@@ -210,29 +195,31 @@ void OverlayConnection::process(const protocol::OverlayMessage& recv_message, co
 		if(recv_message.payload().has_key_rotation_part())
 			if(performLocalKeyRotation(recv_message))
 				updateTSE(from, true);
-		processConnectionPart(reply_message, send_answer, recv_omessage, payload_part);
+		if(recv_message.has_encrypted_payload())
+		processConnectionPart(recv_message);
 	}else{
 		// This message is completely stale, or it is intended to be retransmitted.
 	}
 }
 
-void OverlayConnection::processConnectionPart(protocol::OverlayMessageStructure& answ_message,
-		bool& send_answ,
-		const protocol::OverlayMessageStructure& recv_message,
-		const protocol::OverlayMessageStructure_Payload_Part& part) {
-	if(part.payload_type() == part.CONNECTION_PUBKEY){
-		processConnectionPartPUBKEY(answ_message, send_answ, recv_message, part);
-	}else if(part.payload_type() == part.CONNECTION_ECDH){
-		processConnectionPartECDH(answ_message, send_answ, recv_message, part);
-	}else if(part.payload_type() == part.CONNECTION_ACK){
-		processConnectionPartACK(answ_message, send_answ, recv_message, part);
+void OverlayConnection::processConnectionPart(const protocol::OverlayMessage& recv_message,
+		const protocol::OverlayMessage_Payload& decrypted_payload) {
+	if(recv_message.payload().has_connection_part()){
+		auto& part = recv_message.payload().connection_part();
+		if(part.stage() == part.PUBKEY || part.stage() == part.PUBKEY_ACK){
+			processConnectionPartPUBKEY(recv_message);
+		}else if(part.stage() == part.ECDH || part.stage() == part.ECDH_ACK){
+			processConnectionPartECDH(recv_message);
+		}
+	}else if(decrypted_payload.has_connection_part()){
+		auto& part = decrypted_payload.connection_part();
+		if(part.stage() == part.AES){
+			processConnectionPartAES(recv_message, decrypted_payload);
+		}
 	}
 }
 
-void OverlayConnection::processConnectionPartPUBKEY(protocol::OverlayMessageStructure& answ_message,
-		bool& send_answ,
-		const protocol::OverlayMessageStructure& recv_message,
-		const protocol::OverlayMessageStructure_Payload_Part& part){
+void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessage& recv_message){
 	protocol::OverlayMessageStructure::Payload::Part::ConnectionPart conn_part;
 	if(!conn_part.ParseFromString(part.serialized_part())){
 		return;	// TODO: On parse error we just drop packet now. TODO MessageReject.
@@ -264,16 +251,10 @@ void OverlayConnection::processConnectionPartPUBKEY(protocol::OverlayMessageStru
 	}
 }
 
-void OverlayConnection::processConnectionPartECDH(protocol::OverlayMessageStructure& answ_message,
-		bool& send_answ,
-		const protocol::OverlayMessageStructure& recv_message,
-		const protocol::OverlayMessageStructure_Payload_Part& part){
+void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage& recv_message){
 }
 
-void OverlayConnection::processConnectionPartACK(protocol::OverlayMessageStructure& answ_message,
-		bool& send_answ,
-		const protocol::OverlayMessageStructure& recv_message,
-		const protocol::OverlayMessageStructure_Payload_Part& part){
+void OverlayConnection::processConnectionPartACK(const protocol::OverlayMessage& recv_message){
 }
 
 /*void OverlayConnection::processConnectionECDHMessage(protocol::OverlayMessageStructure message){

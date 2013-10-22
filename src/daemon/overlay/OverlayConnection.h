@@ -41,8 +41,8 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this {
 
 	std::deque<transport::TransportSocketEndpoint> m_tse;
 	// This is about messages, that we can't deliver, because all the TransportSockets are inactive.
-	std::deque<std::string> suspended_messages;
-	std::deque<std::string> suspended_data;	// These messages are not delivered, as we didn't set up encryption.
+	std::deque<std::string> suspended_data;
+	std::deque<std::string> suspended_messages;	// These messages are not delivered, as we didn't set up encryption.
 	std::unordered_map<uint32_t, std::string> sent_message_buffer;
 	std::deque<uint32_t> processed_messages;	// To avoid double-processing. If our ACK messages were not delivered well.
 
@@ -74,30 +74,11 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this {
 	protocol::OverlayMessage_Payload_ConnectionPart generateConnectionPart(protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage for_stage);
 	protocol::OverlayMessage_Payload_KeyRotationPart generateKeyRotationPart(const protocol::OverlayMessage& send_message, std::shared_ptr<crypto::PrivateKeyDSA> our_hist_key);
 
-	// This method generates KeyRotation payload using given ECDSA private key.
-	void addKeyRotationPart(protocol::OverlayMessageStructure& answ_message,
-			bool& send_answ,
-			std::shared_ptr<crypto::PrivateKeyDSA> old_dsa_private);
-	void processTransmissionControlPart(protocol::OverlayMessageStructure& answ_message,
-			bool& send_answ,
-			const protocol::OverlayMessageStructure& recv_message,
-			const protocol::OverlayMessageStructure_Payload_Part& part);
-	void processConnectionPart(protocol::OverlayMessageStructure& answ_message,
-			bool& send_answ,
-			const protocol::OverlayMessageStructure& recv_message,
-			const protocol::OverlayMessageStructure_Payload_Part& part);
-	void processConnectionPartPUBKEY(protocol::OverlayMessageStructure& answ_message,
-			bool& send_answ,
-			const protocol::OverlayMessageStructure& recv_message,
-			const protocol::OverlayMessageStructure_Payload_Part& part);
-	void processConnectionPartECDH(protocol::OverlayMessageStructure& answ_message,
-			bool& send_answ,
-			const protocol::OverlayMessageStructure& recv_message,
-			const protocol::OverlayMessageStructure_Payload_Part& part);
-	void processConnectionPartACK(protocol::OverlayMessageStructure& answ_message,
-			bool& send_answ,
-			const protocol::OverlayMessageStructure& recv_message,
-			const protocol::OverlayMessageStructure_Payload_Part& part);
+	void processConnectionPart(const protocol::OverlayMessage& recv_message,
+			const protocol::OverlayMessage_Payload& decrypted_payload = protocol::OverlayMessage_Payload::default_instance());
+	void processConnectionPartPUBKEY(const protocol::OverlayMessage& recv_message);
+	void processConnectionPartECDH(const protocol::OverlayMessage& recv_message);
+	void processConnectionPartACK(const protocol::OverlayMessage& recv_message);
 
 public:
 	OverlayConnection(overlay::TH th);
