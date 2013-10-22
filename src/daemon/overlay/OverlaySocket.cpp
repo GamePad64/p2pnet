@@ -45,9 +45,13 @@ void OverlaySocket::process(std::string data, transport::TransportSocketEndpoint
 	if(overlay_message.ParseFromString(data)){
 		overlay::TH packet_src_th(overlay::TH::fromBinaryString(overlay_message.header().src_th()));
 
+		log() << "Received Overlay Message from: TH:" << overlay::TH::fromBinaryString(overlay_message.header().src_th()).toBase58() << std::endl;
+
 		addConnection(packet_src_th)->process(overlay_message, from);
 	}else if(request_message.ParseFromString(data)){
 		overlay::TH packet_src_th(overlay::TH::fromBinaryString(request_message.src_th()));
+
+		log() << "Received Connection Request from: TH:" << overlay::TH::fromBinaryString(request_message.src_th()).toBase58() << std::endl;
 
 		addConnection(packet_src_th)->process(request_message, from);
 	}

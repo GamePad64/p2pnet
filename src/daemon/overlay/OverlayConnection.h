@@ -21,6 +21,7 @@
 #include "../../common/crypto/PublicKeyDSA.h"
 #include "../protobuf/Protocol.pb.h"
 #include "../databases/PersonalKeyStorage.h"
+#include "../../common/Config.h"
 #include <deque>
 #include <unordered_map>
 
@@ -30,7 +31,7 @@
 namespace p2pnet {
 namespace overlay {
 
-class OverlayConnection : public Loggable, public std::enable_shared_from_this<OverlayConnection> {
+class OverlayConnection : public Loggable, public std::enable_shared_from_this<OverlayConnection>, public ConfigClient {
 	overlay::TH th_endpoint;
 	crypto::PublicKeyDSA public_key;
 
@@ -71,10 +72,12 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 
 	bool performLocalKeyRotation(const protocol::OverlayMessage& recv_message);
 
+	// Generators
 	protocol::OverlayMessage generateReplySkel(const protocol::OverlayMessage& recv_message);
 	protocol::OverlayMessage_Payload_ConnectionPart generateConnectionPart(protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage for_stage);
 	protocol::OverlayMessage_Payload_KeyRotationPart generateKeyRotationPart(const protocol::OverlayMessage& send_message, std::shared_ptr<crypto::PrivateKeyDSA> our_hist_key);
 
+	// Processors
 	void processConnectionPart(const protocol::OverlayMessage& recv_message,
 			const protocol::OverlayMessage_Payload& decrypted_payload = protocol::OverlayMessage_Payload::default_instance());
 	void processConnectionPartPUBKEY(const protocol::OverlayMessage& recv_message);
@@ -93,6 +96,8 @@ public:
 	void send(const protocol::OverlayMessage& send_message);
 	void process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from);
 	void process(const protocol::ConnectionRequestMessage& recv_message, const transport::TransportSocketEndpoint& from);
+
+	void connect();
 
 	std::string getComponentName(){return "OverlayConnection";}
 };

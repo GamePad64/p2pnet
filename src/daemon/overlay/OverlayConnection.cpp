@@ -74,7 +74,12 @@ void OverlayConnection::sendMessage(const protocol::OverlayMessage& send_message
 
 	if(send_message.header().prio() == send_message.header().RELIABLE){
 		new_send_message.mutable_header()->set_seq_num(seq_counter++);
+		for(auto& it : acked_messages){
+			new_send_message.mutable_header()->mutable_ack_num()->Add(it);
+		}
 	}
+
+	sendData(new_send_message.SerializeAsString());
 }
 
 bool OverlayConnection::performLocalKeyRotation(const protocol::OverlayMessage& recv_message){
@@ -163,53 +168,6 @@ protocol::OverlayMessage_Payload_KeyRotationPart OverlayConnection::generateKeyR
 	return part;
 }
 
-bool OverlayConnection::isReady() const {
-	return state == ESTABLISHED;
-}
-
-void OverlayConnection::updateTSE(const transport::TransportSocketEndpoint& from, bool verified) {
-	auto it = std::find(m_tse.begin(), m_tse.end(), from);
-	if(it == m_tse.end()){
-		m_tse.push_front(from);
-	}else{
-		m_tse.erase(it);
-		if(verified){
-			m_tse.push_front(from);
-		}else{
-			m_tse.push_back(from);
-		}
-	}
-}
-
-void OverlayConnection::send(const protocol::OverlayMessage& send_message) {
-}
-
-void OverlayConnection::process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from) {
-	updateTSE(from);
-
-	std::shared_ptr<crypto::PrivateKeyDSA> our_historic_ecdsa_privkey;
-	overlay::TH dest_th = overlay::TH::fromBinaryString(recv_message.header().dest_th());
-	our_historic_ecdsa_privkey = pks->getPrivateKeyOfTH(dest_th);
-
-	if(our_historic_ecdsa_privkey != nullptr){
-		// So, this message is for us.
-		if(recv_message.payload().has_key_rotation_part())
-			if(performLocalKeyRotation(recv_message))
-				updateTSE(from, true);
-		if(recv_message.has_encrypted_payload())
-		processConnectionPart(recv_message);
-		if(recv_message.header().prio() == recv_message.header().RELIABLE){
-			acked_messages.insert(recv_message.header().seq_num());
-			processed_messages.insert(recv_message.header().seq_num());
-			for(auto& it : recv_message.header().ack_num()){
-				sent_message_buffer.erase(it);
-			}
-		}
-	}else{
-		// This message is completely stale, or it is intended to be retransmitted.
-	}
-}
-
 void OverlayConnection::processConnectionPart(const protocol::OverlayMessage& recv_message,
 		const protocol::OverlayMessage_Payload& decrypted_payload) {
 	if(recv_message.payload().has_connection_part()){
@@ -264,6 +222,73 @@ void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage
 
 void OverlayConnection::processConnectionPartAES(const protocol::OverlayMessage& recv_message,
 		const protocol::OverlayMessage_Payload& decrypted_payload){
+}
+
+bool OverlayConnection::isReady() const {
+	return state == ESTABLISHED;
+}
+
+void OverlayConnection::updateTSE(const transport::TransportSocketEndpoint& from, bool verified) {
+	auto it = std::find(m_tse.begin(), m_tse.end(), from);
+	if(it == m_tse.end()){
+		m_tse.push_front(from);
+	}else{
+		m_tse.erase(it);
+		if(verified){
+			m_tse.push_front(from);
+		}else{
+			m_tse.push_back(from);
+		}
+	}
+}
+
+void OverlayConnection::send(const protocol::OverlayMessage& send_message) {
+}
+
+void OverlayConnection::process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from) {
+	updateTSE(from);
+
+	std::shared_ptr<crypto::PrivateKeyDSA> our_historic_ecdsa_privkey;
+	overlay::TH dest_th = overlay::TH::fromBinaryString(recv_message.header().dest_th());
+	our_historic_ecdsa_privkey = pks->getPrivateKeyOfTH(dest_th);
+
+	if(our_historic_ecdsa_privkey != nullptr){
+		// So, this message is for us.
+		if(recv_message.payload().has_key_rotation_part())
+			if(performLocalKeyRotation(recv_message))
+				updateTSE(from, true);
+		if(recv_message.has_encrypted_payload())
+		processConnectionPart(recv_message);
+		if(recv_message.header().prio() == recv_message.header().RELIABLE){
+			processed_messages.insert(recv_message.header().seq_num());
+			if(processed_messages.size() > getValue<size_t>("overlay.connection.processed_queue_size")){
+				processed_messages.erase(processed_messages.begin());
+			}
+			acked_messages.insert(recv_message.header().seq_num());
+			for(auto& it : recv_message.header().ack_num()){
+				sent_message_buffer.erase(it);
+			}
+		}
+	}else{
+		// This message is completely stale, or it is intended to be retransmitted.
+	}
+}
+
+void OverlayConnection::process(const protocol::ConnectionRequestMessage& recv_message,
+		const transport::TransportSocketEndpoint& from) {
+	updateTSE(from);
+
+	if(state == CLOSED)
+		connect();
+}
+
+void OverlayConnection::connect() {
+	protocol::OverlayMessage message;
+	message.mutable_header()->set_src_th(pks->getMyTransportHash().toBinaryString());
+	message.mutable_header()->set_dest_th(th_endpoint.toBinaryString());
+	message.mutable_header()->set_prio(message.header().RELIABLE);
+	message.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(message.payload().connection_part().PUBKEY));
+	sendMessage(message);
 }
 
 } /* namespace overlay */

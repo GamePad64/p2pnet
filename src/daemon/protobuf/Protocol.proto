@@ -68,10 +68,6 @@ message OverlayMessage {
 	optional bytes encrypted_payload = 3;
 }
 
-message ConnectionRequestMessage {
-	required bytes src_th = 1;
-}
-
 /*
  * This message type is used in Local Peer Discovery through UDP.
  */
