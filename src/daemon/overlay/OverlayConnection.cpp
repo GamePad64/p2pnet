@@ -16,6 +16,7 @@
 #include "../transport/TransportSocket.h"
 #include "../AsioIOService.h"
 #include <algorithm>
+#include <functional>
 
 namespace p2pnet {
 namespace overlay {
@@ -66,7 +67,7 @@ void OverlayConnection::sendMessage(const protocol::OverlayMessage& send_message
 				key_rotation_message.mutable_payload()->mutable_connection_part()->CopyFrom(generateKeyRotationPart(send_message, our_hist_key));
 				sendMessage(key_rotation_message);
 				udp_key_rotation_locked = true;
-				udp_key_rotation_limit.async_wait(std::bind([&](boost::system::error_code ec){udp_key_rotation_locked = false;}, this));
+				udp_key_rotation_limit.async_wait([&](const boost::system::error_code& ec) {if (!ec) udp_key_rotation_locked = false;});
 			}
 		}
 	}
