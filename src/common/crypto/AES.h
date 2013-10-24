@@ -27,6 +27,8 @@ public:
 	AES();
 	virtual ~AES();
 
+	explicit operator bool();
+
 	std::string encrypt(std::string data);
 	std::string decrypt(std::string data);
 

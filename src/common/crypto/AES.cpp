@@ -19,6 +19,10 @@ namespace crypto {
 AES::AES() {}
 AES::~AES() {}
 
+AES::operator bool(){
+	return key.length() > 0 && iv.length() > 0;
+}
+
 std::string AES::encrypt(std::string data) {
 	Botan::AutoSeeded_RNG rng;
 	Botan::Pipe pipe(get_cipher("AES-128/CBC", key, iv, Botan::ENCRYPTION));

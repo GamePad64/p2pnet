@@ -79,6 +79,8 @@ void OverlayConnection::sendMessage(const protocol::OverlayMessage& send_message
 		}
 	}
 
+	log() << "Message sent to: TH:" << th_endpoint.toBase58() << std::endl;
+
 	sendData(new_send_message.SerializeAsString());
 }
 
@@ -249,16 +251,37 @@ void OverlayConnection::process(const protocol::OverlayMessage& recv_message, co
 	updateTSE(from);
 
 	std::shared_ptr<crypto::PrivateKeyDSA> our_historic_ecdsa_privkey;
-	overlay::TH dest_th = overlay::TH::fromBinaryString(recv_message.header().dest_th());
-	our_historic_ecdsa_privkey = pks->getPrivateKeyOfTH(dest_th);
 
+	overlay::TH src_th = overlay::TH::fromBinaryString(recv_message.header().src_th());
+	overlay::TH dest_th = overlay::TH::fromBinaryString(recv_message.header().dest_th());
+
+	log() << "Received OverlayMessage from: TH:" << src_th.toBase58() << std::endl;
+
+	our_historic_ecdsa_privkey = pks->getPrivateKeyOfTH(dest_th);
 	if(our_historic_ecdsa_privkey != nullptr){
 		// So, this message is for us.
+		/* Key Rotation stage */
 		if(recv_message.payload().has_key_rotation_part())
 			if(performLocalKeyRotation(recv_message))
 				updateTSE(from, true);
-		if(recv_message.has_encrypted_payload())
-		processConnectionPart(recv_message);
+		/* Encryption stage */
+		if(recv_message.has_encrypted_payload()){
+			protocol::OverlayMessage_Payload decrypted_payload;
+			if(bool(aes_key)){
+				auto decrypted_payload_s = aes_key.decrypt(recv_message.encrypted_payload());
+				if(decrypted_payload.ParseFromString(decrypted_payload_s)){
+					/* Encrypted processing */
+					processConnectionPart(recv_message, decrypted_payload);
+				}else{
+					// Reconnect
+				}
+			}else{
+				// Umm... Dont' know. TODO: reconnect.
+			}
+		}else{
+			/* Open (unencrypted) processing */
+			processConnectionPart(recv_message);
+		}
 		if(recv_message.header().prio() == recv_message.header().RELIABLE){
 			processed_messages.insert(recv_message.header().seq_num());
 			if(processed_messages.size() > getValue<size_t>("overlay.connection.processed_queue_size")){
