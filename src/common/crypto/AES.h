@@ -34,6 +34,9 @@ public:
 
 	void setAsBinaryVector(binary_vector_t serialized_vector);
 	virtual binary_vector_t toBinaryVector() const;
+
+	static constexpr size_t keySize(){return 128;}
+	static constexpr size_t vectorSize(){return keySize()*2;}
 };
 
 } /* namespace crypto */
