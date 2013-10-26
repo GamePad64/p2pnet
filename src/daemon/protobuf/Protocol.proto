@@ -75,3 +75,7 @@ message UDPDiscoveryMessage {
 	required uint32 port = 1;
 	optional uint32 version = 2;
 }
+
+message ConnectionRequestMessage {
+	required bytes src_th = 1;
+}
