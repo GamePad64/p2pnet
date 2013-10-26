@@ -1,12 +1,15 @@
 language: cpp
-compiler: gcc
+compiler:
+  - gcc
+  - clang
 install:
   - sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-add-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main"
+  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
   -
   - sudo apt-get update
-  - sudo apt-get dist-upgrade
   -
-  - sudo apt-get install ccache monotone libboost1.48-all-dev g++-4.8 gcc-4.8 build-essential python-all binutils-gold mercurial subversion libgtest-dev protobuf-compiler libprotobuf-dev
+  - sudo apt-get install ccache clang-3.4 monotone libboost1.48-all-dev g++-4.8 gcc-4.8 build-essential python-all binutils-gold mercurial subversion libgtest-dev protobuf-compiler libprotobuf-dev
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
   - 
   - wget -O contrib.tar.gz https://dl.dropboxusercontent.com/u/2310050/p2pnet/contrib.tar.gz
