@@ -40,9 +40,8 @@ std::string AES::decrypt(std::string data) {
 }
 
 void AES::setAsBinaryVector(binary_vector_t serialized_vector) {
-	auto key_length = serialized_vector.size()/2;
-	binary_vector_t key_v = binary_vector_t(serialized_vector.begin(), serialized_vector.begin()+key_length);
-	binary_vector_t iv_v = binary_vector_t(serialized_vector.begin()+key_length, serialized_vector.end());
+	binary_vector_t key_v = binary_vector_t(serialized_vector.begin(), serialized_vector.begin()+keySize());
+	binary_vector_t iv_v = binary_vector_t(serialized_vector.begin()+keySize(), serialized_vector.begin()+vectorSize());
 	key = Botan::OctetString(key_v);
 	iv = Botan::OctetString(iv_v);
 }

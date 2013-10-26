@@ -133,23 +133,15 @@ protocol::OverlayMessage_Payload_ConnectionPart OverlayConnection::generateConne
 		if(!bool(ecdh_key))
 			ecdh_key.generateKey();
 
-		auto public_ecsdh_component = ecdh_key.derivePublicKey();
+		auto public_ecdh_component = ecdh_key.derivePublicKey();
 
-		conn_part.set_src_ecdh_pubkey(public_ecsdh_component);
-		conn_part.set_signature(pks->getMyPrivateKey().sign(public_ecsdh_component));
+		conn_part.set_src_ecdh_pubkey(public_ecdh_component);
+		conn_part.set_signature(pks->getMyPrivateKey().sign(public_ecdh_component));
 	}
 
 	/* AES part */
 	else if(for_stage == protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_AES){
-		conn_part.set_stage(for_stage);
-
-		if(!bool(ecdh_key))
-			ecdh_key.generateKey();
-
-		auto public_ecsdh_component = ecdh_key.derivePublicKey();
-
-		conn_part.set_src_ecdh_pubkey(public_ecsdh_component);
-		conn_part.set_signature(pks->getMyPrivateKey().sign(public_ecsdh_component));
+		conn_part.set_stage(for_stage);	// Consists of stage only
 	}
 
 	return conn_part;
@@ -192,7 +184,7 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 
 	if((crypto::Hash(recv_dsa_pubkey) == th_endpoint)	// So, we check if this message contains genuine ECDSA public key of connected TH.
 			&& recv_dsa_pubkey.validate()){	// And then we validate this ECDSA public key using mathematical methods.
-		log() << "Received public key from: TH:" << th_endpoint.toBase58() << std::endl;
+		log() << "Received ECDSA public key from: TH:" << th_endpoint.toBase58() << std::endl;
 		public_key = recv_dsa_pubkey;
 	}else{
 		return;	// Drop. TODO MessageReject.
@@ -220,10 +212,44 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 }
 
 void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage& recv_message){
+	if(!bool(ecdh_key))
+		ecdh_key.generateKey();
+	auto salt_v = th_endpoint ^ pks->getMyTransportHash();
+	auto derived_aes_string = ecdh_key.deriveSymmetricKey(aes_key.vectorSize(),
+			recv_message.payload().connection_part().src_ecdh_pubkey(), std::string(salt_v.begin(), salt_v.end())
+			);
+	aes_key.setAsBinaryString(derived_aes_string);
+
+	log() << "Received ECDH public key from: TH:" << th_endpoint.toBase58() << std::endl;
+
+	auto reply = generateReplySkel(recv_message);
+
+	if(recv_message.payload().connection_part().stage() == recv_message.payload().connection_part().ECDH && state == PUBKEY_RECEIVED){
+		/* We need to send back ECDH_ACK */
+		reply.mutable_header()->set_prio(reply.header().RELIABLE);
+		reply.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(reply.payload().connection_part().ECDH_ACK));
+
+		state = ECDH_RECEIVED;
+
+		sendMessage(reply);
+	}else if(recv_message.payload().connection_part().stage() == recv_message.payload().connection_part().ECDH_ACK && state == ECDH_SENT){
+		/* We need to send back AES */
+		reply.mutable_header()->set_prio(reply.header().RELIABLE);
+		protocol::OverlayMessage_Payload not_encrypted_payload;
+		not_encrypted_payload.mutable_connection_part()->CopyFrom(generateConnectionPart(reply.payload().connection_part().AES));
+		reply.set_encrypted_payload(encryptPayload(not_encrypted_payload));
+
+		sendMessage(reply);
+
+		state = ESTABLISHED;
+		log() << "AES encrypted connection with TH:" << th_endpoint.toBase58() << " established" << std::endl;
+	}
 }
 
 void OverlayConnection::processConnectionPartAES(const protocol::OverlayMessage& recv_message,
 		const protocol::OverlayMessage_Payload& decrypted_payload){
+	state = ESTABLISHED;
+	log() << "AES encrypted connection with TH:" << th_endpoint.toBase58() << " established" << std::endl;
 }
 
 bool OverlayConnection::isReady() const {
@@ -242,6 +268,10 @@ void OverlayConnection::updateTSE(const transport::TransportSocketEndpoint& from
 			m_tse.push_back(from);
 		}
 	}
+}
+
+std::string OverlayConnection::encryptPayload(const protocol::OverlayMessage_Payload& payload){
+	return aes_key.encrypt(payload.SerializeAsString());
 }
 
 void OverlayConnection::send(const protocol::OverlayMessage& send_message) {

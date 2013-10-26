@@ -46,9 +46,6 @@ message OverlayMessage {
 			optional bytes src_ecdsa_pubkey = 2;	// Our ECDSA key.
 			optional bytes src_ecdh_pubkey = 3;	// This connection ECDH key, signed with our ECDSA key.
 			optional bytes signature = 4; // OUR_ECDSA_SIG(src_ecdh_pubkey)
-
-			/* encrypted_payload part */
-			optional bytes aes = 5;
 		}
 
 		message KeyRotationPart {

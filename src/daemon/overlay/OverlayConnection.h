@@ -90,8 +90,9 @@ public:
 	virtual ~OverlayConnection();
 
 	bool isReady() const;
-
 	void updateTSE(const transport::TransportSocketEndpoint& from, bool verified = false);
+
+	std::string encryptPayload(const protocol::OverlayMessage_Payload& payload);
 
 	void send(const protocol::OverlayMessage& send_message);
 	void process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from);

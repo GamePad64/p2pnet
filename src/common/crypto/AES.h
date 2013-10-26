@@ -17,10 +17,12 @@
 #include "MathString.h"
 #include <botan/aes.h>
 
+#define AES_BITSIZE 128
+
 namespace p2pnet {
 namespace crypto {
 
-class AES : MathString<AES> {
+class AES : public MathString<AES> {
 	Botan::SymmetricKey key;
 	Botan::InitializationVector iv;
 public:
@@ -35,7 +37,7 @@ public:
 	void setAsBinaryVector(binary_vector_t serialized_vector);
 	virtual binary_vector_t toBinaryVector() const;
 
-	static constexpr size_t keySize(){return 128;}
+	static constexpr size_t keySize(){return AES_BITSIZE/8;}
 	static constexpr size_t vectorSize(){return keySize()*2;}
 };
 

@@ -34,6 +34,8 @@ public:
 	OverlaySocket();
 	virtual ~OverlaySocket();
 
+	std::string getComponentName(){return "OverlaySocket";}
+
 	void send(overlay::TH dest, std::string data);
 	void process(std::string data, transport::TransportSocketEndpoint from);
 };
