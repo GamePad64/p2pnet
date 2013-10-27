@@ -31,9 +31,10 @@
 namespace p2pnet {
 namespace overlay {
 
-class OverlayConnection : public Loggable, public std::enable_shared_from_this<OverlayConnection>, public ConfigClient {
+class OverlayConnection : public Loggable, public std::enable_shared_from_this<OverlayConnection>, public ConfigClient, databases::PersonalKeyStorageClient {
 	overlay::TH th_endpoint;
 	crypto::PublicKeyDSA public_key;
+	virtual void keysUpdated();
 
 	crypto::ECDH ecdh_key;
 	crypto::AES aes_key;
@@ -60,8 +61,6 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 		ESTABLISHED = 5
 	} state = CLOSED;
 
-	databases::PersonalKeyStorage* pks;
-
 	/**
 	 * It is a function, that tries to manage TransportConnection directly.
 	 * This function is about connectivity, and "send" is about encryption.
@@ -75,7 +74,7 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 	// Generators
 	protocol::OverlayMessage generateReplySkel(const protocol::OverlayMessage& recv_message);
 	protocol::OverlayMessage_Payload_ConnectionPart generateConnectionPart(protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage for_stage);
-	protocol::OverlayMessage_Payload_KeyRotationPart generateKeyRotationPart(const protocol::OverlayMessage& send_message, std::shared_ptr<crypto::PrivateKeyDSA> our_hist_key);
+	protocol::OverlayMessage_Payload_KeyRotationPart generateKeyRotationPart(const crypto::PrivateKeyDSA& our_hist_key);
 
 	// Processors
 	void processConnectionPart(const protocol::OverlayMessage& recv_message,

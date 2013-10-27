@@ -42,8 +42,8 @@ public:
 
 	std::string decrypt(std::string enc_data);
 
-	std::string sign(std::string data);
-	std::string signRaw(std::string data);
+	std::string sign(std::string data) const;
+	std::string signRaw(std::string data) const;
 
 	virtual void fromPEM(std::string pem);
 	virtual std::string toPEM();
@@ -51,7 +51,7 @@ public:
 	void setAsBinaryVector(binary_vector_t serialized_vector);
 	virtual binary_vector_t toBinaryVector() const;
 
-	PublicKeyDSA derivePublicKey();
+	PublicKeyDSA derivePublicKey() const;
 };
 
 } /* namespace crypto */

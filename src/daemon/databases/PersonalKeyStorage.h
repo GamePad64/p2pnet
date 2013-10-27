@@ -29,30 +29,12 @@
 namespace p2pnet {
 namespace databases {
 
-class PersonalKeyStorage;
-class PersonalKeyStorageClient {
-	PersonalKeyStorage* storage;
-public:
-	PersonalKeyStorageClient();
-	~PersonalKeyStorageClient();
+typedef std::deque<std::pair<std::shared_ptr<crypto::PrivateKeyDSA>, std::shared_ptr<overlay::TH>>> key_history_t;
 
-	// Signals
-	void keysUpdated(){};
-
-protected:
-	// Getters
-	overlay::TH getMyTransportHash();
-
-	crypto::PublicKeyDSA getMyPublicKey();
-	crypto::PrivateKeyDSA getMyPrivateKey();
-
-	std::shared_ptr<crypto::PrivateKeyDSA> getPrivateKeyOfTH(overlay::TH);
-};
+class PersonalKeyStorageClient;
 
 class PersonalKeyStorage : public Singleton<PersonalKeyStorage>, ConfigClient, public Loggable {
-	//std::deque<std::shared_ptr<crypto::PrivateKeyDSA>> my_private_key_history;
-	//std::deque<std::shared_ptr<overlay::TH>> my_transport_hash_history;
-	std::deque<std::pair<std::shared_ptr<crypto::PrivateKeyDSA>, std::shared_ptr<overlay::TH>>> my_id_history;
+	key_history_t my_id_history;
 	//std::mutex key_lock;
 
 	boost::asio::deadline_timer timer;
@@ -79,10 +61,32 @@ public:
 
 	std::shared_ptr<crypto::PrivateKeyDSA> getPrivateKeyOfTH(overlay::TH th);
 
+	const key_history_t& getHistory(){return my_id_history;};
+
 	std::string getComponentName(){return "PersonalKeyStorage";}
 
 	void registerClient(PersonalKeyStorageClient* client);
 	void unregisterClient(PersonalKeyStorageClient* client);
+};
+
+class PersonalKeyStorageClient {
+public:
+	PersonalKeyStorageClient();
+	virtual ~PersonalKeyStorageClient();
+
+	// Signals
+	virtual void keysUpdated(){};
+
+protected:
+	PersonalKeyStorage* pks;	// Yes, it is protected for "raw" access.
+	// Getters
+	overlay::TH getMyTransportHash(){return pks->getMyTransportHash();}
+
+	crypto::PublicKeyDSA getMyPublicKey(){return pks->getMyPublicKey();}
+	crypto::PrivateKeyDSA getMyPrivateKey(){return pks->getMyPrivateKey();}
+
+	std::shared_ptr<crypto::PrivateKeyDSA> getPrivateKeyOfTH(overlay::TH hash){return pks->getPrivateKeyOfTH(hash);}
+	const key_history_t& getHistory(){return pks->getHistory();}
 };
 
 } /* namespace databases */

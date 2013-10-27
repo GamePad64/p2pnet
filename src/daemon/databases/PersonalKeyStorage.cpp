@@ -21,31 +21,6 @@
 namespace p2pnet {
 namespace databases {
 
-PersonalKeyStorageClient::PersonalKeyStorageClient() {
-	storage = PersonalKeyStorage::getInstance();
-	storage->registerClient(this);
-}
-
-PersonalKeyStorageClient::~PersonalKeyStorageClient() {
-	storage->unregisterClient(this);
-}
-
-overlay::TH PersonalKeyStorageClient::getMyTransportHash() {
-	return storage->getMyTransportHash();
-}
-
-crypto::PublicKeyDSA PersonalKeyStorageClient::getMyPublicKey() {
-	return storage->getMyPublicKey();
-}
-
-crypto::PrivateKeyDSA PersonalKeyStorageClient::getMyPrivateKey() {
-	return storage->getMyPrivateKey();
-}
-
-std::shared_ptr<crypto::PrivateKeyDSA> PersonalKeyStorageClient::getPrivateKeyOfTH(overlay::TH hash) {
-	return storage->getPrivateKeyOfTH(hash);
-}
-
 PersonalKeyStorage::PersonalKeyStorage() : timer(AsioIOService::getIOService()) {
 	/*
 	 * TODO: We shouldn't regenerate keys every execution, so some sort of caching is required.
@@ -76,6 +51,10 @@ void PersonalKeyStorage::renewKeys() {
 
 	if(my_id_history.size() > getValue<unsigned int>("databases.pks.history_size") + 1 ){	//Yes, +1 means newly generated key.
 		my_id_history.pop_back();
+	}
+
+	for(auto& it : clients){
+		it->keysUpdated();
 	}
 
 	log() << "New keys generated. TH: " << my_id_history.front().second->toBase58() << std::endl;
@@ -134,6 +113,15 @@ void PersonalKeyStorage::registerClient(PersonalKeyStorageClient* client) {
 
 void PersonalKeyStorage::unregisterClient(PersonalKeyStorageClient* client) {
 	clients.erase(client);
+}
+
+PersonalKeyStorageClient::PersonalKeyStorageClient() {
+	pks = PersonalKeyStorage::getInstance();
+	pks->registerClient(this);
+}
+
+PersonalKeyStorageClient::~PersonalKeyStorageClient() {
+	pks->unregisterClient(this);
 }
 
 } /* namespace databases */

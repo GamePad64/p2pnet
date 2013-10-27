@@ -22,10 +22,21 @@ namespace p2pnet {
 namespace overlay {
 
 OverlayConnection::OverlayConnection(overlay::TH th) : th_endpoint(th), udp_key_rotation_limit(AsioIOService::getIOService()) {
-	pks = databases::PersonalKeyStorage::getInstance();
 	log() << "New Overlay Connection initiated with TH:" << th_endpoint.toBase58() << std::endl;
 }
 OverlayConnection::~OverlayConnection() {}
+
+void OverlayConnection::keysUpdated(){
+	if(state == ESTABLISHED){
+		protocol::OverlayMessage message;
+		message.mutable_header()->set_src_th((getHistory().begin()+1)->second->toBinaryString());
+		message.mutable_header()->set_dest_th(th_endpoint.toBinaryString());
+		message.mutable_header()->set_prio(message.header().REALTIME);
+
+		message.mutable_payload()->mutable_key_rotation_part()->CopyFrom(generateKeyRotationPart(*((getHistory().begin()+1)->first)));
+		sendMessage(message);
+	}
+}
 
 void OverlayConnection::sendData(std::string data) {
 	auto& transport_socket_connections = transport::TransportSocket::getInstance()->m_connections;
@@ -53,18 +64,18 @@ void OverlayConnection::sendData(std::string data) {
 void OverlayConnection::sendMessage(const protocol::OverlayMessage& send_message) {
 	auto new_send_message = send_message;
 
-	auto our_hist_key = pks->getPrivateKeyOfTH(crypto::Hash::fromBinaryString(send_message.header().src_th()));	//TODO: Alarm! Possible race condition, as our keys update in a separate thread.
-	if(our_hist_key != nullptr && our_hist_key->toBinaryString() != pks->getMyPrivateKey().toBinaryString()){
+	auto our_hist_key = getPrivateKeyOfTH(crypto::Hash::fromBinaryString(send_message.header().src_th()));	//TODO: Alarm! Possible race condition, as our keys update in a separate thread.
+	if(our_hist_key != nullptr && our_hist_key->toBinaryString() != getMyPrivateKey().toBinaryString()){
 		if(send_message.header().prio() == send_message.header().RELIABLE){
 			if(!new_send_message.mutable_payload()->has_key_rotation_part()){
-				new_send_message.mutable_payload()->mutable_key_rotation_part()->CopyFrom(generateKeyRotationPart(send_message, our_hist_key));
+				new_send_message.mutable_payload()->mutable_key_rotation_part()->CopyFrom(generateKeyRotationPart(*our_hist_key));
 			}
-		}else if(send_message.header().prio() == send_message.header().REALTIME){
+		}else if(send_message.header().prio() == send_message.header().REALTIME && !new_send_message.mutable_payload()->has_key_rotation_part()){
 			if(!udp_key_rotation_locked){
 				udp_key_rotation_limit.expires_from_now(boost::posix_time::seconds(KEY_ROTATION_LIMIT));
 				protocol::OverlayMessage key_rotation_message;
 				key_rotation_message.mutable_header()->CopyFrom(send_message.header());
-				key_rotation_message.mutable_payload()->mutable_connection_part()->CopyFrom(generateKeyRotationPart(send_message, our_hist_key));
+				key_rotation_message.mutable_payload()->mutable_connection_part()->CopyFrom(generateKeyRotationPart(*our_hist_key));
 				sendMessage(key_rotation_message);
 				udp_key_rotation_locked = true;
 				udp_key_rotation_limit.async_wait([&](const boost::system::error_code& ec) {if (!ec) udp_key_rotation_locked = false;});
@@ -97,7 +108,9 @@ bool OverlayConnection::performLocalKeyRotation(const protocol::OverlayMessage& 
 			if(oldkey.verify(twokeys, part.old_signature()) && newkey.validate() && newkey.verify(twokeys, part.new_signature())){
 				//This message is genuine. We are changing public key, TH, and connection in socket's map.
 				public_key = newkey;
-				th_endpoint = overlay::TH(public_key);
+				auto th_endpoint_new = overlay::TH(public_key);
+				log() << th_endpoint.toBase58() << " ~~> " << th_endpoint_new.toBase58() << std::endl;
+				th_endpoint = th_endpoint_new;
 				OverlaySocket::getInstance()->m_connections.insert(std::make_pair(th_endpoint, shared_from_this()));
 				return true;
 			}
@@ -122,7 +135,7 @@ protocol::OverlayMessage_Payload_ConnectionPart OverlayConnection::generateConne
 	if(for_stage == protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_PUBKEY
 			|| for_stage == protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_PUBKEY_ACK){
 		conn_part.set_stage(for_stage);
-		conn_part.set_src_ecdsa_pubkey(pks->getMyPublicKey().toBinaryString());
+		conn_part.set_src_ecdsa_pubkey(getMyPublicKey().toBinaryString());
 	}
 
 	/* ECDH part */
@@ -136,7 +149,7 @@ protocol::OverlayMessage_Payload_ConnectionPart OverlayConnection::generateConne
 		auto public_ecdh_component = ecdh_key.derivePublicKey();
 
 		conn_part.set_src_ecdh_pubkey(public_ecdh_component);
-		conn_part.set_signature(pks->getMyPrivateKey().sign(public_ecdh_component));
+		conn_part.set_signature(getMyPrivateKey().sign(public_ecdh_component));
 	}
 
 	/* AES part */
@@ -147,17 +160,17 @@ protocol::OverlayMessage_Payload_ConnectionPart OverlayConnection::generateConne
 	return conn_part;
 }
 
-protocol::OverlayMessage_Payload_KeyRotationPart OverlayConnection::generateKeyRotationPart(const protocol::OverlayMessage& send_message, std::shared_ptr<crypto::PrivateKeyDSA> our_hist_key){
+protocol::OverlayMessage_Payload_KeyRotationPart OverlayConnection::generateKeyRotationPart(const crypto::PrivateKeyDSA& our_hist_key){
 	protocol::OverlayMessage_Payload_KeyRotationPart part;
 
-	std::string old_key_s = our_hist_key->derivePublicKey().toBinaryString();
-	std::string new_key_s = pks->getMyPublicKey().toBinaryString();
+	std::string old_key_s = our_hist_key.derivePublicKey().toBinaryString();
+	std::string new_key_s = getMyPublicKey().toBinaryString();
 
 	part.set_old_ecdsa_key(old_key_s);
 	part.set_new_ecdsa_key(new_key_s);
 
-	part.set_old_signature(our_hist_key->sign(old_key_s+new_key_s));
-	part.set_new_signature(pks->getMyPrivateKey().sign(old_key_s+new_key_s));
+	part.set_old_signature(our_hist_key.sign(old_key_s+new_key_s));
+	part.set_new_signature(getMyPrivateKey().sign(old_key_s+new_key_s));
 
 	return part;
 }
@@ -214,7 +227,7 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage& recv_message){
 	if(!bool(ecdh_key))
 		ecdh_key.generateKey();
-	auto salt_v = th_endpoint ^ pks->getMyTransportHash();
+	auto salt_v = th_endpoint ^ getMyTransportHash();
 	auto derived_aes_string = ecdh_key.deriveSymmetricKey(aes_key.vectorSize(),
 			recv_message.payload().connection_part().src_ecdh_pubkey(), std::string(salt_v.begin(), salt_v.end())
 			);
@@ -287,7 +300,7 @@ void OverlayConnection::process(const protocol::OverlayMessage& recv_message, co
 
 	log() << "Received OverlayMessage from: TH:" << src_th.toBase58() << std::endl;
 
-	our_historic_ecdsa_privkey = pks->getPrivateKeyOfTH(dest_th);
+	our_historic_ecdsa_privkey = getPrivateKeyOfTH(dest_th);
 	if(our_historic_ecdsa_privkey != nullptr){
 		// So, this message is for us.
 		/* Key Rotation stage */
@@ -301,6 +314,7 @@ void OverlayConnection::process(const protocol::OverlayMessage& recv_message, co
 				auto decrypted_payload_s = aes_key.decrypt(recv_message.encrypted_payload());
 				if(decrypted_payload.ParseFromString(decrypted_payload_s)){
 					/* Encrypted processing */
+					updateTSE(from, true);
 					processConnectionPart(recv_message, decrypted_payload);
 				}else{
 					// Reconnect
@@ -337,7 +351,7 @@ void OverlayConnection::process(const protocol::ConnectionRequestMessage& recv_m
 
 void OverlayConnection::connect() {
 	protocol::OverlayMessage message;
-	message.mutable_header()->set_src_th(pks->getMyTransportHash().toBinaryString());
+	message.mutable_header()->set_src_th(getMyTransportHash().toBinaryString());
 	message.mutable_header()->set_dest_th(th_endpoint.toBinaryString());
 	message.mutable_header()->set_prio(message.header().RELIABLE);
 	message.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(message.payload().connection_part().PUBKEY));

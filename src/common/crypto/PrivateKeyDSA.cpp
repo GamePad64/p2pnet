@@ -66,7 +66,7 @@ std::string PrivateKeyDSA::decrypt(std::string enc_data) {
 	return decrypted_data_s;
 }
 
-std::string PrivateKeyDSA::sign(std::string data){
+std::string PrivateKeyDSA::sign(std::string data) const{
 	Botan::PK_Signer pk_signer(*key_private, "EMSA1(" + Hash::getAlgoName() + ")");
 	Botan::AutoSeeded_RNG rng;
 
@@ -75,7 +75,7 @@ std::string PrivateKeyDSA::sign(std::string data){
 	return message_s;
 }
 
-std::string PrivateKeyDSA::signRaw(std::string data){
+std::string PrivateKeyDSA::signRaw(std::string data) const{
 	Botan::PK_Signer pk_signer(*key_private, "Raw");
 	Botan::AutoSeeded_RNG rng;
 
@@ -108,7 +108,7 @@ PrivateKeyDSA::binary_vector_t PrivateKeyDSA::toBinaryVector() const {
 	return Botan::PKCS8::BER_encode(*key_private);
 }
 
-PublicKeyDSA PrivateKeyDSA::derivePublicKey() {
+PublicKeyDSA PrivateKeyDSA::derivePublicKey() const{
 	return PublicKeyDSA(*this);
 }
 
