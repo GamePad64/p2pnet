@@ -38,6 +38,15 @@ void OverlayConnection::keysUpdated(){
 	}
 }
 
+void OverlayConnection::setState(const States& state_to_set){
+	state = state_to_set;
+	if(state_to_set == ESTABLISHED && !suspended_payloads.empty()){
+		for(auto& payload : suspended_payloads){
+			send(payload.first, payload.second);
+		}
+	}
+}
+
 void OverlayConnection::sendData(std::string data) {
 	auto& transport_socket_connections = transport::TransportSocket::getInstance()->m_connections;
 
@@ -57,7 +66,7 @@ void OverlayConnection::sendData(std::string data) {
 	}else{
 		// If there are no connections alive, we store messages to "suspended".
 		// And, when they will be sent after some connections arrive.
-		suspended_messages.push_front(data);
+		suspended_data.push_front(data);
 	}
 }
 
@@ -210,7 +219,7 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 		reply.mutable_header()->set_prio(reply.header().RELIABLE);
 		reply.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(reply.payload().connection_part().PUBKEY_ACK));
 
-		state = PUBKEY_RECEIVED;
+		setState(PUBKEY_RECEIVED);
 
 		sendMessage(reply);
 	}else if(recv_message.payload().connection_part().stage() == recv_message.payload().connection_part().PUBKEY_ACK){
@@ -218,7 +227,7 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 		reply.mutable_header()->set_prio(reply.header().RELIABLE);
 		reply.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(reply.payload().connection_part().ECDH));
 
-		state = ECDH_SENT;
+		setState(ECDH_SENT);
 
 		sendMessage(reply);
 	}
@@ -242,7 +251,7 @@ void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage
 		reply.mutable_header()->set_prio(reply.header().RELIABLE);
 		reply.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(reply.payload().connection_part().ECDH_ACK));
 
-		state = ECDH_RECEIVED;
+		setState(ECDH_RECEIVED);
 
 		sendMessage(reply);
 	}else if(recv_message.payload().connection_part().stage() == recv_message.payload().connection_part().ECDH_ACK && state == ECDH_SENT){
@@ -254,14 +263,14 @@ void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage
 
 		sendMessage(reply);
 
-		state = ESTABLISHED;
+		setState(ESTABLISHED);
 		log() << "AES encrypted connection with TH:" << th_endpoint.toBase58() << " established" << std::endl;
 	}
 }
 
 void OverlayConnection::processConnectionPartAES(const protocol::OverlayMessage& recv_message,
 		const protocol::OverlayMessage_Payload& decrypted_payload){
-	state = ESTABLISHED;
+	setState(ESTABLISHED);
 	log() << "AES encrypted connection with TH:" << th_endpoint.toBase58() << " established" << std::endl;
 }
 
@@ -287,7 +296,21 @@ std::string OverlayConnection::encryptPayload(const protocol::OverlayMessage_Pay
 	return aes_key.encrypt(payload.SerializeAsString());
 }
 
-void OverlayConnection::send(const protocol::OverlayMessage& send_message) {
+void OverlayConnection::send(const protocol::OverlayMessage_Payload& send_payload, const protocol::OverlayMessage_Header_MessagePriority& prio) {
+	if(state == ESTABLISHED){
+		protocol::OverlayMessage message;
+		message.mutable_header()->set_src_th(pks->getMyTransportHash().toBinaryString());
+		message.mutable_header()->set_dest_th(th_endpoint.toBinaryString());
+		message.mutable_header()->set_prio(prio);
+		message.set_encrypted_payload(encryptPayload(send_payload));
+		sendMessage(message);
+	}else{
+		if(prio == protocol::OverlayMessage_Header_MessagePriority_RELIABLE){
+			suspended_payloads.push_back(std::make_pair(send_payload, prio));
+		}else if(prio == protocol::OverlayMessage_Header_MessagePriority_REALTIME){
+			// TODO: We need a new queue for use with realtime messages.
+		}
+	}
 }
 
 void OverlayConnection::process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from) {

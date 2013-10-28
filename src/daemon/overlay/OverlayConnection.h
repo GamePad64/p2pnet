@@ -44,7 +44,7 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 	std::deque<transport::TransportSocketEndpoint> m_tse;
 	// This is about messages, that we can't deliver, because all the TransportSockets are inactive.
 	std::deque<std::string> suspended_data;
-	std::deque<std::string> suspended_messages;	// These messages are not delivered, as we didn't set up encryption.
+	std::deque<std::pair<protocol::OverlayMessage_Payload, protocol::OverlayMessage_Header_MessagePriority>> suspended_payloads;	// These messages are not delivered, as we didn't set up encryption.
 	std::unordered_map<uint32_t, std::string> sent_message_buffer;
 	std::set<uint32_t> processed_messages;	// To avoid double-processing. If our ACK messages were not delivered well.
 	std::set<uint32_t> acked_messages;	// Temporary storage for ACK message numbers.
@@ -60,6 +60,7 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 		ECDH_RECEIVED = 4,
 		ESTABLISHED = 5
 	} state = CLOSED;
+	void setState(const States& state_to_set);
 
 	/**
 	 * It is a function, that tries to manage TransportConnection directly.
@@ -93,7 +94,7 @@ public:
 
 	std::string encryptPayload(const protocol::OverlayMessage_Payload& payload);
 
-	void send(const protocol::OverlayMessage& send_message);
+	void send(const protocol::OverlayMessage_Payload& send_payload, const protocol::OverlayMessage_Header_MessagePriority& prio);
 	void process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from);
 	void process(const protocol::ConnectionRequestMessage& recv_message, const transport::TransportSocketEndpoint& from);
 
