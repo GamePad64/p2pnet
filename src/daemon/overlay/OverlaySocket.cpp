@@ -13,6 +13,7 @@
  */
 #include "OverlaySocket.h"
 #include "OverlayConnection.h"
+#include "OverlayPeer.h"
 #include "../protobuf/Protocol.pb.h"
 
 namespace p2pnet {
@@ -23,23 +24,33 @@ OverlaySocket::OverlaySocket() {}
 OverlaySocket::~OverlaySocket() {}
 
 std::shared_ptr<OverlayConnection> OverlaySocket::addConnection(overlay::TH th) {
-	auto it = m_connections.find(th);
-	std::shared_ptr<OverlayConnection> connection;
-	if(it != m_connections.end()){
-		connection = (*it).second;
+	auto it_peer = m_peers.find(th);
+	std::shared_ptr<OverlayPeer> peer;
+	if(it_peer != m_peers.end()){
+		peer = (*it_peer).second;
 	}else{
-		connection = std::make_shared<OverlayConnection>(th);
+		peer = std::make_shared<OverlayPeer>(th);
+		m_peers.insert(std::make_pair(th, peer));
+	}
+
+	auto it_conn = m_connections.find(th);
+	std::shared_ptr<OverlayConnection> connection;
+	if(it_conn != m_connections.end()){
+		connection = (*it_conn).second;
+	}else{
+		connection = std::make_shared<OverlayConnection>(peer);
 		m_connections.insert(std::make_pair(th, connection));
 	}
 	return connection;
 }
 
-void OverlaySocket::send(overlay::TH dest, std::string data) {
-	auto connection = addConnection(dest);
-	// TODO: some sort of DHT.
+void OverlaySocket::send(const overlay::TH& dest,
+		const protocol::OverlayMessage_Payload& message_payload,
+		protocol::OverlayMessage_Header_MessagePriority prio) {
+	addConnection(dest)->send(message_payload, prio);
 }
 
-void OverlaySocket::process(std::string data, transport::TransportSocketEndpoint from) {
+void OverlaySocket::process(std::string data, const transport::TransportSocketEndpoint& from) {
 	protocol::OverlayMessage overlay_message;
 	protocol::ConnectionRequestMessage request_message;
 	if(overlay_message.ParseFromString(data)){

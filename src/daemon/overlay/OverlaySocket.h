@@ -15,6 +15,7 @@
 #define OVERLAYSOCKET_H_
 
 #include "TH.h"
+#include "OverlayPeer.h"
 #include "../transport/TransportSocketEndpoint.h"
 #include "../../common/Singleton.h"
 #include "../../common/Loggable.h"
@@ -26,18 +27,23 @@ class OverlayConnection;
 
 class OverlaySocket : public Singleton<OverlaySocket>, Loggable {
 	friend class OverlayConnection;
+	friend class OverlayPeer;
 protected:
+	std::map<overlay::TH, std::shared_ptr<OverlayPeer>> m_peers;
 	std::map<overlay::TH, std::shared_ptr<OverlayConnection>> m_connections;
 	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// For future use.
 	std::shared_ptr<OverlayConnection> addConnection(overlay::TH th);
+
 public:
 	OverlaySocket();
 	virtual ~OverlaySocket();
 
 	std::string getComponentName(){return "OverlaySocket";}
 
-	void send(overlay::TH dest, std::string data);
-	void process(std::string data, transport::TransportSocketEndpoint from);
+	void send(const overlay::TH& dest,
+			const protocol::OverlayMessage_Payload& message_payload,
+			protocol::OverlayMessage_Header_MessagePriority prio);
+	void process(std::string data, const transport::TransportSocketEndpoint& from);
 };
 
 } /* namespace overlay */

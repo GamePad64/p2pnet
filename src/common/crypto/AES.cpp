@@ -19,11 +19,11 @@ namespace crypto {
 AES::AES() {}
 AES::~AES() {}
 
-AES::operator bool(){
+bool AES::isPresent() const {
 	return key.length() > 0 && iv.length() > 0;
 }
 
-std::string AES::encrypt(std::string data) {
+std::string AES::encrypt(std::string data) const {
 	Botan::AutoSeeded_RNG rng;
 	Botan::Pipe pipe(get_cipher("AES-128/CBC", key, iv, Botan::ENCRYPTION));
 	pipe.process_msg(data);
@@ -31,7 +31,7 @@ std::string AES::encrypt(std::string data) {
 	return pipe.read_all_as_string(0);
 }
 
-std::string AES::decrypt(std::string data) {
+std::string AES::decrypt(std::string data) const {
 	Botan::AutoSeeded_RNG rng;
 	Botan::Pipe pipe(get_cipher("AES-128/CBC", key, iv, Botan::DECRYPTION));
 	pipe.process_msg(data);

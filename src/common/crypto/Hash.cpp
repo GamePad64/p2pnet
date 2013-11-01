@@ -75,7 +75,7 @@ bool Hash::check(const std::string& data) {
 	return (h.toBinaryString() == this->toBinaryString());
 }
 
-unsigned short Hash::computeDistance(Hash rhash) {
+unsigned short Hash::computeDistance(const Hash& rhash) const {
 	unsigned short distance = 0;
 
 	binary_vector_t rhash_vector = rhash.toBinaryVector();

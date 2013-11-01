@@ -40,7 +40,7 @@ public:
 	ECDH& operator =(const ECDH& rvalue);
 	ECDH& operator =(ECDH&& rvalue);
 
-	explicit operator bool();
+	bool isPresent() const;
 
 	static ECDH generateNewKey();
 	void generateKey();

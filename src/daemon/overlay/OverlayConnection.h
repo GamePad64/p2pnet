@@ -22,6 +22,7 @@
 #include "../protobuf/Protocol.pb.h"
 #include "../databases/PersonalKeyStorage.h"
 #include "../../common/Config.h"
+#include "OverlayPeer.h"
 #include <deque>
 #include <unordered_map>
 
@@ -32,12 +33,9 @@ namespace p2pnet {
 namespace overlay {
 
 class OverlayConnection : public Loggable, public std::enable_shared_from_this<OverlayConnection>, public ConfigClient, databases::PersonalKeyStorageClient {
-	overlay::TH th_endpoint;
-	crypto::PublicKeyDSA public_key;
-	virtual void keysUpdated();
+	std::shared_ptr<OverlayPeer> overlay_peer_ptr;
 
-	crypto::ECDH ecdh_key;
-	crypto::AES aes_key;
+	virtual void keysUpdated();
 
 	uint32_t seq_counter = 0;
 
@@ -86,7 +84,7 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 			const protocol::OverlayMessage_Payload& decrypted_payload);
 
 public:
-	OverlayConnection(overlay::TH th);
+	OverlayConnection(std::shared_ptr<OverlayPeer> overlay_peer);
 	virtual ~OverlayConnection();
 
 	bool isReady() const;

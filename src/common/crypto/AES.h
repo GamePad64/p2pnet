@@ -29,10 +29,10 @@ public:
 	AES();
 	virtual ~AES();
 
-	explicit operator bool();
+	bool isPresent() const;
 
-	std::string encrypt(std::string data);
-	std::string decrypt(std::string data);
+	std::string encrypt(std::string data) const;
+	std::string decrypt(std::string data) const;
 
 	void setAsBinaryVector(binary_vector_t serialized_vector);
 	virtual binary_vector_t toBinaryVector() const;

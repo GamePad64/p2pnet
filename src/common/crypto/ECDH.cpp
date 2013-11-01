@@ -45,7 +45,7 @@ ECDH& ECDH::operator =(ECDH&& rvalue){
 	return *this;
 }
 
-ECDH::operator bool() {
+bool ECDH::isPresent() const {
 	return bool(key_private);
 }
 

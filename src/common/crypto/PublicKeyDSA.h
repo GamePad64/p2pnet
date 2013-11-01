@@ -40,7 +40,7 @@ public:
 	PublicKeyDSA& operator =(const PublicKeyDSA& rvalue);
 	PublicKeyDSA& operator =(PublicKeyDSA&& rvalue);
 
-	explicit operator bool();
+	bool isPresent() const;
 
 	std::string encrypt(std::string data);
 

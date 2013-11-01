@@ -59,7 +59,7 @@ public:
 		return hash;
 	}
 
-	unsigned short computeDistance(Hash rhash);
+	unsigned short computeDistance(const Hash& rhash) const;
 
 	std::vector<unsigned char> operator^(const Hash& lhash) const;
 	bool operator<(const Hash& lhash) const;

@@ -47,7 +47,7 @@ PublicKeyDSA& PublicKeyDSA::operator =(PublicKeyDSA&& rvalue) {
 	return *this;
 }
 
-PublicKeyDSA::operator bool() {
+bool PublicKeyDSA::isPresent() const {
 	return bool(key_public);
 }
 
