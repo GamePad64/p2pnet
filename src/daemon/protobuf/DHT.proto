@@ -1,0 +1,42 @@
+/*
+ * You may redistribute this program and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+syntax = "proto2";
+
+import "Protocol.proto";
+package p2pnet.protocol;
+
+message DHTPart {
+	enum DHTMessageType {
+		// Request
+		STORE = 1;
+		FIND_NODE = 2;
+		FIND_VALUE = 3;
+		DELETE = 4;	// Will implement later.
+
+		// REPLY
+		FIND_NODE_ACK = 5;
+		FIND_VALUE_ACK = 6;
+	}
+
+	required string namespace = 1;
+	optional bytes hash = 2;
+
+	required DHTMessageType message_type = 3;
+	repeated bytes th_list = 4;
+}
+
+extend OverlayMessage.Payload {
+	optional DHTPart dht_part = 16;
+}

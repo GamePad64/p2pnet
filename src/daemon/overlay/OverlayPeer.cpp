@@ -19,6 +19,13 @@ namespace overlay {
 
 OverlayPeer::OverlayPeer(const TH& peer_th) {
 	this->peer_th = peer_th;
+	computeDistanceFromMe();
+}
+
+OverlayPeer::~OverlayPeer() {}
+
+void OverlayPeer::computeDistanceFromMe(){
+	distance = databases::PersonalKeyStorage::getInstance()->getMyTransportHash().computeDistance(peer_th);
 }
 
 const crypto::AES& OverlayPeer::getAESKey() const {
@@ -53,13 +60,9 @@ void OverlayPeer::setPublicKey(const crypto::PublicKeyDSA& publicKey) {
 	public_key = publicKey;
 	auto new_peer_th = overlay::TH(public_key);
 	log() << "Changing " << peer_th.toBase58() << " ~~> " << new_peer_th.toBase58() << std::endl;
-	log() << "Re-routing " << peer_th.toBase58() << " communications to " << new_peer_th.toBase58() << std::endl;
+	log() << "Routing " << peer_th.toBase58() << " communications to " << new_peer_th.toBase58() << std::endl;
 	OverlaySocket::getInstance()->m_connections.insert(std::make_pair(new_peer_th, OverlaySocket::getInstance()->m_connections.find(peer_th)->second));
 	// TODO DHT k-bucket recompute
-}
-
-OverlayPeer::~OverlayPeer() {
-	// TODO Auto-generated destructor stub
 }
 
 } /* namespace overlay */
