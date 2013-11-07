@@ -5,7 +5,7 @@ P2PNet consists of two parts:
  
 *Library* is licensed under the terms of **New BSD License** (see *COPYING-BSD.md*)
 
-*Daemon* is licensed under the terms of **GNU General Public License version 3** (see *COPYING-GPLv3.md*)
+*Daemon* is licensed under the terms of **GNU General Public License version 3** (see *COPYING-LGPLv3.md*)
 
 Other libraries that were used in P2PNet:
 

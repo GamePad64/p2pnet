@@ -16,36 +16,51 @@
 namespace p2pnet {
 namespace dht {
 
+DHTClient::DHTClient(const DHTService& parent_service){
+	service_ptr = &parent_service;
+}
+
 DHTService::DHTService() {
 	k_buckets.resize(crypto::HASH_LENGTH);
 }
 
 DHTService::~DHTService() {}
 
+void findValue(std::string ns, const crypto::Hash& hash){
+
+}
+void postValue(std::string ns, const crypto::Hash& hash, std::string value){
+
+}
+
+/* K-bucket mgmt */
 void DHTService::registerInKBucket(const crypto::Hash& hash, unsigned short distance) {
 	k_buckets[distance].insert(hash);
 }
-
 void DHTService::registerInKBucket(const crypto::Hash& hash, const crypto::Hash& my_hash) {
 	unsigned short distance = my_hash.computeDistance(hash);
 	registerInKBucket(hash, distance);
 }
-
 void DHTService::removeFromKBucket(const crypto::Hash& hash, unsigned short distance){
 	k_buckets[distance].erase(hash);
 }
-
 void DHTService::removeFromKBucket(const crypto::Hash& hash, const crypto::Hash& my_hash){
 	unsigned short distance = my_hash.computeDistance(hash);
 	removeFromKBucket(hash, distance);
 }
 
-void DHTService::registerListener(DHTListener* listener_ptr, std::string namespace_hook) {
-	ns_listeners[namespace_hook].insert(listener_ptr);
+/* Listener mgmt */
+void DHTService::registerClient(DHTClient* listener_ptr, std::string namespace_hook) {
+	dht_clients.insert(std::make_pair(namespace_hook, listener_ptr));
 }
-
-void DHTService::unregisterListener(DHTListener* listener_ptr, std::string namespace_hook) {
-	ns_listeners[namespace_hook].erase(listener_ptr);
+void DHTService::unregisterClient(DHTClient* listener_ptr, std::string namespace_hook) {
+	auto ns_range = dht_clients.equal_range(namespace_hook);
+	for(auto it = ns_range.first; it != ns_range.second; ++it){
+		if(*it == listener_ptr){
+			dht_clients.erase(it);
+			break;
+		}
+	}
 }
 
 } /* namespace dht */

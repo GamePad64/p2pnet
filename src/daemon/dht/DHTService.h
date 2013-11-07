@@ -19,39 +19,53 @@
 namespace p2pnet {
 namespace dht {
 
-class DHTListener {
+class DHTClient : boost::noncopyable {
+	DHTService* service_ptr;
+public:
+	DHTClient(const DHTService& parent_service);
+	virtual ~DHTClient();
 	// Signals
-	void DHT_foundValue(std::string ns, crypto::Hash hash, std::string value);
+	virtual void foundValue(std::string ns, crypto::Hash hash, std::string value) = 0;
+
+	virtual std::string findValue(crypto::Hash hash) = 0;
+	virtual std::string postValue(std::string ns, const crypto::Hash& hash);
+};
+
+class DHTStoredValue {
+public:
+	boost::posix_time::ptime timestamp_expires;
+	std::string value;
 };
 
 /**
  * This is what we call 2D-DHT. It is a modified version of Kademlia protocol.
  * 2D means that we have namespace and keyspace.
  */
-class DHTService {
+class DHTService : boost::noncopyable {
+	friend class DHTClient;
 private:
-	std::map<std::string, std::set<DHTListener*>> ns_listeners;
-	std::vector<std::set<crypto::Hash>> k_buckets;
+	std::multimap<std::string, DHTClient*> dht_clients;
+
+	// Values from self
+
+	// Values received from other nodes.
+	std::unordered_map<std::pair<std::string, crypto::Hash>, std::shared_ptr<DHTStoredValue>> values;
+	std::deque<std::weak_ptr<DHTStoredValue>> ordered_value_expiration_queue;
 
 	void findNodes(const crypto::Hash& hash);
 protected:
-	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part);
-	virtual void process(const crypto::Hash& from, const protocol::DHTPart& dht_part);
+	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) = 0;
+	virtual void process(const crypto::Hash& from, const protocol::DHTPart& dht_part) = 0;
+
+	void findValue(DHTClient* client, std::pair<std::string, crypto::Hash> coords, const crypto::Hash& hash);
+	void postValue(DHTClient* client, std::pair<std::string, crypto::Hash> coords, std::string value);
+
+	/* Listener mgmt */
+	void registerClient(DHTClient* listener_ptr, std::string namespace_hook);
+	void unregisterClient(DHTClient* listener_ptr, std::string namespace_hook);
 public:
 	DHTService();
 	virtual ~DHTService();
-
-	void findValue(std::string ns, const crypto::Hash& hash);
-	void postValue(std::string ns, const crypto::Hash& hash, std::string value);
-
-	virtual void registerInKBucket(const crypto::Hash& hash, unsigned short distance);
-	void registerInKBucket(const crypto::Hash& hash, const crypto::Hash& my_hash);
-
-	virtual void removeFromKBucket(const crypto::Hash& hash, unsigned short distance);
-	void removeFromKBucket(const crypto::Hash& hash, const crypto::Hash& my_hash);
-
-	void registerListener(DHTListener* listener_ptr, std::string namespace_hook);
-	void unregisterListener(DHTListener* listener_ptr, std::string namespace_hook);
 };
 
 } /* namespace dht */

@@ -16,6 +16,7 @@
 
 #include "TH.h"
 #include "OverlayPeer.h"
+#include "OverlayDHT.h"
 #include "../transport/TransportSocketEndpoint.h"
 #include "../../common/Singleton.h"
 #include "../../common/Loggable.h"
@@ -26,9 +27,9 @@ namespace overlay {
 class OverlayConnection;
 
 class OverlaySocket : public Singleton<OverlaySocket>, Loggable {
-	friend class OverlayConnection;
 	friend class OverlayPeer;
 protected:
+	OverlayDHT dht_service;
 	std::map<overlay::TH, std::shared_ptr<OverlayPeer>> m_peers;
 	std::map<overlay::TH, std::shared_ptr<OverlayConnection>> m_connections;
 	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// For future use.
