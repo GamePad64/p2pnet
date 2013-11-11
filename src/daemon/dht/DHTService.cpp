@@ -20,33 +20,22 @@ DHTClient::DHTClient(const DHTService& parent_service){
 	service_ptr = &parent_service;
 }
 
-DHTService::DHTService() {
-	k_buckets.resize(crypto::HASH_LENGTH);
-}
-
+DHTService::DHTService() {}
 DHTService::~DHTService() {}
 
-void findValue(std::string ns, const crypto::Hash& hash){
+boost::optional<std::string> DHTService::getStoredValue(DHTCoords coords) {
+	auto it = stored_values.find(coords);
+	if(it != stored_values.end()){
+		return boost::optional<std::string>(*it);
+	}
+	return boost::optional<std::string>();
+}
+
+void DHTService::findValue(DHTClient* client, DHTCoords coords, const crypto::Hash& hash){
 
 }
-void postValue(std::string ns, const crypto::Hash& hash, std::string value){
+void DHTService::postValue(DHTClient* client, DHTCoords coords, std::string value){
 
-}
-
-/* K-bucket mgmt */
-void DHTService::registerInKBucket(const crypto::Hash& hash, unsigned short distance) {
-	k_buckets[distance].insert(hash);
-}
-void DHTService::registerInKBucket(const crypto::Hash& hash, const crypto::Hash& my_hash) {
-	unsigned short distance = my_hash.computeDistance(hash);
-	registerInKBucket(hash, distance);
-}
-void DHTService::removeFromKBucket(const crypto::Hash& hash, unsigned short distance){
-	k_buckets[distance].erase(hash);
-}
-void DHTService::removeFromKBucket(const crypto::Hash& hash, const crypto::Hash& my_hash){
-	unsigned short distance = my_hash.computeDistance(hash);
-	removeFromKBucket(hash, distance);
 }
 
 /* Listener mgmt */

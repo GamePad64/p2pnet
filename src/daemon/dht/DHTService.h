@@ -15,6 +15,7 @@
 #define DHTSERVICE_H_
 
 #include "../../common/crypto/Hash.h"
+#include <unordered_map>
 
 namespace p2pnet {
 namespace dht {
@@ -37,6 +38,11 @@ public:
 	std::string value;
 };
 
+struct DHTCoords {
+	std::string ns;	// I can't use word "namespace", it is reserved.
+	crypto::Hash hash;
+};
+
 /**
  * This is what we call 2D-DHT. It is a modified version of Kademlia protocol.
  * 2D means that we have namespace and keyspace.
@@ -46,19 +52,20 @@ class DHTService : boost::noncopyable {
 private:
 	std::multimap<std::string, DHTClient*> dht_clients;
 
-	// Values from self
-
 	// Values received from other nodes.
-	std::unordered_map<std::pair<std::string, crypto::Hash>, std::shared_ptr<DHTStoredValue>> values;
+	std::unordered_map<DHTCoords, std::shared_ptr<DHTStoredValue>> stored_values;
 	std::deque<std::weak_ptr<DHTStoredValue>> ordered_value_expiration_queue;
 
 	void findNodes(const crypto::Hash& hash);
+
+	virtual boost::optional<std::string> getLocalValue(DHTCoords coords) = 0;
+	boost::optional<std::string> getStoredValue(DHTCoords coords);
 protected:
 	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) = 0;
 	virtual void process(const crypto::Hash& from, const protocol::DHTPart& dht_part) = 0;
 
-	void findValue(DHTClient* client, std::pair<std::string, crypto::Hash> coords, const crypto::Hash& hash);
-	void postValue(DHTClient* client, std::pair<std::string, crypto::Hash> coords, std::string value);
+	void findValue(DHTClient* client, DHTCoords coords, const crypto::Hash& hash);
+	void postValue(DHTClient* client, DHTCoords coords, std::string value);
 
 	/* Listener mgmt */
 	void registerClient(DHTClient* listener_ptr, std::string namespace_hook);

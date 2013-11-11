@@ -19,10 +19,23 @@
 namespace p2pnet {
 namespace overlay {
 
+class OverlaySocket;
+
 class OverlayDHT : public dht::DHTService {
+	OverlaySocket* parent_socket_ptr;
+	std::array<std::set<std::shared_ptr<OverlayPeer>>, crypto::HASH_LENGTH> k_buckets;
+protected:
+	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part);
+	virtual void process(const crypto::Hash& from, const protocol::DHTPart& dht_part);
 public:
 	OverlayDHT();
+	OverlayDHT(OverlaySocket* socket_ptr);
 	virtual ~OverlayDHT();
+
+	void registerInKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance);
+	void registerInKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash);
+	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance);
+	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash);
 };
 
 } /* namespace overlay */
