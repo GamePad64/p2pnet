@@ -25,16 +25,12 @@
 namespace p2pnet {
 namespace overlay {
 
-class OverlayPeer : public databases::PersonalKeyStorageClient, Loggable {
+class OverlayPeer : Loggable {
 	TH peer_th;
 	crypto::PublicKeyDSA public_key;
 	crypto::ECDH ecdh_key;
 	crypto::AES aes_key;
 
-	unsigned short distance;
-	virtual void keysUpdated(){};	// TODO: So, we need to recompute distance and push it in DHT.
-
-	void computeDistanceFromMe();
 public:
 	OverlayPeer(const TH& peer_th);
 	virtual ~OverlayPeer();

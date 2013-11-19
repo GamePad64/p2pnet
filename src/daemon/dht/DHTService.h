@@ -25,17 +25,23 @@ class DHTClient : boost::noncopyable {
 public:
 	DHTClient(const DHTService& parent_service);
 	virtual ~DHTClient();
-	// Signals
-	virtual void foundValue(std::string ns, crypto::Hash hash, std::string value) = 0;
 
-	virtual std::string findValue(crypto::Hash hash) = 0;
-	virtual std::string postValue(std::string ns, const crypto::Hash& hash);
+	virtual void findValue(DHTCoords coords);
+	virtual void postValue(DHTCoords coords, std::string value);
+
+	// Signals
+	virtual void foundValue(DHTCoords coords, std::string value) = 0;
 };
 
-class DHTStoredValue {
-public:
-	boost::posix_time::ptime timestamp_expires;
+struct DHTStoredValue {
+  	boost::posix_time::ptime timestamp_expires;
 	std::string value;
+};
+
+struct DHTPostedValue {
+  	boost::posix_time::ptime timestamp_expires;
+	std::string value;
+	DHTClient* posted_client;
 };
 
 struct DHTCoords {
@@ -50,21 +56,12 @@ struct DHTCoords {
 class DHTService : boost::noncopyable {
 	friend class DHTClient;
 private:
-	std::multimap<std::string, DHTClient*> dht_clients;
 
-	// Values received from other nodes.
-	std::unordered_map<DHTCoords, std::shared_ptr<DHTStoredValue>> stored_values;
-	std::deque<std::weak_ptr<DHTStoredValue>> ordered_value_expiration_queue;
-
-	void findNodes(const crypto::Hash& hash);
-
-	virtual boost::optional<std::string> getLocalValue(DHTCoords coords) = 0;
-	boost::optional<std::string> getStoredValue(DHTCoords coords);
 protected:
 	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) = 0;
 	virtual void process(const crypto::Hash& from, const protocol::DHTPart& dht_part) = 0;
 
-	void findValue(DHTClient* client, DHTCoords coords, const crypto::Hash& hash);
+	void findValue(DHTClient* client, DHTCoords coords);
 	void postValue(DHTClient* client, DHTCoords coords, std::string value);
 
 	/* Listener mgmt */
