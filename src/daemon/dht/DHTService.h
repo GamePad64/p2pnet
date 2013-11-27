@@ -14,39 +14,36 @@
 #ifndef DHTSERVICE_H_
 #define DHTSERVICE_H_
 
+#define MAX_NODES_TOTAL 30
+#define MAX_FROM_BUCKET 5
+
 #include "../../common/crypto/Hash.h"
 #include <unordered_map>
 
 namespace p2pnet {
 namespace dht {
 
-class DHTClient : boost::noncopyable {
-	DHTService* service_ptr;
-public:
-	DHTClient(const DHTService& parent_service);
-	virtual ~DHTClient();
-
-	virtual void findValue(DHTCoords coords);
-	virtual void postValue(DHTCoords coords, std::string value);
-
-	// Signals
-	virtual void foundValue(DHTCoords coords, std::string value) = 0;
-};
-
-struct DHTStoredValue {
-  	boost::posix_time::ptime timestamp_expires;
-	std::string value;
-};
-
-struct DHTPostedValue {
-  	boost::posix_time::ptime timestamp_expires;
-	std::string value;
-	DHTClient* posted_client;
-};
-
 struct DHTCoords {
 	std::string ns;	// I can't use word "namespace", it is reserved.
 	crypto::Hash hash;
+};
+
+class DHTClient : boost::noncopyable {
+	DHTService* service_ptr;
+public:
+	DHTClient(DHTService* parent_service);
+	virtual ~DHTClient();
+	// Signals
+	virtual void foundValue(DHTCoords coords, std::string value) = 0;
+
+	virtual std::string findValue(DHTCoords coords) = 0;
+	virtual std::string postValue(DHTCoords coords, std::string value);
+};
+
+struct DHTStoredValue {
+	boost::posix_time::ptime timestamp_expires;
+	DHTClient* client_ptr;
+	std::string value;
 };
 
 /**
@@ -56,17 +53,31 @@ struct DHTCoords {
 class DHTService : boost::noncopyable {
 	friend class DHTClient;
 private:
+	std::set<DHTClient*> clients;	// All the clients hooked to this DHTService
+	/* Structures that map queries to clients to inform these clients later */
+	std::multimap<crypto::Hash, DHTClient*> node_queries;
+	std::multimap<DHTCoords, DHTClient*> value_queries;
 
+	std::map<DHTCoords, DHTStoredValue> posted_values;
+
+	std::list<crypto::Hash> getClosestTo(const crypto::Hash& hash,
+			unsigned short max_from_bucket,
+			unsigned short max_nodes_total);
+
+	void findNode(const crypto::Hash& hash, DHTClient* client = nullptr);
+	void foundNode(const crypto::Hash& hash, std::string node_info);
 protected:
 	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) = 0;
-	virtual void process(const crypto::Hash& from, const protocol::DHTPart& dht_part) = 0;
+	void process(const crypto::Hash& from, const protocol::DHTPart& dht_part);
 
-	void findValue(DHTClient* client, DHTCoords coords);
-	void postValue(DHTClient* client, DHTCoords coords, std::string value);
+	virtual crypto::Hash getMyHash() = 0;
+	virtual std::vector<std::string> getNNodesFromBucket(unsigned short bucket) = 0;
+	virtual boost::optional<std::string> getLocalNodeInfo(const crypto::Hash& hash) = 0;
+	virtual void putLocalNodeInfo(const crypto::Hash& hash, std::string node_info) = 0;
 
-	/* Listener mgmt */
-	void registerClient(DHTClient* listener_ptr, std::string namespace_hook);
-	void unregisterClient(DHTClient* listener_ptr, std::string namespace_hook);
+	/* Client management */
+	void registerClient(DHTClient* client_ptr);
+	void unregisterClient(DHTClient* client_ptr);
 public:
 	DHTService();
 	virtual ~DHTService();
