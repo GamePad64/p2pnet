@@ -18,7 +18,7 @@ namespace p2pnet {
 namespace dht {
 
 /* DHTClient */
-DHTClient::DHTClient(DHTService* parent_service){
+DHTClient::DHTClient(DHTService* parent_service) {
 	service_ptr = parent_service;
 }
 
@@ -71,8 +71,16 @@ void DHTService::findNode(const crypto::Hash& hash, DHTClient* client){
 		send(it, dht_part);	// Actually, sending find_node requests to closest nodes.
 	}
 }
-void DHTService::foundNode(const crypto::Hash& hash, std::string node_info){
 
+void DHTService::foundNode(const crypto::Hash& hash, std::string node_info){
+	putLocalNodeInfo(hash, node_info);
+	auto query_range = node_queries.equal_range(hash);
+
+	auto it = query_range.first;
+	do {
+		it->second->foundNode(hash, node_info);
+		node_queries.erase(it++);
+	} while(it != query_range.second);
 }
 
 void DHTService::process(const crypto::Hash& from, const protocol::DHTPart& dht_part){
@@ -108,22 +116,28 @@ void DHTService::registerClient(DHTClient* client_ptr) {
 }
 void DHTService::unregisterClient(DHTClient* client_ptr) {
 	clients.erase(client_ptr);
-	auto values_it = posted_values.begin()+1;	// +1 is for special purpose, as it will be invalidated.
+	auto values_it = posted_values.begin();
 	do {
-		if((values_it-1)->second.client_ptr == client_ptr)
-			posted_values.erase(values_it-1);
+		if(values_it->second.client_ptr == client_ptr)
+			posted_values.erase(values_it++);
+		else
+			values_it++;
 	} while(values_it != posted_values.end());
 
-	auto value_queries_it = value_queries.begin()+1;
+	auto value_queries_it = value_queries.begin();
 	do {
-		if((value_queries_it-1)->second == client_ptr)
-			value_queries.erase(value_queries_it-1);
+		if(value_queries_it->second == client_ptr)
+			value_queries.erase(value_queries_it++);
+		else
+			value_queries_it++;
 	} while(value_queries_it != value_queries.end());
 
-	auto node_queries_it = node_queries.begin()+1;
+	auto node_queries_it = node_queries.begin();
 	do {
-		if((node_queries_it-1)->second == client_ptr)
-			node_queries.erase(node_queries_it-1);
+		if(node_queries_it->second == client_ptr)
+			node_queries.erase(node_queries_it++);
+		else
+			node_queries_it++;
 	} while(node_queries_it != node_queries.end());
 }
 

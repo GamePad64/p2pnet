@@ -18,6 +18,7 @@
 #define MAX_FROM_BUCKET 5
 
 #include "../../common/crypto/Hash.h"
+#include "../protobuf/DHT.pb.h"
 #include <unordered_map>
 
 namespace p2pnet {
@@ -34,10 +35,12 @@ public:
 	DHTClient(DHTService* parent_service);
 	virtual ~DHTClient();
 	// Signals
-	virtual void foundValue(DHTCoords coords, std::string value) = 0;
+	void findNode(const crypto::Hash& coords);
+	virtual void foundNode(const crypto::Hash& coords, std::string node_info) = 0;
 
-	virtual std::string findValue(DHTCoords coords) = 0;
+	void findValue(DHTCoords coords);
 	virtual std::string postValue(DHTCoords coords, std::string value);
+	virtual void foundValue(DHTCoords coords, std::string value) = 0;
 };
 
 struct DHTStoredValue {
