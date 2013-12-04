@@ -17,11 +17,16 @@ import "EndpointFormat.proto";
 
 package p2pnet.databases;
 
-message NetDBEntry {
-	optional bytes ecdsa_public_key = 1;
-	optional bytes aes_key = 2;
+message OverlayPeer_s {
+	optional bytes peer_th = 1;
+	optional bytes public_key = 2;
+	optional bytes ecdh_key = 3;
+	optional bytes aes_key = 4;
 
-	repeated .p2pnet.transport.proto.TransportSocketEndpoint_s endpoints = 4;
+	optional string expires = 5;	// String in ISO format
+	optional string lost = 6;	// Same here
+
+	optional .p2pnet.transport.proto.TransportSocketEndpointList endpoints = 7;
 
 	optional bool local = 16 [default = false];
 	optional bool dht = 17 [default = false];
