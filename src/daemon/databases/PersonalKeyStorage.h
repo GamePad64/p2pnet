@@ -37,14 +37,14 @@ class PersonalKeyStorage : public Singleton<PersonalKeyStorage>, ConfigClient, p
 	key_history_t my_id_history;
 	//std::mutex key_lock;
 
-	boost::asio::deadline_timer timer;
-
 	std::set<PersonalKeyStorageClient*> clients;
 
-	void renewKeys();
-
+	boost::asio::deadline_timer timer;
+	boost::posix_time::ptime expiry_time;
+	boost::posix_time::ptime lose_time;
 	std::thread generator_thread;
 
+	void renewKeys();
 	void loopGenerate();
 public:
 	PersonalKeyStorage();
@@ -63,6 +63,9 @@ public:
 
 	const key_history_t& getHistory(){return my_id_history;};
 
+	boost::posix_time::ptime getExpiryTime() const {return expiry_time;};
+	boost::posix_time::ptime getLoseTime() const {return lose_time;};
+
 	std::string getComponentName(){return "PersonalKeyStorage";}
 
 	void registerClient(PersonalKeyStorageClient* client);
@@ -75,7 +78,7 @@ public:
 	virtual ~PersonalKeyStorageClient();
 
 	// Signals
-	virtual void keysUpdated(){};
+	virtual void keysUpdated(boost::posix_time::ptime expiry_time, boost::posix_time::ptime lose_time){};
 
 protected:
 	PersonalKeyStorage* pks;	// Yes, it is protected for "raw" access.
@@ -87,6 +90,9 @@ protected:
 
 	std::shared_ptr<crypto::PrivateKeyDSA> getPrivateKeyOfTH(overlay::TH hash){return pks->getPrivateKeyOfTH(hash);}
 	const key_history_t& getHistory(){return pks->getHistory();}
+
+	boost::posix_time::ptime getExpiryTime() const;
+	boost::posix_time::ptime getLoseTime() const;
 };
 
 } /* namespace databases */

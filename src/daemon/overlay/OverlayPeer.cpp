@@ -19,23 +19,16 @@ namespace overlay {
 
 OverlayPeer::OverlayPeer(const TH& peer_th) {
 	this->peer_th = peer_th;
-	computeDistanceFromMe();
 }
 
 OverlayPeer::~OverlayPeer() {}
 
-void OverlayPeer::computeDistanceFromMe(){
-	distance = databases::PersonalKeyStorage::getInstance()->getMyTransportHash().computeDistance(peer_th);
-}
-
 const crypto::AES& OverlayPeer::getAESKey() const {
 	return aes_key;
 }
-
 void OverlayPeer::setAESKey(const crypto::AES& aesKey) {
 	aes_key = aesKey;
 }
-
 const crypto::ECDH& OverlayPeer::getECDHKey() const {
 	return ecdh_key;
 }
@@ -43,7 +36,6 @@ const crypto::ECDH& OverlayPeer::getECDHKey() const {
 void OverlayPeer::setECDHKey(const crypto::ECDH& ecdhKey) {
 	ecdh_key = ecdhKey;
 }
-
 const TH& OverlayPeer::getPeerTH() const {
 	return peer_th;
 }
@@ -51,7 +43,6 @@ const TH& OverlayPeer::getPeerTH() const {
 void OverlayPeer::setPeerTH(const TH& peerTh) {
 	peer_th = peerTh;
 }
-
 const crypto::PublicKeyDSA& OverlayPeer::getPublicKey() const {
 	return public_key;
 }
@@ -62,7 +53,28 @@ void OverlayPeer::setPublicKey(const crypto::PublicKeyDSA& publicKey) {
 	log() << "Changing " << peer_th.toBase58() << " ~~> " << new_peer_th.toBase58() << std::endl;
 	log() << "Routing " << peer_th.toBase58() << " communications to " << new_peer_th.toBase58() << std::endl;
 	OverlaySocket::getInstance()->m_connections.insert(std::make_pair(new_peer_th, OverlaySocket::getInstance()->m_connections.find(peer_th)->second));
+	OverlaySocket::getInstance()->m_peers.insert(std::make_pair(new_peer_th, OverlaySocket::getInstance()->m_peers.find(peer_th)->second));
 	// TODO DHT k-bucket recompute
+}
+
+void OverlayPeer::setExpiryTime(boost::posix_time::ptime expiry_time) {
+	expires = expiry_time;
+}
+const boost::posix_time::ptime& OverlayPeer::getExpiryTime() const {
+	return expires;
+}
+
+void OverlayPeer::setLostTime(boost::posix_time::ptime lost_time) {
+	lost = lost_time;
+}
+const boost::posix_time::ptime& OverlayPeer::getLostTime() const {
+	return lost;
+}
+
+bool OverlayPeer::isActive() const {
+	if(!lost.is_not_a_date_time() && boost::posix_time::second_clock::universal_time() >= lost)
+		return false;
+	return true;
 }
 
 } /* namespace overlay */

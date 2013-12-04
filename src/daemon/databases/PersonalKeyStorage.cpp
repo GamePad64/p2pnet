@@ -54,7 +54,7 @@ void PersonalKeyStorage::renewKeys() {
 	}
 
 	for(auto& it : clients){
-		it->keysUpdated();
+		it->keysUpdated(expiry_time, lose_time);
 	}
 
 	log() << "New keys generated. TH: " << my_id_history.front().second->toBase58() << std::endl;
@@ -64,9 +64,14 @@ void PersonalKeyStorage::loopGenerate(){
 	if(generator_thread.joinable()){
 		generator_thread.join();
 	}
+
+	expiry_time = boost::posix_time::second_clock::universal_time()+boost::posix_time::minutes(getValue<unsigned int>("databases.pks.renew_interval"));
+	auto lose_minutes = (getValue<unsigned int>("databases.pks.history_size")+1) * getValue<unsigned int>("databases.pks.renew_interval");
+	lose_time = boost::posix_time::second_clock::universal_time()+boost::posix_time::minutes(lose_minutes);
+
 	generator_thread = std::thread(&PersonalKeyStorage::renewKeys, this);
 
-	timer.expires_from_now(boost::posix_time::minutes(getValue<unsigned int>("databases.pks.renew_interval")));
+	timer.expires_at(expiry_time);
 	timer.async_wait(boost::bind(&PersonalKeyStorage::loopGenerate, this));
 }
 

@@ -28,6 +28,7 @@ class OverlayConnection;
 
 class OverlaySocket : public Singleton<OverlaySocket>, Loggable {
 	friend class OverlayPeer;
+	friend class OverlayDHT;
 protected:
 	OverlayDHT dht_service;
 	std::map<overlay::TH, std::shared_ptr<OverlayPeer>> m_peers;

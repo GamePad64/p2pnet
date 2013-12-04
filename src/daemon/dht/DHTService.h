@@ -38,9 +38,9 @@ public:
 	void findNode(const crypto::Hash& coords);
 	virtual void foundNode(const crypto::Hash& coords, std::string node_info) = 0;
 
-	void findValue(DHTCoords coords);
-	virtual std::string postValue(DHTCoords coords, std::string value);
-	virtual void foundValue(DHTCoords coords, std::string value) = 0;
+	//void findValue(DHTCoords coords);
+	//virtual std::string postValue(DHTCoords coords, std::string value);
+	//virtual void foundValue(DHTCoords coords, std::string value) = 0;
 };
 
 struct DHTStoredValue {
@@ -74,7 +74,7 @@ protected:
 	void process(const crypto::Hash& from, const protocol::DHTPart& dht_part);
 
 	virtual crypto::Hash getMyHash() = 0;
-	virtual std::vector<std::string> getNNodesFromBucket(unsigned short bucket) = 0;
+	virtual std::vector<crypto::Hash> getNNodesFromBucket(unsigned short bucket) = 0;
 	virtual boost::optional<std::string> getLocalNodeInfo(const crypto::Hash& hash) = 0;
 	virtual void putLocalNodeInfo(const crypto::Hash& hash, std::string node_info) = 0;
 

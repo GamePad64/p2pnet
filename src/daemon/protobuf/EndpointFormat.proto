@@ -26,3 +26,7 @@ message TransportSocketEndpoint_s {
 
 	extensions 16 to max;
 }
+
+message TransportSocketEndpointList {
+	repeated TransportSocketEndpoint_s tse_s = 1;
+}

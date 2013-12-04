@@ -26,10 +26,19 @@ namespace p2pnet {
 namespace overlay {
 
 class OverlayPeer : Loggable {
+	/* Various peer information */
 	TH peer_th;
 	crypto::PublicKeyDSA public_key;
 	crypto::ECDH ecdh_key;
 	crypto::AES aes_key;
+
+	boost::posix_time::ptime expires;
+	boost::posix_time::ptime lost;
+
+	std::deque<transport::TransportSocketEndpoint> m_tse;
+
+	/* Other stuff */
+	boost::asio::deadline_timer lose_timer;
 
 public:
 	OverlayPeer(const TH& peer_th);
@@ -43,6 +52,14 @@ public:
 	void setPeerTH(const TH& peerTh);
 	const crypto::PublicKeyDSA& getPublicKey() const;
 	void setPublicKey(const crypto::PublicKeyDSA& publicKey);
+	const boost::posix_time::ptime& getExpiryTime() const;
+	void setExpiryTime(boost::posix_time::ptime expiry_time);
+	const boost::posix_time::ptime& getLostTime() const;
+	void setLostTime(boost::posix_time::ptime lost_time);
+
+	bool isActive() const;
+
+	std::deque<transport::TransportSocketEndpoint>& getEndpointList(){return m_tse;}
 };
 
 } /* namespace overlay */

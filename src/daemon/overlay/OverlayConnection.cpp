@@ -17,6 +17,7 @@
 #include "../AsioIOService.h"
 #include <algorithm>
 #include <functional>
+#include <boost/date_time.hpp>
 
 namespace p2pnet {
 namespace overlay {
@@ -54,7 +55,7 @@ void OverlayConnection::sendData(std::string data) {
 	std::shared_ptr<transport::TransportConnection> conn;
 
 	// Searching for at least one "living" TransportConnection
-	for(auto& conn_it : m_tse){
+	for(auto& conn_it : overlay_peer_ptr->getEndpointList()){
 		auto sock_it = transport_socket_connections.find(conn_it);
 		if(sock_it->second->connected()){
 			conn = sock_it->second;
@@ -142,6 +143,8 @@ protocol::OverlayMessage_Payload_ConnectionPart OverlayConnection::generateConne
 			|| for_stage == protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_PUBKEY_ACK){
 		conn_part.set_stage(for_stage);
 		conn_part.set_src_ecdsa_pubkey(getMyPublicKey().toBinaryString());
+		conn_part.set_expires(boost::posix_time::to_iso_string(getExpiryTime()));
+		conn_part.set_lost(boost::posix_time::to_iso_string(getExpiryTime()));
 	}
 
 	/* ECDH part */
@@ -205,6 +208,9 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 			&& recv_dsa_pubkey.validate()){	// And then we validate this ECDSA public key using mathematical methods.
 		log() << "Received ECDSA public key from: TH:" << overlay_peer_ptr->getPeerTH().toBase58() << std::endl;
 		overlay_peer_ptr->setPublicKey(recv_dsa_pubkey);
+
+		overlay_peer_ptr->setExpiryTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().expires()));
+		overlay_peer_ptr->setLostTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().lost()));
 	}else{
 		return;	// Drop. TODO MessageReject.
 	}
@@ -276,15 +282,15 @@ bool OverlayConnection::isReady() const {
 }
 
 void OverlayConnection::updateTSE(const transport::TransportSocketEndpoint& from, bool verified) {
-	auto it = std::find(m_tse.begin(), m_tse.end(), from);
-	if(it == m_tse.end()){
-		m_tse.push_front(from);
+	auto it = std::find(overlay_peer_ptr->getEndpointList().begin(), overlay_peer_ptr->getEndpointList().end(), from);
+	if(it == overlay_peer_ptr->getEndpointList().end()){
+		overlay_peer_ptr->getEndpointList().push_front(from);
 	}else{
-		m_tse.erase(it);
+		overlay_peer_ptr->getEndpointList().erase(it);
 		if(verified){
-			m_tse.push_front(from);
+			overlay_peer_ptr->getEndpointList().push_front(from);
 		}else{
-			m_tse.push_back(from);
+			overlay_peer_ptr->getEndpointList().push_back(from);
 		}
 	}
 }
@@ -376,6 +382,11 @@ void OverlayConnection::connect() {
 	message.mutable_header()->set_prio(message.header().RELIABLE);
 	message.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(message.payload().connection_part().PUBKEY));
 	sendMessage(message);
+}
+
+void OverlayConnection::disconnect() {
+	state = CLOSED;
+	OverlaySocket::getInstance()->m_connections.erase(overlay_peer_ptr->getPeerTH());
 }
 
 } /* namespace overlay */

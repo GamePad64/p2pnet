@@ -24,6 +24,8 @@ OverlaySocket::OverlaySocket() {}
 OverlaySocket::~OverlaySocket() {}
 
 std::shared_ptr<OverlayConnection> OverlaySocket::addConnection(overlay::TH th) {
+	// TODO: Here we need to check peer.isActive() before.
+	// Maybe, we will not be able to connect as that peer is lost (and we documented this)
 	auto it_peer = m_peers.find(th);
 	std::shared_ptr<OverlayPeer> peer;
 	if(it_peer != m_peers.end()){

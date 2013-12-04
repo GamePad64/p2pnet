@@ -39,7 +39,6 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 
 	uint32_t seq_counter = 0;
 
-	std::deque<transport::TransportSocketEndpoint> m_tse;
 	// This is about messages, that we can't deliver, because all the TransportSockets are inactive.
 	std::deque<std::string> suspended_data;
 	std::deque<std::pair<protocol::OverlayMessage_Payload, protocol::OverlayMessage_Header_MessagePriority>> suspended_payloads;	// These messages are not delivered, as we didn't set up encryption.
@@ -88,6 +87,7 @@ public:
 	virtual ~OverlayConnection();
 
 	bool isReady() const;
+
 	void updateTSE(const transport::TransportSocketEndpoint& from, bool verified = false);
 
 	std::string encryptPayload(const protocol::OverlayMessage_Payload& payload);
@@ -97,6 +97,7 @@ public:
 	void process(const protocol::ConnectionRequestMessage& recv_message, const transport::TransportSocketEndpoint& from);
 
 	void connect();
+	void disconnect();
 
 	std::string getComponentName(){return "OverlayConnection";}
 };

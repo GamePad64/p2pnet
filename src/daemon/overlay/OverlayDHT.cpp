@@ -26,23 +26,50 @@ void OverlayDHT::send(const crypto::Hash& dest, const protocol::DHTPart& dht_par
 	parent_socket_ptr->send(dest, payload, protocol::OverlayMessage_Header_MessagePriority_RELIABLE);
 }
 
-void OverlayDHT::process(const crypto::Hash& from, const protocol::DHTPart& dht_part) {
+crypto::Hash OverlayDHT::getMyHash(){
+	return databases::PersonalKeyStorage::getInstance()->getMyTransportHash();
 }
+
+std::vector<crypto::Hash> OverlayDHT::getNNodesFromBucket(unsigned short bucket){
+	std::vector<crypto::Hash> nodes(MAX_FROM_BUCKET);
+	auto& k_bucket = k_buckets[bucket];
+	for(auto it = k_bucket.begin(); it != k_bucket.end && k_bucket != k_bucket.begin()+MAX_FROM_BUCKET; it++){
+		nodes.push_back((*it)->getPeerTH());
+	}
+	return nodes;
+}
+
+boost::optional<std::string> OverlayDHT::getLocalNodeInfo(const crypto::Hash& hash){
+	if(auto it = parent_socket_ptr->m_connections.find(hash)){
+		transport::proto::TransportSocketEndpointList tse_s;
+		auto& tse_list = it->second->getEndpointList();
+		for(auto tse_it : tse_list){
+			tse_s.add_tse_s()->CopyFrom(tse_it.toProtobuf());
+		}
+		return boost::optional<std::string>(tse_s.SerializeAsString());
+	}
+	return boost::optional<std::string>();
+}
+
+void OverlayDHT::putLocalNodeInfo(const crypto::Hash& hash, std::string node_info){
+
+}
+
 
 /* K-bucket mgmt */
 void OverlayDHT::registerInKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance) {
-	k_buckets[distance].insert(hash);
+	k_buckets[distance].insert(peer);
 }
 void OverlayDHT::registerInKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash) {
-	unsigned short distance = my_hash.computeDistance(hash);
-	registerInKBucket(hash, distance);
+	unsigned short distance = my_hash.computeDistance(peer->getPeerTH());
+	registerInKBucket(peer, distance);
 }
 void OverlayDHT::removeFromKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance) {
-	k_buckets[distance].erase(hash);
+	k_buckets[distance].erase(peer);
 }
 void OverlayDHT::removeFromKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash) {
-	unsigned short distance = my_hash.computeDistance(hash);
-	removeFromKBucket(hash, distance);
+	unsigned short distance = my_hash.computeDistance(peer->getPeerTH());
+	removeFromKBucket(peer, distance);
 }
 
 OverlayDHT::~OverlayDHT() {}
