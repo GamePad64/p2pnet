@@ -99,6 +99,7 @@ public:
 	void connect();
 	void disconnect();
 
+	std::shared_ptr<OverlayPeer> getPeerPtr(){return overlay_peer_ptr;};
 	std::string getComponentName(){return "OverlayConnection";}
 };
 

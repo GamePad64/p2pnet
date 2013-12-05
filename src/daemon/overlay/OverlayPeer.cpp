@@ -17,11 +17,18 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlayPeer::OverlayPeer(const TH& peer_th) {
+OverlayPeer::OverlayPeer(const TH& peer_th) : associated_connection(AsioIOService::getIOService()) {
 	this->peer_th = peer_th;
 }
 
 OverlayPeer::~OverlayPeer() {}
+
+void OverlayPeer::deactivate() {
+	if(associated_connection)
+		associated_connection.lock()->disconnect();
+	associated_connection.reset();
+	lost = boost::posix_time::second_clock::universal_time();
+}
 
 const crypto::AES& OverlayPeer::getAESKey() const {
 	return aes_key;
@@ -57,15 +64,20 @@ void OverlayPeer::setPublicKey(const crypto::PublicKeyDSA& publicKey) {
 	// TODO DHT k-bucket recompute
 }
 
-void OverlayPeer::setExpiryTime(boost::posix_time::ptime expiry_time) {
-	expires = expiry_time;
+void OverlayPeer::updateExpiryTime(boost::posix_time::ptime expiry_time) {
+	if(expiry_time > expires)	// This is to prevent spoofing.
+		expires = expiry_time;
 }
 const boost::posix_time::ptime& OverlayPeer::getExpiryTime() const {
 	return expires;
 }
 
-void OverlayPeer::setLostTime(boost::posix_time::ptime lost_time) {
-	lost = lost_time;
+void OverlayPeer::updateLostTime(boost::posix_time::ptime lost_time) {
+	if(lost_time > lost){
+		lost = lost_time;
+		lose_timer.expires_at(lost);
+		lose_timer.async_wait([&](boost::system::error_code ec){if(!ec){deactivate();}});
+	}
 }
 const boost::posix_time::ptime& OverlayPeer::getLostTime() const {
 	return lost;

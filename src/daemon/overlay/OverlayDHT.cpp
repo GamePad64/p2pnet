@@ -27,7 +27,7 @@ void OverlayDHT::send(const crypto::Hash& dest, const protocol::DHTPart& dht_par
 }
 
 crypto::Hash OverlayDHT::getMyHash(){
-	return databases::PersonalKeyStorage::getInstance()->getMyTransportHash();
+	return getMyTransportHash();
 }
 
 std::vector<crypto::Hash> OverlayDHT::getNNodesFromBucket(unsigned short bucket){
@@ -42,7 +42,7 @@ std::vector<crypto::Hash> OverlayDHT::getNNodesFromBucket(unsigned short bucket)
 boost::optional<std::string> OverlayDHT::getLocalNodeInfo(const crypto::Hash& hash){
 	if(auto it = parent_socket_ptr->m_connections.find(hash)){
 		transport::proto::TransportSocketEndpointList tse_s;
-		auto& tse_list = it->second->getEndpointList();
+		auto& tse_list = it->second->getPeerPtr()->getEndpointList();	// TODO: Send about expired.
 		for(auto tse_it : tse_list){
 			tse_s.add_tse_s()->CopyFrom(tse_it.toProtobuf());
 		}
@@ -52,7 +52,7 @@ boost::optional<std::string> OverlayDHT::getLocalNodeInfo(const crypto::Hash& ha
 }
 
 void OverlayDHT::putLocalNodeInfo(const crypto::Hash& hash, std::string node_info){
-
+	parent_socket_ptr->m_peers.
 }
 
 
@@ -70,6 +70,16 @@ void OverlayDHT::removeFromKBucket(std::shared_ptr<OverlayPeer> peer, unsigned s
 void OverlayDHT::removeFromKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash) {
 	unsigned short distance = my_hash.computeDistance(peer->getPeerTH());
 	removeFromKBucket(peer, distance);
+}
+
+void OverlayDHT::keysUpdated(boost::posix_time::ptime expiry_time, boost::posix_time::ptime lose_time) {
+	typeof(k_buckets) new_buckets;
+	for(auto& old_bucket : k_buckets){
+		for(auto& bucket_element : old_bucket){
+			auto new_distance_from_me = bucket_element->getPeerTH().computeDistance(getMyTransportHash());
+			new_buckets[new_distance_from_me].insert(bucket_element);
+		}
+	}
 }
 
 OverlayDHT::~OverlayDHT() {}

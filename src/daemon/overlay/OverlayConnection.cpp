@@ -26,7 +26,9 @@ OverlayConnection::OverlayConnection(std::shared_ptr<OverlayPeer> overlay_peer) 
 		udp_key_rotation_limit(AsioIOService::getIOService()) {
 	log() << "New Overlay Connection initiated with TH:" << overlay_peer_ptr->getPeerTH().toBase58() << std::endl;
 }
-OverlayConnection::~OverlayConnection() {}
+OverlayConnection::~OverlayConnection() {
+	disconnect();
+}
 
 void OverlayConnection::keysUpdated(){
 	if(state == ESTABLISHED){
@@ -209,8 +211,8 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 		log() << "Received ECDSA public key from: TH:" << overlay_peer_ptr->getPeerTH().toBase58() << std::endl;
 		overlay_peer_ptr->setPublicKey(recv_dsa_pubkey);
 
-		overlay_peer_ptr->setExpiryTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().expires()));
-		overlay_peer_ptr->setLostTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().lost()));
+		overlay_peer_ptr->updateExpiryTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().expires()));
+		overlay_peer_ptr->updateLostTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().lost()));
 	}else{
 		return;	// Drop. TODO MessageReject.
 	}

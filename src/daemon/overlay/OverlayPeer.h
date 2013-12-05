@@ -25,9 +25,12 @@
 namespace p2pnet {
 namespace overlay {
 
+class OverlayConnection;
+
 class OverlayPeer : Loggable {
 	/* Various peer information */
 	TH peer_th;
+
 	crypto::PublicKeyDSA public_key;
 	crypto::ECDH ecdh_key;
 	crypto::AES aes_key;
@@ -39,7 +42,9 @@ class OverlayPeer : Loggable {
 
 	/* Other stuff */
 	boost::asio::deadline_timer lose_timer;
+	std::weak_ptr<OverlayConnection> associated_connection;	// If not, then this peer is "lost", so we will not be able to connect it again.
 
+	void deactivate();
 public:
 	OverlayPeer(const TH& peer_th);
 	virtual ~OverlayPeer();
@@ -53,9 +58,9 @@ public:
 	const crypto::PublicKeyDSA& getPublicKey() const;
 	void setPublicKey(const crypto::PublicKeyDSA& publicKey);
 	const boost::posix_time::ptime& getExpiryTime() const;
-	void setExpiryTime(boost::posix_time::ptime expiry_time);
+	void updateExpiryTime(boost::posix_time::ptime expiry_time);
 	const boost::posix_time::ptime& getLostTime() const;
-	void setLostTime(boost::posix_time::ptime lost_time);
+	void updateLostTime(boost::posix_time::ptime lost_time);
 
 	bool isActive() const;
 

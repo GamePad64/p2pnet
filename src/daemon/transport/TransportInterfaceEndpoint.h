@@ -15,7 +15,7 @@
 #ifndef TRANSPORTINTERFACEENDPOINT_H_
 #define TRANSPORTINTERFACEENDPOINT_H_
 
-#include "../protobuf/NetDBEntry.pb.h"
+#include "../protobuf/OverlayPeer.pb.h"
 #include "../protobuf/Protocol.pb.h"
 #include <memory>
 

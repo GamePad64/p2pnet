@@ -23,7 +23,7 @@ OverlaySocket::OverlaySocket() {}
 
 OverlaySocket::~OverlaySocket() {}
 
-std::shared_ptr<OverlayConnection> OverlaySocket::addConnection(overlay::TH th) {
+std::shared_ptr<OverlayConnection> OverlaySocket::getConnection(const overlay::TH& th) {
 	// TODO: Here we need to check peer.isActive() before.
 	// Maybe, we will not be able to connect as that peer is lost (and we documented this)
 	auto it_peer = m_peers.find(th);
@@ -49,7 +49,7 @@ std::shared_ptr<OverlayConnection> OverlaySocket::addConnection(overlay::TH th) 
 void OverlaySocket::send(const overlay::TH& dest,
 		const protocol::OverlayMessage_Payload& message_payload,
 		protocol::OverlayMessage_Header_MessagePriority prio) {
-	addConnection(dest)->send(message_payload, prio);
+	getConnection(dest)->send(message_payload, prio);
 }
 
 void OverlaySocket::process(std::string data, const transport::TransportSocketEndpoint& from) {
@@ -60,13 +60,13 @@ void OverlaySocket::process(std::string data, const transport::TransportSocketEn
 
 		log() << "Received Overlay Message from: TH:" << overlay::TH::fromBinaryString(overlay_message.header().src_th()).toBase58() << std::endl;
 
-		addConnection(packet_src_th)->process(overlay_message, from);
+		getConnection(packet_src_th)->process(overlay_message, from);
 	}else if(request_message.ParseFromString(data)){
 		overlay::TH packet_src_th(overlay::TH::fromBinaryString(request_message.src_th()));
 
 		log() << "Received Connection Request from: TH:" << overlay::TH::fromBinaryString(request_message.src_th()).toBase58() << std::endl;
 
-		addConnection(packet_src_th)->process(request_message, from);
+		getConnection(packet_src_th)->process(request_message, from);
 	}
 }
 

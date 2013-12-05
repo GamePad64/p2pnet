@@ -15,13 +15,14 @@
 #define OVERLAYDHT_H_
 
 #include "../dht/DHTService.h"
+#include "../databases/PersonalKeyStorage.h"
 
 namespace p2pnet {
 namespace overlay {
 
 class OverlaySocket;
 
-class OverlayDHT : public dht::DHTService {
+class OverlayDHT : public dht::DHTService, databases::PersonalKeyStorageClient {
 	OverlaySocket* parent_socket_ptr;
 	std::array<std::set<std::shared_ptr<OverlayPeer>>, crypto::HASH_LENGTH> k_buckets;
 protected:
@@ -40,6 +41,8 @@ public:
 	void registerInKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash);
 	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance);
 	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash);
+
+	void keysUpdated(boost::posix_time::ptime expiry_time, boost::posix_time::ptime lose_time);
 };
 
 } /* namespace overlay */

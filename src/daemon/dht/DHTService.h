@@ -20,6 +20,7 @@
 #include "../../common/crypto/Hash.h"
 #include "../protobuf/DHT.pb.h"
 #include <unordered_map>
+#include <list>
 
 namespace p2pnet {
 namespace dht {
@@ -28,6 +29,8 @@ struct DHTCoords {
 	std::string ns;	// I can't use word "namespace", it is reserved.
 	crypto::Hash hash;
 };
+
+class DHTService;
 
 class DHTClient : boost::noncopyable {
 	DHTService* service_ptr;
