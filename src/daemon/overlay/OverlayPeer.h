@@ -14,6 +14,7 @@
 #ifndef OVERLAYPEER_H_
 #define OVERLAYPEER_H_
 
+#include "../transport/TransportSocketEndpoint.h"
 #include "TH.h"
 #include "../../common/Loggable.h"
 #include "../databases/PersonalKeyStorage.h"
@@ -64,7 +65,7 @@ public:
 
 	bool isActive() const;
 
-	std::deque<transport::TransportSocketEndpoint>& getEndpointList(){return m_tse;}
+	std::deque<transport::TransportSocketEndpoint>& getEndpointListRef(){return m_tse;}
 };
 
 } /* namespace overlay */

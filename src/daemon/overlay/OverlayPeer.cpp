@@ -13,18 +13,20 @@
  */
 #include "OverlayPeer.h"
 #include "OverlaySocket.h"
+#include "OverlayConnection.h"
+#include "../AsioIOService.h"
 
 namespace p2pnet {
 namespace overlay {
 
-OverlayPeer::OverlayPeer(const TH& peer_th) : associated_connection(AsioIOService::getIOService()) {
+OverlayPeer::OverlayPeer(const TH& peer_th) : lose_timer(AsioIOService::getIOService()) {
 	this->peer_th = peer_th;
 }
 
 OverlayPeer::~OverlayPeer() {}
 
 void OverlayPeer::deactivate() {
-	if(associated_connection)
+	if(!associated_connection.expired())
 		associated_connection.lock()->disconnect();
 	associated_connection.reset();
 	lost = boost::posix_time::second_clock::universal_time();

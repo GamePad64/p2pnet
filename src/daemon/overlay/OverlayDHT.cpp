@@ -13,6 +13,8 @@
  */
 #include "OverlayDHT.h"
 #include "OverlaySocket.h"
+#include "OverlayConnection.h"
+#include "../transport/TransportSocketEndpoint.h"
 
 namespace p2pnet {
 namespace overlay {
@@ -22,7 +24,7 @@ OverlayDHT::OverlayDHT(OverlaySocket* socket_ptr) : dht::DHTService(), parent_so
 
 void OverlayDHT::send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) {
 	protocol::OverlayMessage_Payload payload;
-	payload.SetExtension(protocol::dht_part, dht_part);
+	payload.MutableExtension(protocol::dht_part)->CopyFrom(dht_part);
 	parent_socket_ptr->send(dest, payload, protocol::OverlayMessage_Header_MessagePriority_RELIABLE);
 }
 
@@ -33,16 +35,20 @@ crypto::Hash OverlayDHT::getMyHash(){
 std::vector<crypto::Hash> OverlayDHT::getNNodesFromBucket(unsigned short bucket){
 	std::vector<crypto::Hash> nodes(MAX_FROM_BUCKET);
 	auto& k_bucket = k_buckets[bucket];
-	for(auto it = k_bucket.begin(); it != k_bucket.end && k_bucket != k_bucket.begin()+MAX_FROM_BUCKET; it++){
+
+	int count = 0;
+
+	for(auto it = k_bucket.begin(); it != k_bucket.end() && count++ < MAX_FROM_BUCKET; it++){
 		nodes.push_back((*it)->getPeerTH());
 	}
 	return nodes;
 }
 
 boost::optional<std::string> OverlayDHT::getLocalNodeInfo(const crypto::Hash& hash){
-	if(auto it = parent_socket_ptr->m_connections.find(hash)){
+	auto it = parent_socket_ptr->m_connections.find(hash);
+	if(it != parent_socket_ptr->m_connections.end()){
 		transport::proto::TransportSocketEndpointList tse_s;
-		auto& tse_list = it->second->getPeerPtr()->getEndpointList();	// TODO: Send about expired.
+		auto& tse_list = it->second->getPeerPtr()->getEndpointListRef();	// TODO: Send about expired.
 		for(auto tse_it : tse_list){
 			tse_s.add_tse_s()->CopyFrom(tse_it.toProtobuf());
 		}
@@ -52,9 +58,13 @@ boost::optional<std::string> OverlayDHT::getLocalNodeInfo(const crypto::Hash& ha
 }
 
 void OverlayDHT::putLocalNodeInfo(const crypto::Hash& hash, std::string node_info){
-	parent_socket_ptr->m_peers.
+	transport::proto::TransportSocketEndpointList tse_s;
+	tse_s.ParseFromString(node_info);
+	for(auto& tse : tse_s.tse_s()){
+		parent_socket_ptr->m_peers[hash]->getEndpointListRef().push_back(tse);
+	}
+	registerInKBucket(parent_socket_ptr->m_peers[hash]);
 }
-
 
 /* K-bucket mgmt */
 void OverlayDHT::registerInKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance) {
@@ -63,6 +73,9 @@ void OverlayDHT::registerInKBucket(std::shared_ptr<OverlayPeer> peer, unsigned s
 void OverlayDHT::registerInKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash) {
 	unsigned short distance = my_hash.computeDistance(peer->getPeerTH());
 	registerInKBucket(peer, distance);
+}
+void OverlayDHT::registerInKBucket(std::shared_ptr<OverlayPeer> peer){
+	registerInKBucket(peer, getMyHash());
 }
 void OverlayDHT::removeFromKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance) {
 	k_buckets[distance].erase(peer);
@@ -73,13 +86,14 @@ void OverlayDHT::removeFromKBucket(std::shared_ptr<OverlayPeer> peer, const cryp
 }
 
 void OverlayDHT::keysUpdated(boost::posix_time::ptime expiry_time, boost::posix_time::ptime lose_time) {
-	typeof(k_buckets) new_buckets;
+	decltype(k_buckets) new_buckets;
 	for(auto& old_bucket : k_buckets){
 		for(auto& bucket_element : old_bucket){
 			auto new_distance_from_me = bucket_element->getPeerTH().computeDistance(getMyTransportHash());
 			new_buckets[new_distance_from_me].insert(bucket_element);
 		}
 	}
+	std::swap(k_buckets, new_buckets);
 }
 
 OverlayDHT::~OverlayDHT() {}

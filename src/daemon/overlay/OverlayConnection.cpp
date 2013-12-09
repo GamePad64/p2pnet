@@ -57,7 +57,7 @@ void OverlayConnection::sendData(std::string data) {
 	std::shared_ptr<transport::TransportConnection> conn;
 
 	// Searching for at least one "living" TransportConnection
-	for(auto& conn_it : overlay_peer_ptr->getEndpointList()){
+	for(auto& conn_it : overlay_peer_ptr->getEndpointListRef()){
 		auto sock_it = transport_socket_connections.find(conn_it);
 		if(sock_it->second->connected()){
 			conn = sock_it->second;
@@ -284,15 +284,15 @@ bool OverlayConnection::isReady() const {
 }
 
 void OverlayConnection::updateTSE(const transport::TransportSocketEndpoint& from, bool verified) {
-	auto it = std::find(overlay_peer_ptr->getEndpointList().begin(), overlay_peer_ptr->getEndpointList().end(), from);
-	if(it == overlay_peer_ptr->getEndpointList().end()){
-		overlay_peer_ptr->getEndpointList().push_front(from);
+	auto it = std::find(overlay_peer_ptr->getEndpointListRef().begin(), overlay_peer_ptr->getEndpointListRef().end(), from);
+	if(it == overlay_peer_ptr->getEndpointListRef().end()){
+		overlay_peer_ptr->getEndpointListRef().push_front(from);
 	}else{
-		overlay_peer_ptr->getEndpointList().erase(it);
+		overlay_peer_ptr->getEndpointListRef().erase(it);
 		if(verified){
-			overlay_peer_ptr->getEndpointList().push_front(from);
+			overlay_peer_ptr->getEndpointListRef().push_front(from);
 		}else{
-			overlay_peer_ptr->getEndpointList().push_back(from);
+			overlay_peer_ptr->getEndpointListRef().push_back(from);
 		}
 	}
 }

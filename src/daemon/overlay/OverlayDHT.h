@@ -21,6 +21,7 @@ namespace p2pnet {
 namespace overlay {
 
 class OverlaySocket;
+class OverlayPeer;
 
 class OverlayDHT : public dht::DHTService, databases::PersonalKeyStorageClient {
 	OverlaySocket* parent_socket_ptr;
@@ -39,6 +40,7 @@ public:
 
 	void registerInKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance);
 	void registerInKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash);
+	void registerInKBucket(std::shared_ptr<OverlayPeer> peer);
 	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance);
 	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash);
 

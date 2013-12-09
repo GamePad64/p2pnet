@@ -91,8 +91,8 @@ protected:
 	std::shared_ptr<crypto::PrivateKeyDSA> getPrivateKeyOfTH(overlay::TH hash){return pks->getPrivateKeyOfTH(hash);}
 	const key_history_t& getHistory(){return pks->getHistory();}
 
-	boost::posix_time::ptime getExpiryTime() const;
-	boost::posix_time::ptime getLoseTime() const;
+	boost::posix_time::ptime getExpiryTime() const{return pks->getExpiryTime();};
+	boost::posix_time::ptime getLoseTime() const{return pks->getLoseTime();};
 };
 
 } /* namespace databases */

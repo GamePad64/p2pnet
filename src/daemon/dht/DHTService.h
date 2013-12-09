@@ -21,6 +21,9 @@
 #include "../protobuf/DHT.pb.h"
 #include <unordered_map>
 #include <list>
+#include <boost/noncopyable.hpp>
+#include <boost/date_time.hpp>
+#include <boost/optional.hpp>
 
 namespace p2pnet {
 namespace dht {
@@ -36,7 +39,7 @@ class DHTClient : boost::noncopyable {
 	DHTService* service_ptr;
 public:
 	DHTClient(DHTService* parent_service);
-	virtual ~DHTClient();
+	virtual ~DHTClient(){};
 	// Signals
 	void findNode(const crypto::Hash& coords);
 	virtual void foundNode(const crypto::Hash& coords, std::string node_info) = 0;

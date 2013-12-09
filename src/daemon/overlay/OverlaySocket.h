@@ -28,6 +28,7 @@ class OverlayConnection;
 
 class OverlaySocket : public Singleton<OverlaySocket>, Loggable {
 	friend class OverlayPeer;
+	friend class OverlayConnection;
 	friend class OverlayDHT;
 protected:
 	OverlayDHT dht_service;
