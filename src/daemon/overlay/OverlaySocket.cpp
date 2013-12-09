@@ -19,7 +19,7 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlaySocket::OverlaySocket() {}
+OverlaySocket::OverlaySocket() : dht_service(this) {}
 
 OverlaySocket::~OverlaySocket() {}
 

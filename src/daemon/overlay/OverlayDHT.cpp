@@ -19,7 +19,6 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlayDHT::OverlayDHT() : OverlayDHT(OverlaySocket::getInstance()) {}
 OverlayDHT::OverlayDHT(OverlaySocket* socket_ptr) : dht::DHTService(), parent_socket_ptr(socket_ptr) {}
 
 void OverlayDHT::send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) {
