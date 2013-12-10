@@ -37,7 +37,7 @@ public:
 	 */
 	virtual void process(std::string data);
 
-	virtual bool connected() = 0;
+	virtual bool connected() const = 0;
 
 	std::string getComponentName(){return "TransportConnection";}
 };

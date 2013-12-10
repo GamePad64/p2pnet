@@ -53,7 +53,7 @@ void UDPTransportConnection::process(std::string data) {
 		this->TransportConnection::process(data);
 }
 
-bool UDPTransportConnection::connected() {
+bool UDPTransportConnection::connected() const {
 	return m_connected;
 }
 

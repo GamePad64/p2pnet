@@ -42,7 +42,7 @@ public:
 
 	virtual void send(std::string data);
 	virtual void process(std::string data);
-	virtual bool connected();
+	virtual bool connected() const;
 };
 
 } /* namespace transport */
