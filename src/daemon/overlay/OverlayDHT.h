@@ -26,12 +26,12 @@ class OverlayPeer;
 class OverlayDHT : public dht::DHTService, databases::PersonalKeyStorageClient {
 	OverlaySocket* parent_socket_ptr;
 	std::array<std::set<std::shared_ptr<OverlayPeer>>, crypto::HASH_LENGTH> k_buckets;
-protected:
-	void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part);
 public:
 	OverlayDHT();
 	OverlayDHT(OverlaySocket* socket_ptr);
 	virtual ~OverlayDHT();
+
+	void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part);
 
 	crypto::Hash getMyHash();
 	std::vector<crypto::Hash> getNNodesFromBucket(unsigned short bucket);

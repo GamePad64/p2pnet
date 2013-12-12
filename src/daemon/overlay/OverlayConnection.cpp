@@ -22,9 +22,9 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlayConnection::OverlayConnection(std::shared_ptr<OverlayPeer> overlay_peer) : overlay_peer_ptr(overlay_peer),
+OverlayConnection::OverlayConnection(std::shared_ptr<OverlayPeer> overlay_peer) : peer_ptr(overlay_peer),
 		udp_key_rotation_limit(AsioIOService::getIOService()) {
-	log() << "New Overlay Connection initiated with TH:" << overlay_peer_ptr->getPeerTH().toBase58() << std::endl;
+	log() << "New Overlay Connection initiated with TH:" << peer_ptr->getPeerTH().toBase58() << std::endl;
 }
 OverlayConnection::~OverlayConnection() {
 	disconnect();
@@ -34,7 +34,7 @@ void OverlayConnection::keysUpdated(){
 	if(state == ESTABLISHED){
 		protocol::OverlayMessage message;
 		message.mutable_header()->set_src_th((getHistory().begin()+1)->second->toBinaryString());
-		message.mutable_header()->set_dest_th(overlay_peer_ptr->getPeerTH().toBinaryString());
+		message.mutable_header()->set_dest_th(peer_ptr->getPeerTH().toBinaryString());
 		message.mutable_header()->set_prio(message.header().REALTIME);
 
 		message.mutable_payload()->mutable_key_rotation_part()->CopyFrom(generateKeyRotationPart(*((getHistory().begin()+1)->first)));
@@ -57,7 +57,7 @@ void OverlayConnection::sendData(std::string data) {
 	std::shared_ptr<transport::TransportConnection> conn;
 
 	// Searching for at least one "living" TransportConnection
-	for(auto& conn_it : overlay_peer_ptr->getEndpointListRef()){
+	for(auto& conn_it : peer_ptr->getEndpointList()){
 		auto sock_it = transport_socket_connections.find(conn_it);
 		if(sock_it->second->connected()){
 			conn = sock_it->second;
@@ -103,7 +103,7 @@ void OverlayConnection::sendMessage(const protocol::OverlayMessage& send_message
 		}
 	}
 
-	log() << "Message sent to: TH:" << overlay_peer_ptr->getPeerTH().toBase58() << std::endl;
+	log() << "Message sent to: TH:" << peer_ptr->getPeerTH().toBase58() << std::endl;
 
 	sendData(new_send_message.SerializeAsString());
 }
@@ -111,16 +111,17 @@ void OverlayConnection::sendMessage(const protocol::OverlayMessage& send_message
 bool OverlayConnection::performLocalKeyRotation(const protocol::OverlayMessage& recv_message){
 	auto& part = recv_message.payload().key_rotation_part();
 
-	if(overlay_peer_ptr->getPublicKey().isPresent()){
+	if(peer_ptr->getPublicKey().isPresent()){
 		auto oldkey = crypto::PublicKeyDSA::fromBinaryString(part.old_ecdsa_key());
 		auto newkey = crypto::PublicKeyDSA::fromBinaryString(part.new_ecdsa_key());
 
-		if(overlay::TH(oldkey) == overlay_peer_ptr->getPeerTH()){	// Okay, this message is not alien. Checking.
+		if(overlay::TH(oldkey) == peer_ptr->getPeerTH()){	// Okay, this message is not alien. Checking.
 			auto twokeys = part.old_ecdsa_key()+part.new_ecdsa_key();
 
 			if(oldkey.verify(twokeys, part.old_signature()) && newkey.validate() && newkey.verify(twokeys, part.new_signature())){
 				//This message is genuine. We are changing public key. TH, connection in socket's map, position in K-buckets will be changed automatically.
-				overlay_peer_ptr->setPublicKey(newkey);
+				OverlaySocket::getInstance()->movePeer(overlay::TH(oldkey), overlay::TH(newkey));
+				peer_ptr->setPublicKey(newkey);
 				return true;
 			}
 		}
@@ -154,10 +155,10 @@ protocol::OverlayMessage_Payload_ConnectionPart OverlayConnection::generateConne
 			|| for_stage == protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_ECDH_ACK){
 		conn_part.set_stage(for_stage);
 
-		if(!overlay_peer_ptr->getECDHKey().isPresent())
-			overlay_peer_ptr->setECDHKey(crypto::ECDH::generateNewKey());
+		if(!peer_ptr->getECDHKey().isPresent())
+			peer_ptr->setECDHKey(crypto::ECDH::generateNewKey());
 
-		auto public_ecdh_component = overlay_peer_ptr->getECDHKey().derivePublicKey();
+		auto public_ecdh_component = peer_ptr->getECDHKey().derivePublicKey();
 
 		conn_part.set_src_ecdh_pubkey(public_ecdh_component);
 		conn_part.set_signature(getMyPrivateKey().sign(public_ecdh_component));
@@ -206,13 +207,13 @@ void OverlayConnection::processConnectionPart(const protocol::OverlayMessage& re
 void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessage& recv_message){
 	auto recv_dsa_pubkey = crypto::PublicKeyDSA::fromBinaryString(recv_message.payload().connection_part().src_ecdsa_pubkey());
 
-	if((crypto::Hash(recv_dsa_pubkey) == overlay_peer_ptr->getPeerTH())	// So, we check if this message contains genuine ECDSA public key of connected TH.
+	if((crypto::Hash(recv_dsa_pubkey) == peer_ptr->getPeerTH())	// So, we check if this message contains genuine ECDSA public key of connected TH.
 			&& recv_dsa_pubkey.validate()){	// And then we validate this ECDSA public key using mathematical methods.
-		log() << "Received ECDSA public key from: TH:" << overlay_peer_ptr->getPeerTH().toBase58() << std::endl;
-		overlay_peer_ptr->setPublicKey(recv_dsa_pubkey);
+		log() << "Received ECDSA public key from: TH:" << peer_ptr->getPeerTH().toBase58() << std::endl;
+		peer_ptr->setPublicKey(recv_dsa_pubkey);
 
-		overlay_peer_ptr->updateExpiryTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().expires()));
-		overlay_peer_ptr->updateLostTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().lost()));
+		peer_ptr->updateExpiryTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().expires()));
+		peer_ptr->updateLostTime(boost::posix_time::from_iso_string(recv_message.payload().connection_part().lost()));
 	}else{
 		return;	// Drop. TODO MessageReject.
 	}
@@ -239,15 +240,15 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 }
 
 void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage& recv_message){
-	if(!overlay_peer_ptr->getECDHKey().isPresent())
-		overlay_peer_ptr->setECDHKey(crypto::ECDH::generateNewKey());
-	auto salt_v = overlay_peer_ptr->getPeerTH() ^ getMyTransportHash();
-	auto derived_aes_string = overlay_peer_ptr->getECDHKey().deriveSymmetricKey(crypto::AES::vectorSize(),
+	if(!peer_ptr->getECDHKey().isPresent())
+		peer_ptr->setECDHKey(crypto::ECDH::generateNewKey());
+	auto salt_v = peer_ptr->getPeerTH() ^ getMyTransportHash();
+	auto derived_aes_string = peer_ptr->getECDHKey().deriveSymmetricKey(crypto::AES::vectorSize(),
 			recv_message.payload().connection_part().src_ecdh_pubkey(), std::string(salt_v.begin(), salt_v.end())
 			);
-	overlay_peer_ptr->setAESKey(crypto::AES::fromBinaryString(derived_aes_string));
+	peer_ptr->setAESKey(crypto::AES::fromBinaryString(derived_aes_string));
 
-	log() << "Received ECDH public key from: TH:" << overlay_peer_ptr->getPeerTH().toBase58() << std::endl;
+	log() << "Received ECDH public key from: TH:" << peer_ptr->getPeerTH().toBase58() << std::endl;
 
 	auto reply = generateReplySkel(recv_message);
 
@@ -269,43 +270,29 @@ void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage
 		sendMessage(reply);
 
 		setState(ESTABLISHED);
-		log() << "AES encrypted connection with TH:" << overlay_peer_ptr->getPeerTH().toBase58() << " established" << std::endl;
+		log() << "AES encrypted connection with TH:" << peer_ptr->getPeerTH().toBase58() << " established" << std::endl;
 	}
 }
 
 void OverlayConnection::processConnectionPartAES(const protocol::OverlayMessage& recv_message,
 		const protocol::OverlayMessage_Payload& decrypted_payload){
 	setState(ESTABLISHED);
-	log() << "AES encrypted connection with TH:" << overlay_peer_ptr->getPeerTH().toBase58() << " established" << std::endl;
-}
-
-bool OverlayConnection::isReady() const {
-	return state == ESTABLISHED;
-}
-
-void OverlayConnection::updateTSE(const transport::TransportSocketEndpoint& from, bool verified) {
-	auto it = std::find(overlay_peer_ptr->getEndpointListRef().begin(), overlay_peer_ptr->getEndpointListRef().end(), from);
-	if(it == overlay_peer_ptr->getEndpointListRef().end()){
-		overlay_peer_ptr->getEndpointListRef().push_front(from);
-	}else{
-		overlay_peer_ptr->getEndpointListRef().erase(it);
-		if(verified){
-			overlay_peer_ptr->getEndpointListRef().push_front(from);
-		}else{
-			overlay_peer_ptr->getEndpointListRef().push_back(from);
-		}
-	}
+	log() << "AES encrypted connection with TH:" << peer_ptr->getPeerTH().toBase58() << " established" << std::endl;
 }
 
 std::string OverlayConnection::encryptPayload(const protocol::OverlayMessage_Payload& payload){
-	return overlay_peer_ptr->getAESKey().encrypt(payload.SerializeAsString());
+	return peer_ptr->getAESKey().encrypt(payload.SerializeAsString());
+}
+
+bool OverlayConnection::connected() const {
+	return state == ESTABLISHED;
 }
 
 void OverlayConnection::send(const protocol::OverlayMessage_Payload& send_payload, const protocol::OverlayMessage_Header_MessagePriority& prio) {
 	if(state == ESTABLISHED){
 		protocol::OverlayMessage message;
 		message.mutable_header()->set_src_th(pks->getMyTransportHash().toBinaryString());
-		message.mutable_header()->set_dest_th(overlay_peer_ptr->getPeerTH().toBinaryString());
+		message.mutable_header()->set_dest_th(peer_ptr->getPeerTH().toBinaryString());
 		message.mutable_header()->set_prio(prio);
 		message.set_encrypted_payload(encryptPayload(send_payload));
 		sendMessage(message);
@@ -319,7 +306,7 @@ void OverlayConnection::send(const protocol::OverlayMessage_Payload& send_payloa
 }
 
 void OverlayConnection::process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from) {
-	updateTSE(from);
+	peer_ptr->updateEndpoint(from);
 
 	std::shared_ptr<crypto::PrivateKeyDSA> our_historic_ecdsa_privkey;
 
@@ -328,27 +315,24 @@ void OverlayConnection::process(const protocol::OverlayMessage& recv_message, co
 
 	log() << "Received OverlayMessage from: TH:" << src_th.toBase58() << std::endl;
 
-	our_historic_ecdsa_privkey = getPrivateKeyOfTH(dest_th);
-	if(our_historic_ecdsa_privkey != nullptr){
+	if(getPrivateKeyOfTH(dest_th) != nullptr){
 		// So, this message is for us.
 		/* Key Rotation stage */
 		if(recv_message.payload().has_key_rotation_part())
 			if(performLocalKeyRotation(recv_message))
-				updateTSE(from, true);
+				peer_ptr->updateEndpoint(from, true);
 		/* Encryption stage */
-		if(recv_message.has_encrypted_payload()){
+		if(recv_message.has_encrypted_payload() && peer_ptr->getAESKey().isPresent()){
 			protocol::OverlayMessage_Payload decrypted_payload;
-			if(overlay_peer_ptr->getAESKey().isPresent()){
-				auto decrypted_payload_s = overlay_peer_ptr->getAESKey().decrypt(recv_message.encrypted_payload());
-				if(decrypted_payload.ParseFromString(decrypted_payload_s)){
-					/* Encrypted processing */
-					updateTSE(from, true);
-					processConnectionPart(recv_message, decrypted_payload);
-				}else{
-					// Reconnect
-				}
+			auto decrypted_payload_s = peer_ptr->getAESKey().decrypt(recv_message.encrypted_payload());
+			if(decrypted_payload.ParseFromString(decrypted_payload_s)){
+				/* Encrypted processing */
+				peer_ptr->updateEndpoint(from, true);
+				processConnectionPart(recv_message, decrypted_payload);
+				// DHT
+				OverlaySocket::getInstance()->dht_service.process(src_th, recv_message.payload().GetExtension(protocol::dht_part));
 			}else{
-				// Umm... Dont' know. TODO: reconnect.
+				// TODO: Reconnect
 			}
 		}else{
 			/* Open (unencrypted) processing */
@@ -371,16 +355,16 @@ void OverlayConnection::process(const protocol::OverlayMessage& recv_message, co
 
 void OverlayConnection::process(const protocol::ConnectionRequestMessage& recv_message,
 		const transport::TransportSocketEndpoint& from) {
-	updateTSE(from);
+	peer_ptr->updateEndpoint(from);
 
-	if(state == CLOSED)
+	if(state == CLOSED)	// TODO: Here go "privacy settings"
 		connect();
 }
 
 void OverlayConnection::connect() {
 	protocol::OverlayMessage message;
 	message.mutable_header()->set_src_th(getMyTransportHash().toBinaryString());
-	message.mutable_header()->set_dest_th(overlay_peer_ptr->getPeerTH().toBinaryString());
+	message.mutable_header()->set_dest_th(peer_ptr->getPeerTH().toBinaryString());
 	message.mutable_header()->set_prio(message.header().RELIABLE);
 	message.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(message.payload().connection_part().PUBKEY));
 	sendMessage(message);
@@ -388,7 +372,6 @@ void OverlayConnection::connect() {
 
 void OverlayConnection::disconnect() {
 	state = CLOSED;
-	OverlaySocket::getInstance()->m_connections.erase(overlay_peer_ptr->getPeerTH());
 }
 
 } /* namespace overlay */

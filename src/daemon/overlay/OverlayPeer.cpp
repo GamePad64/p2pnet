@@ -19,50 +19,17 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlayPeer::OverlayPeer(const TH& peer_th) : lose_timer(AsioIOService::getIOService()) {
+OverlayPeer::OverlayPeer(const TH& peer_th) : lost_timer(AsioIOService::getIOService()) {
 	this->peer_th = peer_th;
 }
 
 OverlayPeer::~OverlayPeer() {}
 
-void OverlayPeer::deactivate() {
-	if(!associated_connection.expired())
-		associated_connection.lock()->disconnect();
-	associated_connection.reset();
-	lost = boost::posix_time::second_clock::universal_time();
-}
-
-const crypto::AES& OverlayPeer::getAESKey() const {
-	return aes_key;
-}
-void OverlayPeer::setAESKey(const crypto::AES& aesKey) {
-	aes_key = aesKey;
-}
-const crypto::ECDH& OverlayPeer::getECDHKey() const {
-	return ecdh_key;
-}
-
-void OverlayPeer::setECDHKey(const crypto::ECDH& ecdhKey) {
-	ecdh_key = ecdhKey;
-}
-const TH& OverlayPeer::getPeerTH() const {
-	return peer_th;
-}
-
-void OverlayPeer::setPeerTH(const TH& peerTh) {
-	peer_th = peerTh;
-}
-const crypto::PublicKeyDSA& OverlayPeer::getPublicKey() const {
-	return public_key;
-}
-
 void OverlayPeer::setPublicKey(const crypto::PublicKeyDSA& publicKey) {
 	public_key = publicKey;
 	auto new_peer_th = overlay::TH(public_key);
 	log() << "Changing " << peer_th.toBase58() << " ~~> " << new_peer_th.toBase58() << std::endl;
-	log() << "Routing " << peer_th.toBase58() << " communications to " << new_peer_th.toBase58() << std::endl;
-	OverlaySocket::getInstance()->m_connections.insert(std::make_pair(new_peer_th, OverlaySocket::getInstance()->m_connections.find(peer_th)->second));
-	OverlaySocket::getInstance()->m_peers.insert(std::make_pair(new_peer_th, OverlaySocket::getInstance()->m_peers.find(peer_th)->second));
+	OverlaySocket::getInstance()->movePeer(peer_th, new_peer_th);
 	// TODO DHT k-bucket recompute
 }
 
@@ -70,25 +37,25 @@ void OverlayPeer::updateExpiryTime(boost::posix_time::ptime expiry_time) {
 	if(expiry_time > expires)	// This is to prevent spoofing.
 		expires = expiry_time;
 }
-const boost::posix_time::ptime& OverlayPeer::getExpiryTime() const {
-	return expires;
-}
 
 void OverlayPeer::updateLostTime(boost::posix_time::ptime lost_time) {
 	if(lost_time > lost){
 		lost = lost_time;
-		lose_timer.expires_at(lost);
-		lose_timer.async_wait([&](boost::system::error_code ec){if(!ec){deactivate();}});
+		lost_timer.expires_at(lost);
+		lost_timer.async_wait([&](boost::system::error_code ec){if(!ec){active = false;}});
 	}
 }
-const boost::posix_time::ptime& OverlayPeer::getLostTime() const {
-	return lost;
-}
 
-bool OverlayPeer::isActive() const {
-	if(!lost.is_not_a_date_time() && boost::posix_time::second_clock::universal_time() >= lost)
-		return false;
-	return true;
+void OverlayPeer::updateEndpoint(const transport::TransportSocketEndpoint& endpoint, bool verified){
+	auto it = std::find(m_tse.begin(), m_tse.end(), endpoint);
+
+	if(it == m_tse.end())
+		m_tse.erase(it);
+
+	if(verified)
+		m_tse.push_front(endpoint);
+	else
+		m_tse.push_back(endpoint);
 }
 
 } /* namespace overlay */

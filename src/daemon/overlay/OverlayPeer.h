@@ -42,30 +42,35 @@ class OverlayPeer : Loggable {
 	std::deque<transport::TransportSocketEndpoint> m_tse;
 
 	/* Other stuff */
-	boost::asio::deadline_timer lose_timer;
-	std::weak_ptr<OverlayConnection> associated_connection;	// If not, then this peer is "lost", so we will not be able to connect it again.
-
-	void deactivate();
+	boost::asio::deadline_timer lost_timer;
+	bool active = true;	// It means "not expired". If expired, then connection associated with this peer will be wiped.
 public:
 	OverlayPeer(const TH& peer_th);
 	virtual ~OverlayPeer();
 
-	const crypto::AES& getAESKey() const;
-	void setAESKey(const crypto::AES& aesKey);
-	const crypto::ECDH& getECDHKey() const;
-	void setECDHKey(const crypto::ECDH& ecdhKey);
-	const TH& getPeerTH() const;
-	void setPeerTH(const TH& peerTh);
-	const crypto::PublicKeyDSA& getPublicKey() const;
+	const crypto::AES& getAESKey() const {return aes_key;};
+	void setAESKey(const crypto::AES& aesKey) {aes_key = aesKey;};
+	const crypto::ECDH& getECDHKey() const {return ecdh_key;};
+	void setECDHKey(const crypto::ECDH& ecdhKey) {ecdh_key = ecdhKey;};
+	const TH& getPeerTH() const {return peer_th;};
+	void setPeerTH(const TH& peerTh) {peer_th = peerTh;};
+	const crypto::PublicKeyDSA& getPublicKey() const {return public_key;};
 	void setPublicKey(const crypto::PublicKeyDSA& publicKey);
-	const boost::posix_time::ptime& getExpiryTime() const;
+
+	const boost::posix_time::ptime& getExpiryTime() const {return expires;};
 	void updateExpiryTime(boost::posix_time::ptime expiry_time);
-	const boost::posix_time::ptime& getLostTime() const;
+	const boost::posix_time::ptime& getLostTime() const {return lost;};
 	void updateLostTime(boost::posix_time::ptime lost_time);
 
-	bool isActive() const;
+	/**
+	 * This function adds a new TSE to this peer or "pops out" old TSE.
+	 * @param endpoint
+	 * @param verified
+	 */
+	void updateEndpoint(const transport::TransportSocketEndpoint& endpoint, bool verified = false);
+	const std::deque<transport::TransportSocketEndpoint>& getEndpointList() const {return m_tse;};
 
-	std::deque<transport::TransportSocketEndpoint>& getEndpointListRef(){return m_tse;}
+	bool isActive() const {return active;};
 };
 
 } /* namespace overlay */

@@ -33,7 +33,7 @@ namespace p2pnet {
 namespace overlay {
 
 class OverlayConnection : public Loggable, public std::enable_shared_from_this<OverlayConnection>, public ConfigClient, databases::PersonalKeyStorageClient {
-	std::shared_ptr<OverlayPeer> overlay_peer_ptr;
+	std::shared_ptr<OverlayPeer> peer_ptr;
 
 	virtual void keysUpdated();
 
@@ -55,7 +55,9 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 		PUBKEY_RECEIVED = 2,
 		ECDH_SENT = 3,
 		ECDH_RECEIVED = 4,
-		ESTABLISHED = 5
+		ESTABLISHED = 5,
+
+		LOST = 255
 	} state = CLOSED;
 	void setState(const States& state_to_set);
 
@@ -82,15 +84,12 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 	void processConnectionPartAES(const protocol::OverlayMessage& recv_message,
 			const protocol::OverlayMessage_Payload& decrypted_payload);
 
+	std::string encryptPayload(const protocol::OverlayMessage_Payload& payload);
 public:
 	OverlayConnection(std::shared_ptr<OverlayPeer> overlay_peer);
 	virtual ~OverlayConnection();
 
-	bool isReady() const;
-
-	void updateTSE(const transport::TransportSocketEndpoint& from, bool verified = false);
-
-	std::string encryptPayload(const protocol::OverlayMessage_Payload& payload);
+	bool connected() const;
 
 	void send(const protocol::OverlayMessage_Payload& send_payload, const protocol::OverlayMessage_Header_MessagePriority& prio);
 	void process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from);
@@ -99,7 +98,7 @@ public:
 	void connect();
 	void disconnect();
 
-	std::shared_ptr<OverlayPeer> getPeerPtr(){return overlay_peer_ptr;};
+	std::shared_ptr<OverlayPeer> getPeerPtr(){return peer_ptr;};
 	std::string getComponentName(){return "OverlayConnection";}
 };
 

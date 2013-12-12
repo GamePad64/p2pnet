@@ -76,9 +76,6 @@ private:
 	void findNode(const crypto::Hash& hash, DHTClient* client = nullptr);
 	void foundNode(const crypto::Hash& hash, std::string node_info);
 protected:
-	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) = 0;
-	void process(const crypto::Hash& from, const protocol::DHTPart& dht_part);
-
 	virtual crypto::Hash getMyHash() = 0;
 	virtual std::vector<crypto::Hash> getNNodesFromBucket(unsigned short bucket) = 0;
 	virtual boost::optional<std::string> getLocalNodeInfo(const crypto::Hash& hash) = 0;
@@ -90,6 +87,9 @@ protected:
 public:
 	DHTService();
 	virtual ~DHTService();
+
+	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) = 0;
+	void process(const crypto::Hash& from, const protocol::DHTPart& dht_part);
 };
 
 } /* namespace dht */

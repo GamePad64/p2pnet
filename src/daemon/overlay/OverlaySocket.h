@@ -32,10 +32,13 @@ class OverlaySocket : public Singleton<OverlaySocket>, Loggable {
 	friend class OverlayDHT;
 protected:
 	OverlayDHT dht_service;
-	std::map<overlay::TH, std::shared_ptr<OverlayPeer>> m_peers;
-	std::map<overlay::TH, std::shared_ptr<OverlayConnection>> m_connections;
+
+	struct overlay_peer_conn_t {
+		std::shared_ptr<OverlayPeer> peer;
+		std::shared_ptr<OverlayConnection> connection;
+	};
+	std::map<overlay::TH, overlay_peer_conn_t> m_peers_conns;
 	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// For future use.
-	std::shared_ptr<OverlayConnection> getConnection(const overlay::TH& th);
 
 public:
 	OverlaySocket();
@@ -47,6 +50,11 @@ public:
 			const protocol::OverlayMessage_Payload& message_payload,
 			protocol::OverlayMessage_Header_MessagePriority prio);
 	void process(std::string data, const transport::TransportSocketEndpoint& from);
+
+	std::shared_ptr<OverlayConnection> getConnection(const overlay::TH& th);
+	std::shared_ptr<OverlayPeer> getPeer(const overlay::TH& th);
+	void removePeer(const overlay::TH& th);
+	void movePeer(const overlay::TH& from, const overlay::TH& to);
 };
 
 } /* namespace overlay */

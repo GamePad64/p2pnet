@@ -23,27 +23,36 @@ OverlaySocket::OverlaySocket() : dht_service(this) {}
 
 OverlaySocket::~OverlaySocket() {}
 
+
+
 std::shared_ptr<OverlayConnection> OverlaySocket::getConnection(const overlay::TH& th) {
-	// TODO: Here we need to check peer.isActive() before.
-	// Maybe, we will not be able to connect as that peer is lost (and we documented this)
-	auto it_peer = m_peers.find(th);
-	std::shared_ptr<OverlayPeer> peer;
-	if(it_peer != m_peers.end()){
-		peer = (*it_peer).second;
-	}else{
-		peer = std::make_shared<OverlayPeer>(th);
-		m_peers.insert(std::make_pair(th, peer));
+	auto it_peer = m_peers_conns.find(th);
+
+	if(it_peer != m_peers_conns.end()){
+		return it_peer->second.connection;
 	}
 
-	auto it_conn = m_connections.find(th);
-	std::shared_ptr<OverlayConnection> connection;
-	if(it_conn != m_connections.end()){
-		connection = (*it_conn).second;
-	}else{
-		connection = std::make_shared<OverlayConnection>(peer);
-		m_connections.insert(std::make_pair(th, connection));
+	auto new_peer = std::make_shared<OverlayPeer>(th);
+	auto new_connection = std::make_shared<OverlayConnection>(new_peer);
+	overlay_peer_conn_t peer_conn = {new_peer, new_connection};
+
+	m_peers_conns.insert(std::make_pair(th, peer_conn));
+	return peer_conn.connection;
+}
+
+std::shared_ptr<OverlayPeer> OverlaySocket::getPeer(const overlay::TH& th) {
+	auto it_peer = m_peers_conns.find(th);
+
+	if(it_peer != m_peers_conns.end()){
+		return it_peer->second.peer;
 	}
-	return connection;
+
+	auto new_peer = std::make_shared<OverlayPeer>(th);
+	auto new_connection = std::make_shared<OverlayConnection>(new_peer);
+	overlay_peer_conn_t peer_conn = {new_peer, new_connection};
+
+	m_peers_conns.insert(std::make_pair(th, peer_conn));
+	return peer_conn.peer;
 }
 
 void OverlaySocket::send(const overlay::TH& dest,
@@ -67,7 +76,15 @@ void OverlaySocket::process(std::string data, const transport::TransportSocketEn
 		log() << "Received Connection Request from: TH:" << overlay::TH::fromBinaryString(request_message.src_th()).toBase58() << std::endl;
 
 		getConnection(packet_src_th)->process(request_message, from);
-	}
+	}	// else drop
+}
+
+void OverlaySocket::removePeer(const overlay::TH& th) {
+	m_peers_conns.erase(th);
+}
+
+void OverlaySocket::movePeer(const overlay::TH& from, const overlay::TH& to) {
+	m_peers_conns[to] = m_peers_conns[from];
 }
 
 } /* namespace overlay */

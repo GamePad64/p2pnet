@@ -44,10 +44,10 @@ std::vector<crypto::Hash> OverlayDHT::getNNodesFromBucket(unsigned short bucket)
 }
 
 boost::optional<std::string> OverlayDHT::getLocalNodeInfo(const crypto::Hash& hash){
-	auto it = parent_socket_ptr->m_connections.find(hash);
-	if(it != parent_socket_ptr->m_connections.end()){
+	auto it = parent_socket_ptr->m_peers_conns.find(hash);
+	if(it != parent_socket_ptr->m_peers_conns.end()){
 		transport::proto::TransportSocketEndpointList tse_s;
-		auto& tse_list = it->second->getPeerPtr()->getEndpointListRef();	// TODO: Send about expired.
+		auto& tse_list = it->second.peer->getEndpointList();	// TODO: Send about expired.
 		for(auto tse_it : tse_list){
 			tse_s.add_tse_s()->CopyFrom(tse_it.toProtobuf());
 		}
@@ -59,10 +59,13 @@ boost::optional<std::string> OverlayDHT::getLocalNodeInfo(const crypto::Hash& ha
 void OverlayDHT::putLocalNodeInfo(const crypto::Hash& hash, std::string node_info){
 	transport::proto::TransportSocketEndpointList tse_s;
 	tse_s.ParseFromString(node_info);
+
+	auto peer_ptr = parent_socket_ptr->getPeer(hash);
+
 	for(auto& tse : tse_s.tse_s()){
-		parent_socket_ptr->m_peers[hash]->getEndpointListRef().push_back(tse);
+		peer_ptr->updateEndpoint(tse);
 	}
-	registerInKBucket(parent_socket_ptr->m_peers[hash]);
+	registerInKBucket(peer_ptr);
 }
 
 /* K-bucket mgmt */
