@@ -119,9 +119,11 @@ bool OverlayConnection::performLocalKeyRotation(const protocol::OverlayMessage& 
 			auto twokeys = part.old_ecdsa_key()+part.new_ecdsa_key();
 
 			if(oldkey.verify(twokeys, part.old_signature()) && newkey.validate() && newkey.verify(twokeys, part.new_signature())){
-				//This message is genuine. We are changing public key. TH, connection in socket's map, position in K-buckets will be changed automatically.
+				//This message is genuine. We are changing public key, connection in socket's map, position in K-buckets.
+				OverlaySocket::getInstance()->dht_service.removeFromKBucket(peer_ptr);
 				OverlaySocket::getInstance()->movePeer(overlay::TH(oldkey), overlay::TH(newkey));
 				peer_ptr->setPublicKey(newkey);
+				OverlaySocket::getInstance()->dht_service.registerInKBucket(peer_ptr);
 				return true;
 			}
 		}

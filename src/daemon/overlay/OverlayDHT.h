@@ -43,6 +43,7 @@ public:
 	void registerInKBucket(std::shared_ptr<OverlayPeer> peer);
 	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance);
 	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash);
+	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer);
 
 	void keysUpdated(boost::posix_time::ptime expiry_time, boost::posix_time::ptime lose_time);
 };

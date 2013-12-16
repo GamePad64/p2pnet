@@ -22,7 +22,7 @@ namespace overlay {
 
 typedef crypto::Hash TH;
 
-} /* namespace peer */
+} /* namespace overlay */
 } /* namespace p2pnet */
 
 #endif /* TH_H_ */

@@ -86,6 +86,9 @@ void OverlayDHT::removeFromKBucket(std::shared_ptr<OverlayPeer> peer, const cryp
 	unsigned short distance = my_hash.computeDistance(peer->getPeerTH());
 	removeFromKBucket(peer, distance);
 }
+void OverlayDHT::removeFromKBucket(std::shared_ptr<OverlayPeer> peer) {
+	removeFromKBucket(peer, getMyHash());
+}
 
 void OverlayDHT::keysUpdated(boost::posix_time::ptime expiry_time, boost::posix_time::ptime lose_time) {
 	decltype(k_buckets) new_buckets;

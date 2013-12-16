@@ -21,6 +21,7 @@
 #include "../protobuf/DHT.pb.h"
 #include <unordered_map>
 #include <list>
+#include <set>
 #include <boost/noncopyable.hpp>
 #include <boost/date_time.hpp>
 #include <boost/optional.hpp>
