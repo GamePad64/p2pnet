@@ -33,8 +33,20 @@ Daemon::~Daemon() {
 int Daemon::run() {
 	this->initTransportSocket();
 	this->initDiscoveryServices();
+	this->initAPI();
+
 	AsioIOService::getIOService().run();
 	return 0;
+}
+
+void Daemon::initAPI() {
+	if(config_manager->getValue<bool>("api.unix.enabled")){
+		try {
+			api_unix = std::unique_ptr<api::UnixAPIServer>(new api::UnixAPIServer(AsioIOService::getIOService()));
+		} catch (boost::system::system_error& e) {
+			log() << "Unable to initialize Unix Socket API. Exception caught: " << e.what() << std::endl;
+		}
+	}
 }
 
 void Daemon::initTransportSocket() {

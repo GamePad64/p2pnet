@@ -11,19 +11,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "APIService.h"
+#include "APIServer.h"
 
 namespace p2pnet {
 namespace api {
 
-APIService::APIService() {
-	// TODO Auto-generated constructor stub
-
-}
-
-APIService::~APIService() {
-	// TODO Auto-generated destructor stub
-}
+APIServer::APIServer() {}
+APIServer::~APIServer() {}
 
 } /* namespace api */
 } /* namespace p2pnet */

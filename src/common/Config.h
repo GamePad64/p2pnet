@@ -36,7 +36,7 @@ protected:
 	virtual void configChanged(){};	// It is permitted not to handle this, but it is not good though.
 
 	template<class T>
-	T getValue(std::string path);
+	T getValue(std::string path) const;
 	template<class T>
 	void setValue(std::string path, T value);
 };
@@ -48,28 +48,51 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 
 	std::mutex config_io_mutex;
 
-	config_t getDefaults(){
+	enum permissions_t {
+		SYSTEM,
+		USER
+	};
+
+	config_t getDefaults() const {
 		config_t config;
 
 		//config.put("policies.permissions.outgoing_only", false);	// Drops ConnectionRequest and disables UDPLPD.
 
+		// API
+		// -- Unix Domain Sockets API
+		config.put("api.unix.enabled", true);
+		config.put("api.unix.force_sock_path", false);
+		config.put("api.unix.system_sock", "/var/run/p2pnet/unix_api.sock");
+
+		// Transport
+		// -- UDP
 		config.put("transport.udp.enabled", true);
 		config.put("transport.udp.local_ip", "0::0");
 		config.put("transport.udp.port", 2185);
 
+		// Overlay
 		config.put("overlay.connection.processed_queue_size", 100);
 
+		// Endpoint
+		config.put("endpoint.allow_loopback", true);
+
+		// Databases
+		// -- PersonalKeyStorage
 		config.put("databases.pks.history_size", 10);
 		config.put("databases.pks.renew_interval", 10);
 
+		// Discovery
+		// -- Bootstrap
 		config.put("discovery.bootstrap.filename", "bootstrap.txt");
 
+		// UDPv4
 		config.put("discovery.udpv4.enabled", true);
 		config.put("discovery.udpv4.timer", 10);
 		config.put("discovery.udpv4.local_ip", "0.0.0.0");
 		config.put("discovery.udpv4.multicast.ip", "239.192.152.144");
 		config.put("discovery.udpv4.multicast.port", 28915);
 
+		// UDPv6
 		config.put("discovery.udpv6.enabled", true);
 		config.put("discovery.udpv6.timer", 10);
 		config.put("discovery.udpv6.local_ip", "0::0");
@@ -101,16 +124,18 @@ public:
 	std::string getDirectory();
 	std::string getFile();
 
+	permissions_t getPermissions();
+
 	std::string getComponentName(){return "ConfigManager";}
 
 	template<class T>
-	T getValue(std::string path);
+	T getValue(std::string path) const;
 	template<class T>
 	void setValue(std::string path, T value);
 };
 
 template< class T >
-inline T ConfigClient::getValue(std::string path){
+inline T ConfigClient::getValue(std::string path) const {
 	return ConfigManager::getInstance()->getValue<T>(path);
 }
 
@@ -120,7 +145,7 @@ inline void ConfigClient::setValue(std::string path, T value){
 }
 
 template< class T >
-inline T ConfigManager::getValue(std::string path) {
+inline T ConfigManager::getValue(std::string path) const {
 	return internal_config.get(path, getDefaults().get<T>(path));
 }
 

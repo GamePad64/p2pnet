@@ -21,6 +21,8 @@
 
 #include "databases/PersonalKeyStorage.h"
 
+#include "api/UnixAPIServer.h"
+
 #include "transport/TransportSocket.h"
 #include "overlay/OverlaySocket.h"
 
@@ -31,6 +33,7 @@
 namespace p2pnet {
 
 class Daemon : public Loggable {
+	void initAPI();
 	void initTransportSocket();
 	void initDiscoveryServices();
 public:
@@ -44,6 +47,8 @@ public:
 	std::unique_ptr<discovery::BootstrapDiscovery> discovery_bootstrap;
 	std::unique_ptr<discovery::UDPLPDv4> discovery_udpv4;
 	std::unique_ptr<discovery::UDPLPDv6> discovery_udpv6;
+
+	std::unique_ptr<api::UnixAPIServer> api_unix;
 
 	Daemon();
 	virtual ~Daemon();

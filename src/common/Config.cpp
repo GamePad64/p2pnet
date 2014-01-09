@@ -68,9 +68,9 @@ std::string ConfigManager::getDefaultDirectory() {
 	ret_config_directory = getenv("APPDATA");
 	ret_config_directory += "\\P2PNet\\";
 
-	#elif defined __unix__	// Linux. Mac OS X and other Unix systems are not supported now (but they will be).
+	#elif defined __unix__	// Linux. OS X and other Unix systems may work too [not tested, I have no Mac :-(].
 
-	if(getuid() == 0){
+	if(getPermissions() == SYSTEM){
 		ret_config_directory = "/etc/p2pnet/";
 	}else{
 		char* env_home_directory = getenv("HOME");
@@ -143,6 +143,14 @@ std::string ConfigManager::getDirectory(){
 }
 std::string ConfigManager::getFile(){
 	return config_file;
+}
+
+ConfigManager::permissions_t ConfigManager::getPermissions(){
+#ifdef _WIN32	// Windows. TODO: Dunno, always USER for now.
+	return USER;
+#elif defined __unix__	// Linux, we just check for root.
+	return (getuid() == 0) ? SYSTEM : USER;
+#endif
 }
 
 void ConfigManager::configChanged() {

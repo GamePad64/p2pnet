@@ -11,19 +11,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef APISERVICE_H_
-#define APISERVICE_H_
 
-namespace p2pnet {
-namespace api {
+syntax = "proto2";
+option cc_generic_services = true;
 
-class APIService {
-public:
-	APIService();
-	virtual ~APIService();
-};
+package p2pnet.api;
 
-} /* namespace api */
-} /* namespace p2pnet */
+message APIMessage {
+	enum MessageType {
+		REGISTER_SERVICE = 0;
+		REGISTER_SERVICE_CALLBACK = 1;
 
-#endif /* APISERVICE_H_ */
+		GENERATE_PRIVATE_KEY = 2;
+		GENERATE_PRIVATE_KEY_CALLBACK = 3;
+
+		BIND_ENDPOINT = 4;
+		BIND_ENDPOINT_CALLBACK = 5;
+	}
+
+	required MessageType type = 1;
+
+	//REGISTER_SERVICE_CALLBACK
+	optional uint64 registered_id = 2;
+
+	//CREATE_PRIVATE_KEY_CALLBACK, BIND_ENDPOINT
+	optional string privkey_cert = 3;
+}
