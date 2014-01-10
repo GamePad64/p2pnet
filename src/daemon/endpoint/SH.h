@@ -11,26 +11,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "LocalService.h"
+
+#ifndef SH_H_
+#define SH_H_
+
+#include "../../common/crypto/Hash.h"
 
 namespace p2pnet {
-namespace service {
+namespace endpoint {
 
-LocalService::LocalService(service_type type) {
-	this->type = type;
-	this->api_service_ptr = nullptr;
-}
+typedef crypto::Hash SH;
 
-LocalService::LocalService(service_type type, api::APIService* api_service_ptr) {
-	this->type = type;
-	this->api_service_ptr = api_service_ptr;
-}
-
-LocalService::~LocalService() {}
-
-SH LocalService::getSH() const {
-	return SH(private_key.derivePublicKey());
-}
-
-} /* namespace service */
+} /* namespace endpoint */
 } /* namespace p2pnet */
+
+#endif /* SH_H_ */

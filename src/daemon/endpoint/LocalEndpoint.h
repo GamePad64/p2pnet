@@ -11,18 +11,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef LOCALENDPOINT_H_
+#define LOCALENDPOINT_H_
 
-#ifndef SH_H_
-#define SH_H_
-
-#include "../../common/crypto/Hash.h"
+#include "../../common/Config.h"
+#include "SH.h"
 
 namespace p2pnet {
-namespace service {
+namespace endpoint {
 
-typedef crypto::Hash SH;
+class LocalEndpoint : ConfigClient {
+	SH endpoint_sh;
+public:
+	LocalEndpoint();
+	virtual ~LocalEndpoint();
 
-} /* namespace service */
+	virtual void send(SH dest, std::string data) = 0;
+	virtual void process(SH from, std::string data) = 0;
+
+	bool trySendLoopback(SH dest, std::string data);
+
+	SH getSH(){return endpoint_sh;};
+};
+
+} /* namespace endpoint */
 } /* namespace p2pnet */
 
-#endif /* SH_H_ */
+#endif /* LOCALENDPOINT_H_ */

@@ -11,22 +11,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef STANDARDSERVICE_H_
-#define STANDARDSERVICE_H_
-
-#include "LocalService.h"
+#include "EndpointManager.h"
 
 namespace p2pnet {
-namespace service {
+namespace endpoint {
 
-class StandardService : public p2pnet::service::LocalService {
-public:
-	StandardService();
-	StandardService(api::APIService* api_service_ptr);
-	virtual ~StandardService();
-};
+EndpointManager::EndpointManager() {
+	// TODO Auto-generated constructor stub
 
-} /* namespace service */
+}
+
+EndpointManager::~EndpointManager() {
+	// TODO Auto-generated destructor stub
+}
+
+std::shared_ptr< LocalEndpoint > EndpointManager::getEndpointPtrBySH(SH sh) {
+	auto endp_it = sh_all_endpoints.find(sh);
+	return (endp_it == sh_all_endpoints.end()) ? nullptr : endp_it->second;
+}
+
+} /* namespace endpoint */
 } /* namespace p2pnet */
-
-#endif /* STANDARDSERVICE_H_ */

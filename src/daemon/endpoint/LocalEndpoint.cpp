@@ -11,37 +11,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef SERVICEMANAGER_H_
-#define SERVICEMANAGER_H_
-
-#include <map>
-#include <list>
-#include <memory>
+#include "LocalEndpoint.h"
+#include "EndpointManager.h"
 
 namespace p2pnet {
+namespace endpoint {
 
-namespace api {
-class APIService;
+LocalEndpoint::LocalEndpoint() {
+	// TODO Auto-generated constructor stub
+
 }
 
-namespace service {
+LocalEndpoint::~LocalEndpoint() {
+	// TODO Auto-generated destructor stub
+}
 
-class LocalService;
+bool LocalEndpoint::trySendLoopback(SH dest, std::string data) {
+	auto endpoint_ptr = EndpointManager::getInstance()->getEndpointPtrBySH(dest);
+	if(getValue<bool>("endpoint.allow_loopback") && endpoint_ptr){
+		endpoint_ptr->process(endpoint_sh, data);
+		return true;
+	}
+	return false;
+}
 
-class ServiceManager {
-	std::map<api::APIService*, std::shared_ptr<LocalService>> api_services;
-	std::list<std::shared_ptr<LocalService>> system_services;
-
-	std::map<SH, std::shared_ptr<LocalService>> services_sh;
-public:
-	ServiceManager();
-	virtual ~ServiceManager();
-
-	void registerAPIService(api::APIService* api_service);
-	void removeAPIService(api::APIService* api_service);
-};
-
-} /* namespace service */
+} /* namespace endpoint */
 } /* namespace p2pnet */
-
-#endif /* SERVICEMANAGER_H_ */

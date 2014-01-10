@@ -11,19 +11,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "ServiceManager.h"
+#ifndef ENDPOINTMANAGER_H_
+#define ENDPOINTMANAGER_H_
+
+#include "../../common/Singleton.h"
+#include "../../common/Loggable.h"
+#include "SH.h"
+
+#include <memory>
+#include <map>
 
 namespace p2pnet {
-namespace service {
+namespace endpoint {
 
-ServiceManager::ServiceManager() {
-	// TODO Auto-generated constructor stub
+class LocalEndpoint;
 
-}
+class EndpointManager : public Singleton<EndpointManager>, Loggable {
+	std::map<SH, std::shared_ptr<LocalEndpoint>> sh_all_endpoints;
+public:
+	EndpointManager();
+	virtual ~EndpointManager();
 
-ServiceManager::~ServiceManager() {
-	// TODO Auto-generated destructor stub
-}
+	std::shared_ptr<LocalEndpoint> getEndpointPtrBySH(SH sh);
+};
 
-} /* namespace service */
+} /* namespace endpoint */
 } /* namespace p2pnet */
+
+#endif /* ENDPOINTMANAGER_H_ */
