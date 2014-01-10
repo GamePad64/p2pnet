@@ -48,7 +48,7 @@ public:
 	std::unique_ptr<discovery::UDPLPDv4> discovery_udpv4;
 	std::unique_ptr<discovery::UDPLPDv6> discovery_udpv6;
 
-	std::unique_ptr<api::UnixAPIServer> api_unix;
+	std::shared_ptr<api::unix::UnixAPIServer> api_unix;
 
 	Daemon();
 	virtual ~Daemon();

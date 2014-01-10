@@ -18,6 +18,10 @@
 #include "APIServer.h"
 #include "../../common/Config.h"
 
+#include "../../common/api/UnixAPISocket.h"
+
+#include "../../library/export.h"
+
 #include <boost/asio.hpp>
 #include <set>
 
@@ -28,25 +32,31 @@ using boost::asio::local::stream_protocol;
 
 namespace p2pnet {
 namespace api {
+namespace unix {
 
-class UnixAPISession : public APISession {
-	stream_protocol::socket session_socket;
+class UnixAPIServer;
 
+class UnixAPISession : public APISession, public std::enable_shared_from_this<UnixAPISession> {
+	UnixAPISocket socket;
+	UnixAPIServer* parent_apiserver;
 public:
-	UnixAPISession(boost::asio::io_service& io_service);
+	UnixAPISession(boost::asio::io_service& io_service, UnixAPIServer* parent);
 	virtual ~UnixAPISession();
 
-	stream_protocol::socket& getSocket();
+	void send(APIMessage message);
+	//void process(APIMessage message); <--- Inherited from APISession.
 
-	void startReceive();
-	void handleReceiveSize(char* char_message_size);
-	void handleReceive(char* message, uint32_t size);
+	void shutdown();	// Careful! Acts like `delete this;`
 
-	void send(std::string message);
-	void handleSend();
+	UnixAPISocket& getUnixSocket(){return socket;}
+
+	std::string getComponentName() const {
+		return "UnixAPISession";
+	}
 };
 
 class UnixAPIServer : public APIServer, ConfigClient, Loggable {
+	friend class UnixAPISession;
 	std::set<std::shared_ptr<UnixAPISession>> unix_sessions;
 
 	std::unique_ptr<stream_protocol::acceptor> acceptor_ptr;
@@ -66,10 +76,12 @@ public:
 	void accept();
 	void handleAccept(std::shared_ptr<UnixAPISession> new_session);
 
-	std::string getSocketPath() const;
-	std::string getFallbackSocketPath() const;
+	std::string getComponentName() {
+		return "UnixAPIServer";
+	}
 };
 
+} /* namespace unix */
 } /* namespace api */
 } /* namespace p2pnet */
 

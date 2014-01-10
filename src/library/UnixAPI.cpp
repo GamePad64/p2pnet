@@ -11,31 +11,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "APISession.h"
-#include "../../common/crypto/PrivateKeyDSA.h"
-#include "../../common/api/APIMessage.pb.h"
+#include "UnixAPI.h"
+#include "../common/api/APIMessage.pb.h"
+#include "export.h"
 
 namespace p2pnet {
 namespace api {
 
-APISession::APISession() {
-	log() << "New API session started" << std::endl;
-}
-APISession::~APISession() {
-	log() << "API session shut down" << std::endl;
+UnixAPI::UnixAPI(boost::asio::io_service& io_service) : UnixAPISocket(io_service, this) {}
+
+UnixAPI::~UnixAPI() {}
+
+void UnixAPI::process(APIMessage message) {}
+
+void UnixAPI::connect() {
+	try {
+		socket_path = unix::getSocketPath();
+		getSocket().connect(stream_protocol::endpoint(socket_path));
+	} catch (boost::system::system_error& e) {
+		socket_path = unix::getFallbackSocketPath();
+		getSocket().connect(stream_protocol::endpoint(socket_path));
+	}	// TODO: Yep, uncatched for now.
+	log() << "Connected to daemon on: " << socket_path << std::endl;
 }
 
-void APISession::process(APIMessage message) {
-	switch(message.type()){
-	case APIMessage::GENERATE_PRIVATE_KEY:
-		auto privkey = crypto::PrivateKeyDSA::generateNewKey();
-
-		APIMessage message_reply;
-		message_reply.set_type(APIMessage::GENERATE_PRIVATE_KEY_CALLBACK);
-		message_reply.set_privkey_cert(privkey.toPEM());
-		send(message_reply);
-	}
-}
+void UnixAPI::shutdown(){
+	getSocket().shutdown(getSocket().shutdown_both);
+};
 
 } /* namespace api */
 } /* namespace p2pnet */

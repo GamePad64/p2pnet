@@ -11,31 +11,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "APISession.h"
-#include "../../common/crypto/PrivateKeyDSA.h"
-#include "../../common/api/APIMessage.pb.h"
+#ifndef UNIXAPI_H_
+#define UNIXAPI_H_
+
+#include "../common/Loggable.h"
+#include "../common/api/UnixAPISocket.h"
+#include "../common/api/LowLevelAPISession.h"
 
 namespace p2pnet {
 namespace api {
 
-APISession::APISession() {
-	log() << "New API session started" << std::endl;
-}
-APISession::~APISession() {
-	log() << "API session shut down" << std::endl;
-}
+class UnixAPI : public unix::UnixAPISocket, public LowLevelAPISession, Loggable {
+	std::string socket_path;
+public:
+	UnixAPI(boost::asio::io_service& io_service);
+	virtual ~UnixAPI();
 
-void APISession::process(APIMessage message) {
-	switch(message.type()){
-	case APIMessage::GENERATE_PRIVATE_KEY:
-		auto privkey = crypto::PrivateKeyDSA::generateNewKey();
+	void process(APIMessage message);
 
-		APIMessage message_reply;
-		message_reply.set_type(APIMessage::GENERATE_PRIVATE_KEY_CALLBACK);
-		message_reply.set_privkey_cert(privkey.toPEM());
-		send(message_reply);
-	}
-}
+	void shutdown();
+
+	void connect();
+};
 
 } /* namespace api */
 } /* namespace p2pnet */
+
+#endif /* UNIXAPI_H_ */

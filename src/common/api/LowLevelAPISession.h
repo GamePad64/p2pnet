@@ -11,31 +11,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "APISession.h"
-#include "../../common/crypto/PrivateKeyDSA.h"
-#include "../../common/api/APIMessage.pb.h"
+#ifndef APIPROCESSOR_H_
+#define APIPROCESSOR_H_
+
+#include "APIMessage.pb.h"
 
 namespace p2pnet {
 namespace api {
 
-APISession::APISession() {
-	log() << "New API session started" << std::endl;
-}
-APISession::~APISession() {
-	log() << "API session shut down" << std::endl;
-}
+/**
+ * APIProcessor is an interface that is used to have just `process(APIMessage message)` fuinction.
+ * Its meaning is 'something that could process API requests'.
+ */
+class LowLevelAPISession {
+public:
+	virtual ~LowLevelAPISession(){};
 
-void APISession::process(APIMessage message) {
-	switch(message.type()){
-	case APIMessage::GENERATE_PRIVATE_KEY:
-		auto privkey = crypto::PrivateKeyDSA::generateNewKey();
-
-		APIMessage message_reply;
-		message_reply.set_type(APIMessage::GENERATE_PRIVATE_KEY_CALLBACK);
-		message_reply.set_privkey_cert(privkey.toPEM());
-		send(message_reply);
-	}
-}
+	virtual void process(APIMessage message) = 0;
+	virtual void shutdown() = 0;	// This signal is generated if remote endpoint is disconnected.
+};
 
 } /* namespace api */
 } /* namespace p2pnet */
+
+#endif /* APIPROCESSOR_H_ */
