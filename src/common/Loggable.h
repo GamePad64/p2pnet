@@ -17,6 +17,8 @@
 #include <iostream>
 #include <chrono>
 
+std::string demangle(const char* name);
+
 namespace p2pnet {
 
 class Loggable {

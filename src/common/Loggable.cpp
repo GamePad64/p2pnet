@@ -47,7 +47,7 @@ std::string Loggable::log_tag(log_class c) {
 }
 
 std::string Loggable::getComponentName() {
-	return typeid(*this).name();
+	return demangle(typeid(*this).name());
 }
 
 std::ostream& Loggable::log(std::string component) {
