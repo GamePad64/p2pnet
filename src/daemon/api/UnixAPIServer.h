@@ -34,30 +34,21 @@ namespace p2pnet {
 namespace api {
 namespace unix {
 
-class UnixAPIServer;
+class APIManager;
 
-class UnixAPISession : public APISession, public std::enable_shared_from_this<UnixAPISession> {
-	UnixAPISocket socket;
-	UnixAPIServer* parent_apiserver;
+class UnixAPISession : public APISession, public boost::noncopyable {
+	UnixAPISocket* m_unix_socket;
 public:
-	UnixAPISession(boost::asio::io_service& io_service, UnixAPIServer* parent);
+	UnixAPISession(UnixAPISocket* preallocated_unix_socket);
 	virtual ~UnixAPISession();
 
 	void send(APIMessage message);
-	//void process(APIMessage message); <--- Inherited from APISession.
 
-	void shutdown();	// Careful! Acts like `delete this;`
-
-	UnixAPISocket& getUnixSocket(){return socket;}
-
-	std::string getComponentName() const {
-		return "UnixAPISession";
-	}
+	UnixAPISocket& getUnixSocket(){return *m_unix_socket;};
 };
 
 class UnixAPIServer : public APIServer, ConfigClient, Loggable {
-	friend class UnixAPISession;
-	std::set<std::shared_ptr<UnixAPISession>> unix_sessions;
+	std::set<std::shared_ptr<UnixAPISession>> m_unix_sessions;
 
 	std::unique_ptr<stream_protocol::acceptor> acceptor_ptr;
 
@@ -74,11 +65,12 @@ public:
 	virtual ~UnixAPIServer();
 
 	void accept();
-	void handleAccept(std::shared_ptr<UnixAPISession> new_session);
+	void handleAccept(UnixAPISocket* new_socket);
 
 	std::string getComponentName() {
 		return "UnixAPIServer";
 	}
+	void shutdown(std::shared_ptr<UnixAPISession> session_ptr);
 };
 
 } /* namespace unix */

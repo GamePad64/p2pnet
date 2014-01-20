@@ -48,11 +48,6 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 
 	std::mutex config_io_mutex;
 
-	enum permissions_t {
-		SYSTEM,
-		USER
-	};
-
 	config_t getDefaults() const {
 		config_t config;
 
@@ -61,8 +56,9 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 		// API
 		// -- Unix Domain Sockets API
 		config.put("api.unix.enabled", true);
-		config.put("api.unix.force_sock_path", false);
-		config.put("api.unix.system_sock", "/var/run/p2pnet/unix_api.sock");
+		config.put("api.unix.user_sock_name", "unix_api.sock");
+		config.put("api.unix.disable_user_sock", false);	// Sort of security measure, doesn't allow to deduce ~/.p2pnet/
+		config.put("api.unix.system_sock_path", "/var/run/p2pnet/unix_api.sock");
 
 		// Transport
 		// -- UDP
@@ -124,6 +120,10 @@ public:
 	std::string getDirectory();
 	std::string getFile();
 
+	enum permissions_t {
+		SYSTEM,
+		USER
+	};
 	permissions_t getPermissions();
 
 	std::string getComponentName(){return "ConfigManager";}

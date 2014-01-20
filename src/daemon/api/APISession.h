@@ -15,12 +15,12 @@
 #define APISESSION_H_
 
 #include "../endpoint/LocalEndpoint.h"
-#include "../../common/api/LowLevelAPISession.h"
+#include "../../common/api/APIMessage.pb.h"
 
 namespace p2pnet {
 namespace api {
 
-class APISession : Loggable, public LowLevelAPISession {
+class APISession : public Loggable {
 	std::map<uint32_t, std::shared_ptr<endpoint::LocalEndpoint>> endpoints;
 public:
 	APISession();

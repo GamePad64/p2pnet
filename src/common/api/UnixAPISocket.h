@@ -14,8 +14,10 @@
 #ifndef UNIXAPISOCKET_H_
 #define UNIXAPISOCKET_H_
 
+#include "APIMessage.pb.h"
+#include "../Loggable.h"
 #include <boost/asio.hpp>
-#include "LowLevelAPISession.h"
+#include <list>
 
 #define MESSAGE_SIZE_TYPE uint32_t
 #define MESSAGE_SIZE_LENGTH sizeof(MESSAGE_SIZE_TYPE)
@@ -26,26 +28,32 @@ namespace p2pnet {
 namespace api {
 namespace unix {
 
-std::string getSocketPath();
-std::string getFallbackSocketPath();
+std::list<std::string> getSocketPathList();
 
-class UnixAPISocket {
+class UnixAPISocket : protected Loggable {
 	stream_protocol::socket session_socket;
-	LowLevelAPISession* session_ptr;
+	std::function<void()> m_shutdown_func;
+	std::function<void(APIMessage)> m_process_func;
+
+	bool shut;
 
 public:
-	UnixAPISocket(boost::asio::io_service& io_service, LowLevelAPISession* session);
+	UnixAPISocket(boost::asio::io_service& io_service);
 	virtual ~UnixAPISocket();
 
 	stream_protocol::socket& getSocket();
+
+	void assignShutdownHandler(std::function<void()> shutdown_handler);
+	void assignReceiveHandler(std::function<void(APIMessage)> receive_handler);
 
 	void startReceive();
 	void handleReceiveSize(const boost::system::error_code& error, char* char_message_size);
 	void handleReceive(const boost::system::error_code& error, char* message, uint32_t size);
 
+	void send(APIMessage message);
 	void handleSend(const boost::system::error_code& error);
 
-	void send(APIMessage message);
+	void cleanup();
 };
 
 } /* namespace unix */

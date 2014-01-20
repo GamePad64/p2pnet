@@ -14,26 +14,30 @@
 #ifndef UNIXAPI_H_
 #define UNIXAPI_H_
 
-#include "../common/Loggable.h"
 #include "../common/api/UnixAPISocket.h"
-#include "../common/api/LowLevelAPISession.h"
+#include "../common/Loggable.h"
 
 namespace p2pnet {
 namespace api {
+namespace unix {
 
-class UnixAPI : public unix::UnixAPISocket, public LowLevelAPISession, Loggable {
+class UnixAPI : Loggable {
 	std::string socket_path;
+
+	UnixAPISocket socket;
 public:
 	UnixAPI(boost::asio::io_service& io_service);
 	virtual ~UnixAPI();
 
 	void process(APIMessage message);
+	void send(APIMessage message);
 
 	void shutdown();
 
 	void connect();
 };
 
+} /* namespace unix */
 } /* namespace api */
 } /* namespace p2pnet */
 

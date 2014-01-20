@@ -32,7 +32,7 @@ void APISession::process(APIMessage message) {
 
 		APIMessage message_reply;
 		message_reply.set_type(APIMessage::GENERATE_PRIVATE_KEY_CALLBACK);
-		message_reply.set_privkey_cert(privkey.toPEM());
+		message_reply.set_privkey_cert(privkey.toHex());
 		send(message_reply);
 	}
 }

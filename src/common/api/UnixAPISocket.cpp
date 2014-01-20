@@ -18,22 +18,36 @@ namespace p2pnet {
 namespace api {
 namespace unix {
 
-std::string getSocketPath() {
-	return ConfigManager::getInstance()->getValue<std::string>("api.unix.system_sock");
-}
+std::list<std::string> getSocketPathList() {
+	std::list<std::string> path_list;
 
-std::string getFallbackSocketPath() {
-	return ConfigManager::getInstance()->getDirectory()+"unix_api.sock";
+	auto config_instance = ConfigManager::getInstance();
+
+	if( config_instance->getPermissions() != ConfigManager::SYSTEM && !(config_instance->getValue<bool>("api.unix.disable_user_sock")) ){
+		path_list.push_back( (config_instance->getDirectory()) + (config_instance->getValue<std::string>("api.unix.user_sock_name")) );
+	}
+	path_list.push_back(config_instance->getValue<std::string>("api.unix.system_sock_path"));
+
+	return path_list;
 }
 
 /* UnixSocket */
-UnixAPISocket::UnixAPISocket(boost::asio::io_service& io_service, LowLevelAPISession* session) : session_socket(io_service) {
-	session_ptr = session;
+UnixAPISocket::UnixAPISocket(boost::asio::io_service& io_service) : session_socket(io_service), shut(false) {}
+UnixAPISocket::~UnixAPISocket() {
+	if(!shut)
+		session_socket.shutdown(session_socket.shutdown_both);
 }
-UnixAPISocket::~UnixAPISocket() {}
 
 stream_protocol::socket& UnixAPISocket::getSocket() {
 	return session_socket;
+}
+
+void UnixAPISocket::assignShutdownHandler(std::function< void() > shutdown_handler) {
+	m_shutdown_func = shutdown_handler;
+}
+
+void UnixAPISocket::assignReceiveHandler(std::function< void(APIMessage) > receive_handler) {
+	m_process_func = receive_handler;
 }
 
 void UnixAPISocket::startReceive() {
@@ -44,7 +58,7 @@ void UnixAPISocket::startReceive() {
 
 void UnixAPISocket::handleReceiveSize(const boost::system::error_code& error, char* char_message_size) {
 	if(error){
-		session_ptr->shutdown();
+		cleanup();
 		return;
 	}
 	MESSAGE_SIZE_TYPE size = ntohl(*reinterpret_cast<MESSAGE_SIZE_TYPE*>(char_message_size));
@@ -57,13 +71,14 @@ void UnixAPISocket::handleReceiveSize(const boost::system::error_code& error, ch
 
 void UnixAPISocket::handleReceive(const boost::system::error_code& error, char* message, uint32_t size) {
 	if(error){
-		session_ptr->shutdown();
+		cleanup();
 		return;
 	}
 	APIMessage message_proto;
 	message_proto.ParseFromArray(message, size);
 	delete[] message;
-	session_ptr->process(message_proto);
+
+	session_socket.get_io_service().post(std::bind(m_process_func, message_proto));
 	startReceive();
 }
 
@@ -71,16 +86,25 @@ void UnixAPISocket::send(APIMessage message) {
 	auto native_size = message.ByteSize();
 	MESSAGE_SIZE_TYPE size_netlong = htonl(native_size);
 
-	std::cout << size_netlong;
+	auto charlen_s = std::string((char*)(&size_netlong), MESSAGE_SIZE_LENGTH);
 
-	auto charlen_s = std::string(reinterpret_cast<char*>(&size_netlong), MESSAGE_SIZE_LENGTH);
 	boost::asio::async_write(session_socket, boost::asio::buffer(charlen_s+message.SerializeAsString()),
 				std::bind(&UnixAPISocket::handleSend, this, std::placeholders::_1));
 }
 
 void UnixAPISocket::handleSend(const boost::system::error_code& error) {
 	if(error){
-		session_ptr->shutdown();
+		cleanup();
+	}
+}
+
+void UnixAPISocket::cleanup(){
+	if(m_shutdown_func){
+		m_shutdown_func();
+		session_socket.shutdown(session_socket.shutdown_both);
+		m_process_func = std::function<void(APIMessage)>();
+		shut = true;
+		m_shutdown_func = std::function<void()>();
 	}
 }
 

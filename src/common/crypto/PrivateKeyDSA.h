@@ -48,6 +48,9 @@ public:
 	virtual void fromPEM(std::string pem);
 	virtual std::string toPEM();
 
+	virtual void fromBER(binary_vector_t ber_encoded);
+	virtual binary_vector_t toBER();
+
 	void setAsBinaryVector(binary_vector_t serialized_vector);
 	virtual binary_vector_t toBinaryVector() const;
 

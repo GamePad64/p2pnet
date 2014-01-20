@@ -14,30 +14,49 @@
 #include "UnixAPI.h"
 #include "../common/api/APIMessage.pb.h"
 #include "export.h"
+#include <list>
 
 namespace p2pnet {
 namespace api {
+namespace unix {
 
-UnixAPI::UnixAPI(boost::asio::io_service& io_service) : UnixAPISocket(io_service, this) {}
+UnixAPI::UnixAPI(boost::asio::io_service& io_service) : socket(io_service) {
+	socket.assignReceiveHandler(std::bind(&UnixAPI::process, this, std::placeholders::_1));
+	socket.assignShutdownHandler([](){});
+
+	connect();
+
+	socket.startReceive();
+}
 
 UnixAPI::~UnixAPI() {}
 
-void UnixAPI::process(APIMessage message) {}
+void UnixAPI::process(APIMessage message) {
+	log() << message.DebugString();
+}
+void UnixAPI::send(APIMessage message) {socket.send(message);}
 
 void UnixAPI::connect() {
-	try {
-		socket_path = unix::getSocketPath();
-		getSocket().connect(stream_protocol::endpoint(socket_path));
-	} catch (boost::system::system_error& e) {
-		socket_path = unix::getFallbackSocketPath();
-		getSocket().connect(stream_protocol::endpoint(socket_path));
-	}	// TODO: Yep, uncatched for now.
+	bool connected = false;
+
+	auto path_list = unix::getSocketPathList();
+	auto it = path_list.begin();
+	while((!connected) && it != path_list.end()){
+		try {
+			socket_path = *it;
+			socket.getSocket().connect(stream_protocol::endpoint(socket_path));
+			connected = true;
+		} catch (boost::system::system_error& e) {
+			if(++it == path_list.end())	// sic! increment is here.
+				throw;	// We can do nothing. No socket paths are available. Maybe, p2pnetd is down?
+		}	// TODO: Yep, may throw.
+	}
 	log() << "Connected to daemon on: " << socket_path << std::endl;
 }
 
 void UnixAPI::shutdown(){
-	getSocket().shutdown(getSocket().shutdown_both);
 };
 
+}
 } /* namespace api */
 } /* namespace p2pnet */

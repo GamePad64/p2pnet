@@ -20,34 +20,36 @@ namespace api {
 namespace unix {
 
 /* UnixAPISession */
-
-UnixAPISession::UnixAPISession(boost::asio::io_service& io_service, UnixAPIServer* parent) : socket(io_service, this) {
-	parent_apiserver = parent;
+UnixAPISession::UnixAPISession(UnixAPISocket* preallocated_unix_socket) {
+	m_unix_socket = preallocated_unix_socket;
 }
 
 UnixAPISession::~UnixAPISession() {
+	delete m_unix_socket;
+	log() << "hell";
 }
 
 void UnixAPISession::send(APIMessage message) {
-	socket.send(message);
-}
-
-void UnixAPISession::shutdown(){
-	parent_apiserver->unix_sessions.erase(shared_from_this());
+	m_unix_socket->send(message);
 }
 
 /* UnixAPIServer */
-
 UnixAPIServer::UnixAPIServer(boost::asio::io_service& io_service) :
 		asio_io_service(io_service) {
-	try {
-		socket_path = getSocketPath();	// Try default path (i.e. that, from config: api.unix.system_sock)
-		std::remove(socket_path.c_str());
-		acceptor_ptr = std::unique_ptr<stream_protocol::acceptor>(new stream_protocol::acceptor(asio_io_service, stream_protocol::endpoint(socket_path)));
-	} catch(boost::system::system_error& e){
-		socket_path = getFallbackSocketPath();
-		std::remove(socket_path.c_str());
-		acceptor_ptr = std::unique_ptr<stream_protocol::acceptor>(new stream_protocol::acceptor(asio_io_service, stream_protocol::endpoint(socket_path)));
+	bool accepting = false;
+
+	auto path_list = unix::getSocketPathList();
+	auto it = path_list.begin();
+	while((!accepting) && it != path_list.end()){
+		try {
+			socket_path = *it;
+			std::remove(socket_path.c_str());
+			acceptor_ptr = std::unique_ptr<stream_protocol::acceptor>(new stream_protocol::acceptor(asio_io_service, stream_protocol::endpoint(socket_path)));
+			accepting = true;
+		} catch (boost::system::system_error& e) {
+			if(++it == path_list.end())	// sic! increment is here.
+				throw;	// We can do nothing. No socket paths are available. Something is definitely wrong.
+		}
 	}
 	log() << "Unix API initialized at: " << socket_path << std::endl;
 	accept();
@@ -56,14 +58,24 @@ UnixAPIServer::UnixAPIServer(boost::asio::io_service& io_service) :
 UnixAPIServer::~UnixAPIServer() {}
 
 void UnixAPIServer::accept() {
-	auto new_session = std::make_shared<UnixAPISession>(asio_io_service, this);
-	unix_sessions.insert(new_session);
-	acceptor_ptr->async_accept(new_session->getUnixSocket().getSocket(), std::bind(&UnixAPIServer::handleAccept, this, new_session));
+	auto new_socket = new UnixAPISocket(asio_io_service);
+	acceptor_ptr->async_accept(new_socket->getSocket(), std::bind(&UnixAPIServer::handleAccept, this, new_socket));
 }
 
-void UnixAPIServer::handleAccept(std::shared_ptr<UnixAPISession> new_session) {
-	new_session->getUnixSocket().startReceive();
+void UnixAPIServer::handleAccept(UnixAPISocket* new_socket) {
+	auto new_session = std::make_shared<UnixAPISession>(new_socket);
+
+	m_unix_sessions.insert(new_session);
+	new_socket->assignShutdownHandler(std::bind(&UnixAPIServer::shutdown, this, new_session));
+	new_socket->assignReceiveHandler(std::bind(&APISession::process, new_session, std::placeholders::_1));
+
+	new_socket->startReceive();
 	accept();
+}
+
+void UnixAPIServer::shutdown(std::shared_ptr<UnixAPISession> session_ptr) {
+	m_unix_sessions.erase(session_ptr);
+	log() << session_ptr.use_count();
 }
 
 } /* namespace unix */
