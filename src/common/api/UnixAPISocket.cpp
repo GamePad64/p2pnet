@@ -32,10 +32,10 @@ std::list<std::string> getSocketPathList() {
 }
 
 /* UnixSocket */
-UnixAPISocket::UnixAPISocket(boost::asio::io_service& io_service) : session_socket(io_service), shut(false) {}
+UnixAPISocket::UnixAPISocket(boost::asio::io_service& io_service) : session_socket(io_service), cleaning(false) {}
 UnixAPISocket::~UnixAPISocket() {
-	if(!shut)
-		session_socket.shutdown(session_socket.shutdown_both);
+	session_socket.shutdown(session_socket.shutdown_both);
+	session_socket.close();
 }
 
 stream_protocol::socket& UnixAPISocket::getSocket() {
@@ -78,7 +78,7 @@ void UnixAPISocket::handleReceive(const boost::system::error_code& error, char* 
 	message_proto.ParseFromArray(message, size);
 	delete[] message;
 
-	session_socket.get_io_service().post(std::bind(m_process_func, message_proto));
+	m_process_func(message_proto);
 	startReceive();
 }
 
@@ -99,12 +99,9 @@ void UnixAPISocket::handleSend(const boost::system::error_code& error) {
 }
 
 void UnixAPISocket::cleanup(){
-	if(m_shutdown_func){
+	if(m_shutdown_func && !cleaning){
+		cleaning = true;
 		m_shutdown_func();
-		session_socket.shutdown(session_socket.shutdown_both);
-		m_process_func = std::function<void(APIMessage)>();
-		shut = true;
-		m_shutdown_func = std::function<void()>();
 	}
 }
 

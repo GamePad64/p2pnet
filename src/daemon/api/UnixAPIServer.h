@@ -70,7 +70,7 @@ public:
 	std::string getComponentName() {
 		return "UnixAPIServer";
 	}
-	void shutdown(std::shared_ptr<UnixAPISession> session_ptr);
+	void shutdown(std::weak_ptr<UnixAPISession> session_ptr);
 };
 
 } /* namespace unix */

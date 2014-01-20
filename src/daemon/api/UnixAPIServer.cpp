@@ -26,7 +26,6 @@ UnixAPISession::UnixAPISession(UnixAPISocket* preallocated_unix_socket) {
 
 UnixAPISession::~UnixAPISession() {
 	delete m_unix_socket;
-	log() << "hell";
 }
 
 void UnixAPISession::send(APIMessage message) {
@@ -66,16 +65,15 @@ void UnixAPIServer::handleAccept(UnixAPISocket* new_socket) {
 	auto new_session = std::make_shared<UnixAPISession>(new_socket);
 
 	m_unix_sessions.insert(new_session);
-	new_socket->assignShutdownHandler(std::bind(&UnixAPIServer::shutdown, this, new_session));
-	new_socket->assignReceiveHandler(std::bind(&APISession::process, new_session, std::placeholders::_1));
+	new_socket->assignShutdownHandler(std::bind(&UnixAPIServer::shutdown, this, std::weak_ptr<UnixAPISession>(new_session)));
+	new_socket->assignReceiveHandler(std::bind(&APISession::process, new_session.get(), std::placeholders::_1));
 
 	new_socket->startReceive();
 	accept();
 }
 
-void UnixAPIServer::shutdown(std::shared_ptr<UnixAPISession> session_ptr) {
-	m_unix_sessions.erase(session_ptr);
-	log() << session_ptr.use_count();
+void UnixAPIServer::shutdown(std::weak_ptr<UnixAPISession> session_ptr) {
+	m_unix_sessions.erase(session_ptr.lock());
 }
 
 } /* namespace unix */

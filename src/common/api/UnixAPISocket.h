@@ -35,7 +35,7 @@ class UnixAPISocket : protected Loggable {
 	std::function<void()> m_shutdown_func;
 	std::function<void(APIMessage)> m_process_func;
 
-	bool shut;
+	bool cleaning;
 
 public:
 	UnixAPISocket(boost::asio::io_service& io_service);
