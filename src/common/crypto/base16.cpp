@@ -12,58 +12,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string>
-#include <sstream>
-#include <iomanip>
-#include <iostream>
+#include <botan/botan.h>
 
 namespace p2pnet {
 namespace crypto {
 
-/**
- * C++98 guarantees that '0', '1', ... '9' are consecutive.
- * It only guarantees that 'a' ... 'f' and 'A' ... 'F' are
- * in increasing order, but the only two alternative encodings
- * of the basic source character set that are still used by
- * anyone today (ASCII and EBCDIC) make them consecutive.
- */
-unsigned char hexval(char c){
-	if ('0' <= c && c <= '9')
-		return c - '0';
-	else if ('A' <= c && c <= 'F')
-		return c - 'A' + 10;
-	else /*if ('a' <= c && c <= 'f')*/
-		return c - 'a' + 10;
-	//else
-		//EXCEPTION: This string is NOT HEX.
+std::string encodeToHex(std::string data) {
+	Botan::Pipe pipe(new Botan::Hex_Encoder);
+	pipe.process_msg(data);
+	return pipe.read_all_as_string(0);
 }
 
-std::string encodeToHex(std::string data){
-	std::ostringstream hash_ss;
-
-	hash_ss << std::hex << std::uppercase << std::setfill('0');
-	for( int twobytes : data ) {
-		hash_ss << std::setw(2) << twobytes;
-	}
-
-	return hash_ss.str();
-}
-
-std::string decodeFromHex(std::string hex_string){
-	std::string data;
-	data.reserve(hex_string.length() / 2);
-
-	for (auto p = hex_string.begin(); p != hex_string.end(); p++){
-		unsigned char c = hexval(*p);
-		p++;
-		if (p == hex_string.end()){
-			break; //EXCEPTION: Incomplete last digit, hex string is corrupted.
-		}
-		c = (c << 4) + hexval(*p);
-		data.push_back(c);
-	}
-
-	return data;
+std::string decodeFromHex(std::string hex_string) {
+	Botan::Pipe pipe(new Botan::Hex_Decoder);
+	pipe.process_msg(hex_string);
+	return pipe.read_all_as_string(0);
 }
 
 }
