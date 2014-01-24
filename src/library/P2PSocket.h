@@ -11,28 +11,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef APICLIENT_H_
-#define APICLIENT_H_
-
-#include "../common/Loggable.h"
+#ifndef P2PSOCKET_H_
+#define P2PSOCKET_H_
 
 namespace p2pnet {
-namespace api {
 
-class APIClient : protected Loggable {
+class SocketManager;
+
+class P2PSocket {
+	SocketManager* m_parent_manager;
 public:
-	APIClient();
-	virtual ~APIClient();
-
-	void process(APIMessage message);
-	void send(APIMessage message) = 0;
-
-	void shutdown() = 0;
-
-	void connect() = 0;
+	P2PSocket();
+	P2PSocket(SocketManager& parent_manager);
+	virtual ~P2PSocket();
 };
 
-} /* namespace api */
 } /* namespace p2pnet */
 
-#endif /* APICLIENT_H_ */
+#endif /* P2PSOCKET_H_ */

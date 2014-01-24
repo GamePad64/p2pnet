@@ -12,8 +12,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "UnixAPIClient.h"
-#include "../common/api/APIMessage.pb.h"
-#include "export.h"
 #include <list>
 
 namespace p2pnet {

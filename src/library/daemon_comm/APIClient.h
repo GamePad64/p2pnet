@@ -11,32 +11,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef UNIXAPI_H_
-#define UNIXAPICLIENT_H_
+#ifndef APICLIENT_H_
+#define APICLIENT_H_
 
-#include "../common/api/UnixAPISocket.h"
+#include "../../common/Loggable.h"
+#include "../../common/api/APIMessage.pb.h"
 
 namespace p2pnet {
 namespace api {
-namespace unix {
 
-class UnixAPIClient : public APIClient {
-	std::string socket_path;
-
-	UnixAPISocket socket;
+class APIClient : protected Loggable {
 public:
-	UnixAPIClient(boost::asio::io_service& io_service);
-	virtual ~UnixAPIClient();
+	APIClient(){};
+	virtual ~APIClient(){};
 
-	void send(APIMessage message);
+	void process(APIMessage message);
+	virtual void send(APIMessage message) = 0;
 
-	void shutdown();
+	virtual void shutdown() = 0;
 
-	void connect();
+	virtual void connect() = 0;
 };
 
-} /* namespace unix */
 } /* namespace api */
 } /* namespace p2pnet */
 
-#endif /* UNIXAPICLIENT_H_ */
+#endif /* APICLIENT_H_ */
