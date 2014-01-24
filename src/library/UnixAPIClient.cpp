@@ -11,7 +11,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "UnixAPI.h"
+#include "UnixAPIClient.h"
 #include "../common/api/APIMessage.pb.h"
 #include "export.h"
 #include <list>
@@ -20,8 +20,8 @@ namespace p2pnet {
 namespace api {
 namespace unix {
 
-UnixAPI::UnixAPI(boost::asio::io_service& io_service) : socket(io_service) {
-	socket.assignReceiveHandler(std::bind(&UnixAPI::process, this, std::placeholders::_1));
+UnixAPIClient::UnixAPIClient(boost::asio::io_service& io_service) : socket(io_service) {
+	socket.assignReceiveHandler(std::bind(&UnixAPIClient::process, this, std::placeholders::_1));
 	socket.assignShutdownHandler([](){});
 
 	connect();
@@ -29,14 +29,11 @@ UnixAPI::UnixAPI(boost::asio::io_service& io_service) : socket(io_service) {
 	socket.startReceive();
 }
 
-UnixAPI::~UnixAPI() {}
+UnixAPIClient::~UnixAPIClient() {}
 
-void UnixAPI::process(APIMessage message) {
-	log() << message.DebugString();
-}
-void UnixAPI::send(APIMessage message) {socket.send(message);}
+void UnixAPIClient::send(APIMessage message) {socket.send(message);}
 
-void UnixAPI::connect() {
+void UnixAPIClient::connect() {
 	bool connected = false;
 
 	auto path_list = unix::getSocketPathList();
@@ -54,7 +51,7 @@ void UnixAPI::connect() {
 	log() << "Connected to daemon on: " << socket_path << std::endl;
 }
 
-void UnixAPI::shutdown(){
+void UnixAPIClient::shutdown(){
 };
 
 }
