@@ -109,19 +109,21 @@ PrivateKeyDSA::binary_vector_t PrivateKeyDSA::toBER() {
 }
 
 void PrivateKeyDSA::setAsBinaryVector(binary_vector_t serialized_vector) {
-	Botan::DataSource_Memory botan_source(serialized_vector);
 	Botan::AutoSeeded_RNG rng;
-	Botan::ECDSA_PrivateKey* privkey = dynamic_cast<Botan::ECDSA_PrivateKey*>(Botan::PKCS8::load_key(botan_source, rng));
-	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(privkey);
+	Botan::BigInt bigint;
+	bigint.binary_decode(serialized_vector);
+	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(new Botan::ECDSA_PrivateKey(rng, Botan::EC_Group(dsa_curve), bigint));
 }
 
 PrivateKeyDSA::binary_vector_t PrivateKeyDSA::toBinaryVector() const {
 	auto private_value = key_private->private_value();
-	PrivateKeyDSA::binary_vector_t vec;
-	vec.resize(private_value.size());
 
-	private_value.binary_encode(vec.data());
-	return vec;
+	PrivateKeyDSA::binary_vector_t vectorized_val(private_value.encoded_size()), result_vector(dsa_byte_length);
+
+	private_value.binary_encode(vectorized_val.data());
+	std::copy(vectorized_val.rbegin(), vectorized_val.rend(), result_vector.rbegin());
+
+	return result_vector;
 }
 
 PublicKeyDSA PrivateKeyDSA::derivePublicKey() const{

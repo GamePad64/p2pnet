@@ -22,6 +22,8 @@ namespace p2pnet {
 namespace crypto {
 
 const std::string dsa_curve = "secp256r1";
+constexpr short dsa_bit_length = 256;
+constexpr short dsa_byte_length = dsa_bit_length/8;
 
 class PublicKeyDSA;
 
