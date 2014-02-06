@@ -19,7 +19,7 @@ namespace api {
 namespace unix {
 
 UnixAPIClient::UnixAPIClient(boost::asio::io_service& io_service) : socket(io_service) {
-	socket.assignReceiveHandler(std::bind(&UnixAPIClient::process, this, std::placeholders::_1));
+	socket.assignReceiveHandler(std::bind(&APIClient::process, this, std::placeholders::_1));
 	socket.assignShutdownHandler([](){});
 
 	connect();
