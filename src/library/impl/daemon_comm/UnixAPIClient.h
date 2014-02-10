@@ -24,8 +24,6 @@ namespace unix {
 class UnixAPIClient : public APIClient {
 	std::string m_socket_path;
 	UnixAPISocket m_socket;
-
-	boost::asio::io_service& m_io_service;
 public:
 	UnixAPIClient(boost::asio::io_service& io_service);
 	virtual ~UnixAPIClient();

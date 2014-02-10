@@ -59,7 +59,7 @@ void UnixAPIClient::connect() {
 }
 
 std::shared_ptr<impl::ClientDataSocket> UnixAPIClient::createDataSocket(std::string socket_addr) {
-	return std::make_shared<impl::UnixClientDataSocket>(socket_addr);
+	return std::make_shared<impl::UnixClientDataSocket>(socket_addr, m_socket.getSocket().get_io_service());
 }
 
 }
