@@ -22,18 +22,23 @@ namespace api {
 namespace unix {
 
 class UnixAPIClient : public APIClient {
-	std::string socket_path;
+	std::string m_socket_path;
+	UnixAPISocket m_socket;
 
-	UnixAPISocket socket;
+	boost::asio::io_service& m_io_service;
 public:
 	UnixAPIClient(boost::asio::io_service& io_service);
 	virtual ~UnixAPIClient();
 
-	void send(APIMessage message);
+	void send(api::APIMessage data, int& error_code);
+	api::APIMessage receive(int& error_code);
 
-	void shutdown();
+	void asyncSend(api::APIMessage data, SendHandler send_handler);
+	void asyncReceive(ReceiveHandler receive_handler);
 
 	void connect();
+
+	std::shared_ptr<impl::ClientDataSocket> createDataSocket(std::string socket_addr);
 };
 
 } /* namespace unix */

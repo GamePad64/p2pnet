@@ -18,18 +18,27 @@ namespace p2pnet {
 namespace api {
 namespace unix {
 
-UnixAPIClient::UnixAPIClient(boost::asio::io_service& io_service) : socket(io_service) {
-	socket.assignReceiveHandler(std::bind(&APIClient::process, this, std::placeholders::_1));
-	socket.assignShutdownHandler([](){});
-
+UnixAPIClient::UnixAPIClient(boost::asio::io_service& io_service) : m_socket(io_service) {
 	connect();
-
-	socket.startReceive();
 }
 
 UnixAPIClient::~UnixAPIClient() {}
 
-void UnixAPIClient::send(APIMessage message) {socket.send(message);}
+void UnixAPIClient::send(api::APIMessage data, int& error_code) {
+	m_socket.send(data, error_code);
+}
+
+api::APIMessage UnixAPIClient::receive(int& error_code) {
+	return m_socket.receive(error_code);
+}
+
+void UnixAPIClient::asyncSend(api::APIMessage data, SendHandler send_handler){
+	m_socket.asyncSend(data, send_handler);
+}
+
+void UnixAPIClient::asyncReceive(ReceiveHandler receive_handler){
+	m_socket.asyncReceive(receive_handler);
+}
 
 void UnixAPIClient::connect() {
 	bool connected = false;
@@ -38,20 +47,22 @@ void UnixAPIClient::connect() {
 	auto it = path_list.begin();
 	while((!connected) && it != path_list.end()){
 		try {
-			socket_path = *it;
-			socket.getSocket().connect(stream_protocol::endpoint(socket_path));
+			m_socket_path = *it;
+			m_socket.getSocket().connect(stream_protocol::endpoint(m_socket_path));
 			connected = true;
 		} catch (boost::system::system_error& e) {
 			if(++it == path_list.end())	// sic! increment is here.
 				throw;	// We can do nothing. No socket paths are available. Maybe, p2pnetd is down?
 		}	// TODO: Yep, may throw.
 	}
-	log() << "Connected to daemon on: " << socket_path << std::endl;
+	log() << "Connected to daemon on: " << m_socket_path << std::endl;
 }
 
-void UnixAPIClient::shutdown(){
-};
+std::shared_ptr<impl::ClientDataSocket> UnixAPIClient::createDataSocket(std::string socket_addr) {
+	return std::make_shared<impl::UnixClientDataSocket>(socket_addr);
+}
 
 }
+
 } /* namespace api */
 } /* namespace p2pnet */

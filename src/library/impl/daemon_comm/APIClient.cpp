@@ -11,29 +11,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef APICLIENT_H_
-#define APICLIENT_H_
-
-#include "../../common/Loggable.h"
-#include "../../common/api/APIMessage.pb.h"
+#include "APIClient.h"
 
 namespace p2pnet {
 namespace api {
 
-class APIClient : protected Loggable {
-public:
-	APIClient(){};
-	virtual ~APIClient(){};
-
-	void process(APIMessage message);
-	virtual void send(APIMessage message) = 0;
-
-	virtual void shutdown() = 0;
-
-	virtual void connect() = 0;
-};
-
 } /* namespace api */
 } /* namespace p2pnet */
-
-#endif /* APICLIENT_H_ */
