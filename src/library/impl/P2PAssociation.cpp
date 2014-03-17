@@ -11,16 +11,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "P2PSocket.h"
-#include "SocketManager.h"
+#include "P2PAssociation.h"
 
 namespace p2pnet {
 
-P2PSocket::P2PSocket() {
-	m_parent_manager = Singleton<SocketManager>::getInstance();
-}
-P2PSocket::P2PSocket(SocketManager& parent_manager) : m_parent_manager(&parent_manager) {}
+P2PAssociation::P2PAssociation() {
+	// TODO Auto-generated constructor stub
 
-P2PSocket::~P2PSocket() {}
+}
+
+P2PAssociation::~P2PAssociation() {
+	// TODO Auto-generated destructor stub
+}
 
 } /* namespace p2pnet */

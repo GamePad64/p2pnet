@@ -11,21 +11,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef P2PSOCKET_H_
-#define P2PSOCKET_H_
+#ifndef P2PCONTEXT_H_
+#define P2PCONTEXT_H_
+
+#include "daemon_comm/ClientDataSocket.h"
 
 namespace p2pnet {
 
-class SocketManager;
-
-class P2PSocket {
-	SocketManager* m_parent_manager;
+class P2PContext {
 public:
-	P2PSocket();
-	P2PSocket(SocketManager& parent_manager);
-	virtual ~P2PSocket();
+	enum ContextType {
+		SEQUENCE = 0,
+		STREAM = 1,
+		DATAGRAM = 2
+	};
+
+	P2PContext(ContextType context_type, std::weak_ptr<P2PAssociation> parent_association);
+	virtual ~P2PContext();
+
+	ContextType getContextType() const;
+
+private:
+	ContextType m_context_type;
+	std::weak_ptr<P2PAssociation> m_parent_association;
+
+	impl::ClientDataSocket* m_data_socket;
 };
 
 } /* namespace p2pnet */
 
-#endif /* P2PSOCKET_H_ */
+#endif /* P2PCONTEXT_H_ */

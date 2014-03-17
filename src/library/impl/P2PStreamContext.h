@@ -11,26 +11,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "SocketManager.h"
+#ifndef P2PSTREAMCONTEXT_H_
+#define P2PSTREAMCONTEXT_H_
+
+#include "P2PContext.h"
 
 namespace p2pnet {
 
-SocketManager::SocketManager() : m_external_io_service(false) {
-	socket_thread = std::thread([&](){m_io_service->run();});
-}
-
-SocketManager::SocketManager(boost::asio::io_service& io_service) :
-		m_io_service(&io_service),
-		m_external_io_service(true) {
-}
-
-SocketManager::~SocketManager() {
-	if(!m_external_io_service){
-		m_io_service->stop();
-		if(socket_thread.joinable())
-			socket_thread.join();
-		delete m_io_service;
-	}
-}
+class P2PStreamContext : public p2pnet::P2PContext {
+public:
+	P2PStreamContext();
+	virtual ~P2PStreamContext();
+};
 
 } /* namespace p2pnet */
+
+#endif /* P2PSTREAMCONTEXT_H_ */

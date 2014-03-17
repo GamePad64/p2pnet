@@ -19,21 +19,37 @@ package p2pnet.api;
 
 message APIMessage {
 	enum MessageType {
-		REGISTER_SERVICE = 0;
-		REGISTER_SERVICE_CALLBACK = 1;
+		REGISTER_SOCKET = 0;
+		REGISTER_SOCKET_CALLBACK = 1;
 
-		GENERATE_PRIVATE_KEY = 2;
+		GENERATE_PRIVATE_KEY = 2;	// Well, we make it here, but I will create an ability to generate it on client.
 		GENERATE_PRIVATE_KEY_CALLBACK = 3;
 
-		BIND_ENDPOINT = 4;
-		BIND_ENDPOINT_CALLBACK = 5;
+		BIND_SOCKET = 4;
+
+		CONNECT = 5;
+		CONNECT_CALLBACK = 6;
 	}
 
 	required MessageType type = 1;
 
-	//REGISTER_SERVICE_CALLBACK
-	optional uint64 registered_id = 2;
+	/* REGISTER_SOCKET_CALLBACK,
+	 * BIND_SOCKET,
+	 * CONNECT,
+	 * CONNECT_CALLBACK
+	 */
+	optional uint64 socket_id = 2;
 
-	//CREATE_PRIVATE_KEY_CALLBACK, BIND_ENDPOINT
-	optional string privkey_cert = 3;
+	/*
+	 * GENERATE_PRIVATE_KEY_CALLBACK,
+	 * BIND_SOCKET
+	 */
+	optional string privkey_b58 = 3;
+	optional bool published = 4;
+
+	/* CONNECT */
+	optional string dest_sh = 5;
+
+	/* CONNECT_CALLBACK */
+	optional string association
 }
