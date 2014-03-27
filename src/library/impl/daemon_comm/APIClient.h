@@ -14,8 +14,9 @@
 #ifndef APICLIENT_H_
 #define APICLIENT_H_
 
-#include "../../common/Loggable.h"
-#include "../../common/api/APIMessage.pb.h"
+#include "../../../common/Loggable.h"
+#include "../../../common/api/APIMessage.pb.h"
+#include <memory>
 
 namespace p2pnet {
 namespace api {
@@ -35,8 +36,6 @@ public:
 	virtual void asyncReceive(ReceiveHandler receive_handler) = 0;
 
 	virtual void connect() = 0;
-
-	virtual std::shared_ptr<impl::ClientDataSocket> createDataSocket(std::string socket_addr) = 0;
 };
 
 } /* namespace api */

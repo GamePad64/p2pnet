@@ -20,6 +20,7 @@
 #include <memory>
 
 namespace p2pnet {
+namespace impl {
 
 /**
  * This class is used for connection to p2pnetd.
@@ -28,17 +29,17 @@ namespace p2pnet {
  * So, for writing applications that use only single default p2pnetd instance (and this is likely)
  * you don't need to bother with this class, just create P2PSocket.
  */
-class DaemonConnectionImpl {
+class P2PDaemonConnectionImpl {
 	std::thread socket_thread;
 	boost::asio::io_service* m_io_service;
 	bool m_external_io_service;
 
 	std::shared_ptr<api::APIClient> m_api_client;
-	std::map<int, std::shared_ptr<P2PSocket>> m_socket_ids;
+	std::map<int, std::shared_ptr<P2PSocketImpl>> m_socket_ids;
 public:
-	DaemonConnectionImpl(bool autoconnect = true);
-	DaemonConnectionImpl(boost::asio::io_service& io_service, bool autoconnect = true);
-	virtual ~DaemonConnectionImpl();
+	P2PDaemonConnectionImpl(bool autoconnect = true);
+	P2PDaemonConnectionImpl(boost::asio::io_service& io_service, bool autoconnect = true);
+	virtual ~P2PDaemonConnectionImpl();
 
 	int connect();
 	bool is_connected();
@@ -46,6 +47,7 @@ public:
 	std::shared_ptr<api::APIClient> getAPIClient();
 };
 
+} /* namespace impl */
 } /* namespace p2pnet */
 
 #endif /* SOCKETMANAGER_H_ */

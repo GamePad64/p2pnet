@@ -19,37 +19,56 @@ package p2pnet.api;
 
 message APIMessage {
 	enum MessageType {
-		REGISTER_SOCKET = 0;
-		REGISTER_SOCKET_CALLBACK = 1;
+		READ = 0;
+		READ_CALLBACK = 1;
 
-		GENERATE_PRIVATE_KEY = 2;	// Well, we make it here, but I will create an ability to generate it on client.
-		GENERATE_PRIVATE_KEY_CALLBACK = 3;
+		WRITE = 2;
+		WRITE_CALLBACK = 3;
 
-		BIND_SOCKET = 4;
+		REGISTER_SOCKET = 4;
+		REGISTER_SOCKET_CALLBACK = 5;
 
-		CONNECT = 5;
-		CONNECT_CALLBACK = 6;
+		UNREGISTER_SOCKET = 6;
+		UNREGISTER_SOCKET_CALLBACK = 7;
+
+		GENERATE_PRIVATE_KEY = 8;	// Well, we make it here, but I will create an ability to generate it on client.
+		GENERATE_PRIVATE_KEY_CALLBACK = 9;
+
+		BIND_SOCKET = 10;
+		BIND_SOCKET_CALLBACK = 11;
+
+		CONNECT = 12;
+		CONNECT_CALLBACK = 13;
+
+		ACCEPT = 14;
+		ACCEPT_CALLBACK = 15;
 	}
 
 	required MessageType type = 1;
+	optional uint32 error_code = 2;
+
+	/* READ_CALLBACK,
+	 * WRITE
+	 */
+	optional bytes data = 3;
 
 	/* REGISTER_SOCKET_CALLBACK,
+	 * UNREGISTER_SOCKET,
 	 * BIND_SOCKET,
 	 * CONNECT,
 	 * CONNECT_CALLBACK
 	 */
-	optional uint64 socket_id = 2;
+	optional uint64 socket_id = 4;
 
 	/*
 	 * GENERATE_PRIVATE_KEY_CALLBACK,
 	 * BIND_SOCKET
 	 */
-	optional string privkey_b58 = 3;
-	optional bool published = 4;
+	optional string privkey_b58 = 5;
 
 	/* CONNECT */
-	optional string dest_sh = 5;
+	optional string dest_sh = 6;
 
 	/* CONNECT_CALLBACK */
-	optional string association
+	optional string association = 7;
 }

@@ -11,7 +11,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "DaemonConnectionImpl.h"
+#include "P2PDaemonConnectionImpl.h"
 
 #ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
 #include "daemon_comm/UnixAPIClient.h"
@@ -19,8 +19,9 @@
 #include "daemon_comm/APIClient.h"
 
 namespace p2pnet {
+namespace impl {
 
-DaemonConnectionImpl::DaemonConnectionImpl(bool autoconnect) :
+P2PDaemonConnectionImpl::P2PDaemonConnectionImpl(bool autoconnect) :
 		m_external_io_service(false) {
 	m_io_service = new boost::asio::io_service();
 	socket_thread = std::thread([&](){m_io_service->run();});
@@ -29,7 +30,7 @@ DaemonConnectionImpl::DaemonConnectionImpl(bool autoconnect) :
 	}
 }
 
-DaemonConnectionImpl::DaemonConnectionImpl(boost::asio::io_service& io_service, bool autoconnect) :
+P2PDaemonConnectionImpl::P2PDaemonConnectionImpl(boost::asio::io_service& io_service, bool autoconnect) :
 		m_external_io_service(true) {
 	m_io_service = &io_service;
 	if(autoconnect){
@@ -37,7 +38,7 @@ DaemonConnectionImpl::DaemonConnectionImpl(boost::asio::io_service& io_service, 
 	}
 }
 
-DaemonConnectionImpl::~DaemonConnectionImpl() {
+P2PDaemonConnectionImpl::~P2PDaemonConnectionImpl() {
 	if(!m_external_io_service){
 		m_io_service->stop();
 		if(socket_thread.joinable())
@@ -46,7 +47,7 @@ DaemonConnectionImpl::~DaemonConnectionImpl() {
 	}
 }
 
-int DaemonConnectionImpl::connect() {
+int P2PDaemonConnectionImpl::connect() {
 	int ec = 0;
 #ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
 	try {
@@ -58,12 +59,13 @@ int DaemonConnectionImpl::connect() {
 	return ec;
 }
 
-bool DaemonConnectionImpl::is_connected() {
+bool P2PDaemonConnectionImpl::is_connected() {
 	return bool(m_api_client);
 }
 
-std::shared_ptr<api::APIClient> DaemonConnectionImpl::getAPIClient() {
+std::shared_ptr<api::APIClient> P2PDaemonConnectionImpl::getAPIClient() {
 	return m_api_client;
 }
 
+} /* namespace impl */
 } /* namespace p2pnet */

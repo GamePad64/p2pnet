@@ -35,8 +35,6 @@ public:
 	void asyncReceive(ReceiveHandler receive_handler);
 
 	void connect();
-
-	std::shared_ptr<impl::ClientDataSocket> createDataSocket(std::string socket_addr);
 };
 
 } /* namespace unix */

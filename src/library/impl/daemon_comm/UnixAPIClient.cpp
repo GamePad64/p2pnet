@@ -58,11 +58,6 @@ void UnixAPIClient::connect() {
 	log() << "Connected to daemon on: " << m_socket_path << std::endl;
 }
 
-std::shared_ptr<impl::ClientDataSocket> UnixAPIClient::createDataSocket(std::string socket_addr) {
-	return std::make_shared<impl::UnixClientDataSocket>(socket_addr, m_socket.getSocket().get_io_service());
-}
-
-}
-
+} /* namespace unix */
 } /* namespace api */
 } /* namespace p2pnet */

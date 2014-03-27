@@ -11,33 +11,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef P2PCONTEXT_H_
-#define P2PCONTEXT_H_
-
-#include "daemon_comm/ClientDataSocket.h"
+#include "P2PContextImpl.h"
 
 namespace p2pnet {
 
-class P2PContext {
-public:
-	enum ContextType {
-		SEQUENCE = 0,
-		STREAM = 1,
-		DATAGRAM = 2
-	};
+P2PContext::P2PContext(ContextType context_type, std::weak_ptr<P2PAssociationImpl> parent_association) :
+		m_context_type(context_type),
+		m_parent_association(parent_association) {
+}
 
-	P2PContext(ContextType context_type, std::weak_ptr<P2PAssociation> parent_association);
-	virtual ~P2PContext();
+P2PContext::~P2PContext() {
+	// TODO Auto-generated destructor stub
+}
 
-	ContextType getContextType() const;
-
-private:
-	ContextType m_context_type;
-	std::weak_ptr<P2PAssociation> m_parent_association;
-
-	impl::ClientDataSocket* m_data_socket;
-};
+P2PContext::ContextType P2PContext::getContextType() const {
+	return m_context_type;
+}
 
 } /* namespace p2pnet */
-
-#endif /* P2PCONTEXT_H_ */
