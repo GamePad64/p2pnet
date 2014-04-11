@@ -11,10 +11,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "APIClient.h"
+#ifndef P2PLOCALDAEMON_H_
+#define P2PLOCALDAEMON_H_
+
+#include "../P2PDaemon.h"
+#include "P2PUnixDaemon.h"
 
 namespace p2pnet {
-namespace api {
 
-} /* namespace api */
+class P2PLocalDaemon : public P2PDaemon {
+	P2PDaemon* underlying_daemon;
+public:
+	P2PLocalDaemon();
+	virtual ~P2PLocalDaemon();
+
+	void send(api::APIMessage data, int& error_code);
+	api::APIMessage receive(int& error_code);
+
+	int connect();
+	bool is_connected();
+	int disconnect();
+};
+
 } /* namespace p2pnet */
+
+#endif /* P2PLOCALDAEMON_H_ */

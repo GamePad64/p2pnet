@@ -11,21 +11,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "P2PContextImpl.h"
+#include "P2PLocalDaemon.h"
 
 namespace p2pnet {
 
-P2PContext::P2PContext(ContextType context_type, std::weak_ptr<P2PAssociationImpl> parent_association) :
-		m_context_type(context_type),
-		m_parent_association(parent_association) {
+P2PLocalDaemon::P2PLocalDaemon() {
+	underlying_daemon = new P2PUnixDaemon();
 }
 
-P2PContext::~P2PContext() {
-	// TODO Auto-generated destructor stub
+P2PLocalDaemon::~P2PLocalDaemon() {
+	delete underlying_daemon;
 }
 
-P2PContext::ContextType P2PContext::getContextType() const {
-	return m_context_type;
+void P2PLocalDaemon::send(api::APIMessage data, int& error_code) {
+	underlying_daemon->send(data, error_code);
+}
+
+api::APIMessage P2PLocalDaemon::receive(int& error_code) {
+	return underlying_daemon->receive(error_code);
+}
+
+int P2PLocalDaemon::connect() {
+	return underlying_daemon->connect();
+}
+
+bool P2PLocalDaemon::is_connected() {
+	return underlying_daemon->is_connected();
+}
+
+int P2PLocalDaemon::disconnect() {
+	return underlying_daemon->disconnect();
 }
 
 } /* namespace p2pnet */

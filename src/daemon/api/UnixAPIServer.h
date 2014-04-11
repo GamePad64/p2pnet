@@ -20,8 +20,6 @@
 
 #include "../../common/api/UnixAPISocket.h"
 
-#include "../../library/export.h"
-
 #include <boost/asio.hpp>
 #include <set>
 

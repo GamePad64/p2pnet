@@ -11,33 +11,38 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef P2PCONTEXT_H_
-#define P2PCONTEXT_H_
+#ifndef P2PUNIXDAEMON_H_
+#define P2PUNIXDAEMON_H_
+
+#include "../../../common/api/UnixAPISocket.h"
+#include "../P2PDaemon.h"
+
+#include <thread>
 
 namespace p2pnet {
-namespace impl {
 
-class P2PContextImpl {
+class P2PUnixDaemon : public P2PDaemon {
+	std::string m_socket_path;
+	api::unix::UnixAPISocket* m_socket;
+
+	std::thread* socket_thread;
+	boost::asio::io_service* m_io_service;
+	bool m_external_io_service;
+	bool connected;
 public:
-	enum ContextType {
-		TYPE_SEQPACKET = 0,
-		TYPE_STREAM = 1,
-		TYPE_DATAGRAM = 2,
-		TYPE_ANY = 255
-	};
+	P2PUnixDaemon();
+	P2PUnixDaemon(boost::asio::io_service& io_service);
+	virtual ~P2PUnixDaemon();
 
-	P2PContextImpl(ContextType context_type, P2PSocketImpl* parent_socket);
-	virtual ~P2PContextImpl();
+	void send(api::APIMessage data, int& error_code);
+	api::APIMessage receive(int& error_code);
 
-	ContextType getContextType() const;
-
-private:
-	ContextType m_context_type;
-	uint32_t m_id;
-	P2PSocketImpl* m_parent_socket;
+	int connect();
+	int connect(std::string path);
+	bool is_connected();
+	int disconnect();
 };
 
-} /* namespace impl */
 } /* namespace p2pnet */
 
-#endif /* P2PCONTEXT_H_ */
+#endif /* P2PUNIXDAEMON_H_ */
