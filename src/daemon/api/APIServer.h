@@ -14,13 +14,25 @@
 #ifndef APISERVER_H_
 #define APISERVER_H_
 
+#include <memory>
+#include <set>
+#include <boost/noncopyable.hpp>
+
 namespace p2pnet {
 namespace api {
 
-class APIServer {
+class APISession;
+
+class APIServer : public boost::noncopyable, std::enable_shared_from_this<APIServer> {
+protected:
+	std::set<std::unique_ptr<APISession>> api_sessions;
 public:
 	APIServer();
 	virtual ~APIServer();
+
+	virtual void accept() = 0;
+
+	void dropSession(APISession* session_ptr);
 };
 
 } /* namespace api */

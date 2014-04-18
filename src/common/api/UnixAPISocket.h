@@ -31,27 +31,35 @@ namespace unix {
 std::list<std::string> getSocketPathList();
 
 class UnixAPISocket : protected Loggable {
-	typedef std::function<void(int)> SendHandler;
-	typedef std::function<void(api::APIMessage, int)> ReceiveHandler;
+	typedef std::function<void(int&)> SendHandler;
+	typedef std::function<void(api::APIMessage, int&)> ReceiveHandler;
 
 	stream_protocol::socket session_socket;
 
 	std::string generateSendString(std::string from);
 
+	void handleSend(const boost::system::error_code& error,
+			std::size_t bytes_transferred,
+			SendHandler send_handler);
+
+	void handleReceiveSize(const boost::system::error_code& error,
+			std::size_t bytes_transferred,
+			char* char_message_size,
+			ReceiveHandler receive_handler);
+	void handleReceive(const boost::system::error_code& error,
+			char* message, uint32_t size,
+			ReceiveHandler receive_handler);
 public:
 	UnixAPISocket(boost::asio::io_service& io_service);
 	virtual ~UnixAPISocket();
 
 	stream_protocol::socket& getSocket();
 
-	void send(api::APIMessage data, int& error_code);
-	api::APIMessage receive(int& error_code);
+	void send(api::APIMessage data, int& error);
+	api::APIMessage receive(int& error);
 
 	void asyncSend(api::APIMessage data, SendHandler send_handler);
 	void asyncReceive(ReceiveHandler receive_handler);
-
-	void handleReceiveSize(const boost::system::error_code& error, char* char_message_size, ReceiveHandler receive_handler);
-	void handleReceive(const boost::system::error_code& error, char* message, uint32_t size, ReceiveHandler receive_handler);
 };
 
 } /* namespace unix */

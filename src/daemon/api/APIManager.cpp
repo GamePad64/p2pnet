@@ -11,35 +11,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "APISession.h"
-#include "APIServer.h"
-#include "../../common/crypto/PrivateKeyDSA.h"
-#include "../../common/api/APIMessage.pb.h"
+#include "APIManager.h"
+
+#include "../../common/Config.h"
+#include "UnixAPIServer.h"
+#include "../AsioIOService.h"
 
 namespace p2pnet {
 namespace api {
 
-APISession::APISession(APIServer* parent) {
-	parent_api_server = parent;
-	log() << "New API session started" << std::endl;
-}
-APISession::~APISession() {
-	log() << "API session shut down" << std::endl;
-}
-
-void APISession::process(APIMessage message) {
-	switch(message.type()){
-	case APIMessage::GENERATE_PRIVATE_KEY:
-		auto privkey = crypto::PrivateKeyDSA::generateNewKey();
-
-		APIMessage message_reply;
-		message_reply.set_type(APIMessage::GENERATE_PRIVATE_KEY_CALLBACK);
-		send(message_reply);
+APIManager::APIManager() {
+	if(ConfigManager::getInstance()->getValue<bool>("api.unix.enabled")){
+		try {
+			auto api_unix = new api::unix::UnixAPIServer(AsioIOService::getIOService());
+			server_list.push_back(api_unix);
+		} catch (boost::system::system_error& e) {
+			log() << "Unable to initialize Unix Socket API. Exception caught: " << e.what() << std::endl;
+		}
 	}
 }
 
-void APISession::dropSession() {
-	parent_api_server->dropSession(this);
+APIManager::~APIManager() {
+	for(auto server_ptr : server_list){
+		delete server_ptr;
+	}
 }
 
 } /* namespace api */

@@ -151,7 +151,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/daemon|test|src/daemon/messaging|contrib" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="test|src/daemon/messaging|src/daemon|contrib" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -167,11 +167,12 @@
 			<resource resourceType="PROJECT" workspacePath="/p2pnet"/>
 		</configuration>
 		<configuration configurationName="Test"/>
+		<configuration configurationName="D_linamd64_lib"/>
 		<configuration configurationName="D_linamd64"/>
+		<configuration configurationName="T_linamd64"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/p2pnet"/>
 		</configuration>
-		<configuration configurationName="T_linamd64"/>
 		<configuration configurationName="R_linamd64"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings">

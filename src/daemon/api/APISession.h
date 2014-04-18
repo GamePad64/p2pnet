@@ -16,20 +16,27 @@
 
 #include "../endpoint/LocalEndpoint.h"
 #include "../../common/api/APIMessage.pb.h"
+#include <boost/noncopyable.hpp>
 
 namespace p2pnet {
 namespace api {
 
-class APISession : public Loggable {
+class APIServer;
+
+class APISession : public Loggable, public boost::noncopyable {
 	std::map<uint32_t, std::shared_ptr<endpoint::LocalEndpoint>> endpoints;
+
+protected:
+	APISession(APIServer* parent);
+
+	APIServer* parent_api_server;
 public:
-	APISession();
 	virtual ~APISession();
 
 	virtual void send(APIMessage message) = 0;
 	void process(APIMessage message);
 
-	std::string getComponentName(){return "APISession";}
+	void dropSession();	// Just a caution: deletes this APISession instance;
 };
 
 } /* namespace api */

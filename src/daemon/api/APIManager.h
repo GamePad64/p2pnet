@@ -11,36 +11,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "APISession.h"
-#include "APIServer.h"
-#include "../../common/crypto/PrivateKeyDSA.h"
-#include "../../common/api/APIMessage.pb.h"
+#ifndef APIMANAGER_H_
+#define APIMANAGER_H_
+
+#include <list>
+#include "../../common/Loggable.h"
 
 namespace p2pnet {
 namespace api {
 
-APISession::APISession(APIServer* parent) {
-	parent_api_server = parent;
-	log() << "New API session started" << std::endl;
-}
-APISession::~APISession() {
-	log() << "API session shut down" << std::endl;
-}
+class APIServer;
 
-void APISession::process(APIMessage message) {
-	switch(message.type()){
-	case APIMessage::GENERATE_PRIVATE_KEY:
-		auto privkey = crypto::PrivateKeyDSA::generateNewKey();
+class APIManager : public Loggable {
+	std::list<APIServer*> server_list;
 
-		APIMessage message_reply;
-		message_reply.set_type(APIMessage::GENERATE_PRIVATE_KEY_CALLBACK);
-		send(message_reply);
-	}
-}
+public:
+	APIManager();
+	virtual ~APIManager();
 
-void APISession::dropSession() {
-	parent_api_server->dropSession(this);
-}
+
+};
 
 } /* namespace api */
 } /* namespace p2pnet */
+
+#endif /* APIMANAGER_H_ */

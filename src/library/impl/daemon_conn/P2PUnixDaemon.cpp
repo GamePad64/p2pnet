@@ -89,7 +89,8 @@ void P2PUnixDaemon::send(api::APIMessage data, int& error_code) {
 }
 
 api::APIMessage P2PUnixDaemon::receive(int& error_code) {
-	return m_socket->receive(error_code);
+	auto message = m_socket->receive(error_code);
+	return message;
 }
 
 int P2PUnixDaemon::disconnect() {

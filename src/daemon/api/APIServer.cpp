@@ -13,11 +13,19 @@
  */
 #include "APIServer.h"
 
+#include "APISession.h"
+
 namespace p2pnet {
 namespace api {
 
 APIServer::APIServer() {}
 APIServer::~APIServer() {}
 
+void APIServer::dropSession(APISession* session_ptr) {
+	api_sessions.erase(std::unique_ptr<APISession>(session_ptr));
+}
+
 } /* namespace api */
 } /* namespace p2pnet */
+
+

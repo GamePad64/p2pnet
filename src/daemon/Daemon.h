@@ -21,7 +21,7 @@
 
 #include "databases/PersonalKeyStorage.h"
 
-#include "api/UnixAPIServer.h"
+#include "api/APIManager.h"
 
 #include "transport/TransportSocket.h"
 #include "overlay/OverlaySocket.h"
@@ -48,7 +48,7 @@ public:
 	std::unique_ptr<discovery::UDPLPDv4> discovery_udpv4;
 	std::unique_ptr<discovery::UDPLPDv6> discovery_udpv6;
 
-	std::shared_ptr<api::unix::UnixAPIServer> api_unix;
+	std::unique_ptr<api::APIManager> api_manager;
 
 	Daemon();
 	virtual ~Daemon();

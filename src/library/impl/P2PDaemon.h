@@ -27,8 +27,8 @@ class P2PDaemon {
 	std::map< int, std::shared_ptr< P2PSocket > > m_socket_ids;
 */
 public:
-	P2PDaemon();
-	virtual ~P2PDaemon();
+	P2PDaemon(){};
+	virtual ~P2PDaemon(){};
 
 	virtual void send(api::APIMessage data, int& error_code) = 0;
 	virtual api::APIMessage receive(int& error_code) = 0;

@@ -20,7 +20,7 @@ namespace api {
 namespace unix {
 
 /* UnixAPISession */
-UnixAPISession::UnixAPISession(UnixAPISocket* preallocated_unix_socket) {
+UnixAPISession::UnixAPISession(UnixAPISocket* preallocated_unix_socket, UnixAPIServer* server) : APISession(server) {
 	m_unix_socket = preallocated_unix_socket;
 }
 
@@ -29,7 +29,11 @@ UnixAPISession::~UnixAPISession() {
 }
 
 void UnixAPISession::send(APIMessage message) {
-	m_unix_socket->send(message);
+	int error_code = 0;
+	m_unix_socket->send(message, error_code);
+	if(error_code != 0){
+		dropSession();
+	}
 }
 
 /* UnixAPIServer */
@@ -62,18 +66,20 @@ void UnixAPIServer::accept() {
 }
 
 void UnixAPIServer::handleAccept(UnixAPISocket* new_socket) {
-	auto new_session = std::make_shared<UnixAPISession>(new_socket);
+	auto new_session = new UnixAPISession(new_socket, this);
 
-	m_unix_sessions.insert(new_session);
-	new_socket->assignShutdownHandler(std::bind(&UnixAPIServer::shutdown, this, std::weak_ptr<UnixAPISession>(new_session)));
-	new_socket->assignReceiveHandler(std::bind(&APISession::process, new_session.get(), std::placeholders::_1));
+	api_sessions.insert(std::unique_ptr<APISession>(new_session));
+	new_socket->asyncReceive(std::bind(&UnixAPIServer::handleReceive, this, new_session, std::placeholders::_1, std::placeholders::_2));
 
-	new_socket->startReceive();
 	accept();
 }
 
-void UnixAPIServer::shutdown(std::weak_ptr<UnixAPISession> session_ptr) {
-	m_unix_sessions.erase(session_ptr.lock());
+void UnixAPIServer::handleReceive(UnixAPISession* new_session, api::APIMessage message, int& error_code) {
+	if(error_code != 0){
+		dropSession(new_session);
+	}else{
+		new_session->process(message);
+	}
 }
 
 } /* namespace unix */

@@ -32,12 +32,12 @@ namespace p2pnet {
 namespace api {
 namespace unix {
 
-class APIManager;
+class UnixAPIServer;
 
-class UnixAPISession : public APISession, public boost::noncopyable {
+class UnixAPISession : public APISession {
 	UnixAPISocket* m_unix_socket;
 public:
-	UnixAPISession(UnixAPISocket* preallocated_unix_socket);
+	UnixAPISession(UnixAPISocket* preallocated_unix_socket, UnixAPIServer* server);
 	virtual ~UnixAPISession();
 
 	void send(APIMessage message);
@@ -46,8 +46,6 @@ public:
 };
 
 class UnixAPIServer : public APIServer, ConfigClient, Loggable {
-	std::set<std::shared_ptr<UnixAPISession>> m_unix_sessions;
-
 	std::unique_ptr<stream_protocol::acceptor> acceptor_ptr;
 
 	std::string socket_path;
@@ -65,10 +63,7 @@ public:
 	void accept();
 	void handleAccept(UnixAPISocket* new_socket);
 
-	std::string getComponentName() {
-		return "UnixAPIServer";
-	}
-	void shutdown(std::weak_ptr<UnixAPISession> session_ptr);
+	void handleReceive(UnixAPISession* new_session, api::APIMessage message, int& error_code);
 };
 
 } /* namespace unix */
