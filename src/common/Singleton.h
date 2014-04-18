@@ -15,6 +15,8 @@
 #ifndef SINGLETON_H_
 #define SINGLETON_H_
 
+#include <memory>
+
 namespace p2pnet {
 
 template <class T>
@@ -35,6 +37,24 @@ public:
 	}
 
 	virtual ~Singleton(){};
+};
+
+template <class T>
+class SharedSingleton {
+protected:
+	SharedSingleton(){};
+public:
+	static std::shared_ptr<T> getInstance(){
+		static std::weak_ptr<T> instance;
+		std::shared_ptr<T> returned_ptr = instance.lock();
+		if(!returned_ptr){
+			returned_ptr = std::make_shared<T>();
+			instance = returned_ptr;
+		}
+		return returned_ptr;
+	}
+
+	virtual ~SharedSingleton(){};
 };
 
 } /* namespace p2pnet */
