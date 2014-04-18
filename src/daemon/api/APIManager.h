@@ -28,8 +28,6 @@ class APIManager : public Loggable {
 public:
 	APIManager();
 	virtual ~APIManager();
-
-
 };
 
 } /* namespace api */

@@ -101,11 +101,12 @@ LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_getParentSocket(P2PContext* context);
 
 class P2PSocket {
 	class Impl; Impl* impl;
+	P2PSocket(std::shared_ptr<P2PDaemon> parent_shared_daemon);
 public:
 	P2PSocket();
-	P2PSocket(P2PDaemon* parent_socket_manager);
+	P2PSocket(P2PDaemon* parent_daemon);
 	P2PSocket(std::string base58_private_key);
-	P2PSocket(std::string base58_private_key, P2PDaemon* parent_socket_manager);
+	P2PSocket(std::string base58_private_key, P2PDaemon* parent_daemon);
 
 	virtual ~P2PSocket();
 

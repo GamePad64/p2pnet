@@ -54,11 +54,12 @@ message APIMessage {
 
 	/* REGISTER_SOCKET_CALLBACK,
 	 * UNREGISTER_SOCKET,
+	 * UNREGISTER_SOCKET_CALLBACK,
 	 * BIND_SOCKET,
 	 * CONNECT,
 	 * CONNECT_CALLBACK
 	 */
-	optional uint64 socket_id = 4;
+	optional uint32 socket_id = 4;
 
 	/*
 	 * GENERATE_PRIVATE_KEY_CALLBACK,

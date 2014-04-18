@@ -68,7 +68,7 @@ void UnixAPIServer::accept() {
 void UnixAPIServer::handleAccept(UnixAPISocket* new_socket) {
 	auto new_session = new UnixAPISession(new_socket, this);
 
-	api_sessions.insert(std::unique_ptr<APISession>(new_session));
+	api_sessions.insert(new_session);
 	new_socket->asyncReceive(std::bind(&UnixAPIServer::handleReceive, this, new_session, std::placeholders::_1, std::placeholders::_2));
 
 	accept();

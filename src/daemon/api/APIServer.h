@@ -25,7 +25,7 @@ class APISession;
 
 class APIServer : public boost::noncopyable, std::enable_shared_from_this<APIServer> {
 protected:
-	std::set<std::unique_ptr<APISession>> api_sessions;
+	std::set<APISession*> api_sessions;
 public:
 	APIServer();
 	virtual ~APIServer();

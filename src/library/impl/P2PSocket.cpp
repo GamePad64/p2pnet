@@ -21,7 +21,7 @@ namespace p2pnet {
 
 class P2PSocket::Impl {
 public:
-	P2PDaemon* m_parent_daemon;
+	std::shared_ptr<P2PDaemon> m_parent_daemon;
 
 	uint32_t socket_id;
 	std::map<uint32_t, P2PContext*> m_contexts;
@@ -32,11 +32,14 @@ public:
 };
 
 // Constructors
-P2PSocket::P2PSocket() : P2PSocket(Singleton<P2PLocalDaemon>::getInstance()) {}
+P2PSocket::P2PSocket() : P2PSocket(SharedSingleton<P2PLocalDaemon>::getInstance()) {}
 
-P2PSocket::P2PSocket(P2PDaemon* parent_daemon) {
+P2PSocket::P2PSocket(P2PDaemon* parent_daemon) : P2PSocket(std::shared_ptr<P2PDaemon>(parent_daemon)) {}
+
+P2PSocket::P2PSocket(std::shared_ptr<P2PDaemon> parent_shared_daemon) {
 	impl = new Impl();
-	impl->m_parent_daemon = parent_daemon;
+	Loggable::log("P2PSocket") << "Registering new socket." << std::endl;
+	impl->m_parent_daemon = parent_shared_daemon;
 
 	api::APIMessage send_message;
 	send_message.set_type(send_message.REGISTER_SOCKET);
@@ -46,10 +49,18 @@ P2PSocket::P2PSocket(P2PDaemon* parent_daemon) {
 	if(!ec){
 		api::APIMessage recv_message;
 		recv_message = impl->m_parent_daemon->receive(ec);
-		if(recv_message.type() == recv_message.REGISTER_SOCKET_CALLBACK)
+		if(recv_message.type() == recv_message.REGISTER_SOCKET_CALLBACK){
 			impl->socket_id = recv_message.socket_id();
+			Loggable::log("P2PSocket") << "Registered socket: #" << impl->socket_id << std::endl;
+			if(impl->socket_id == 0){
+				// Ouch, bad sign. It means, that p2pnetd didn't create the socket, as there are too much of them;
+				// TODO: new exception model.
+				throw std::out_of_range("Socket count exceeded maximum");
+			}
+		}
 	}else{
-		//EXCEPTION
+		// TODO: new exception model.
+		throw std::runtime_error("p2pnetd connection problem");
 	}
 }
 
@@ -71,10 +82,12 @@ P2PSocket::~P2PSocket() {
 	int ec;
 	impl->m_parent_daemon->send(send_message, ec);
 	if(!ec){
-		api::APIMessage recv_message;
-		recv_message = impl->m_parent_daemon->receive(ec);
+		Loggable::log("P2PSocket") << "Unregistering socket: #" << impl->socket_id << std::endl;
+		auto recv_message = impl->m_parent_daemon->receive(ec);
+		delete impl;
 	}else{
-		//EXCEPTION
+		// TODO: new exception model.
+		throw std::runtime_error("p2pnetd connection problem");
 	}
 }
 
@@ -91,7 +104,8 @@ void P2PSocket::bind(std::string base58_private_key) {
 		if(recv_message.type() == recv_message.BIND_SOCKET_CALLBACK)
 			impl->m_bound_private_key.setAsBase58(base58_private_key);
 	}else{
-		//EXCEPTION
+		// TODO: new exception model.
+		throw std::runtime_error("p2pnetd connection problem");
 	}
 }
 

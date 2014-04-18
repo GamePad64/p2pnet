@@ -19,10 +19,15 @@ namespace p2pnet {
 namespace api {
 
 APIServer::APIServer() {}
-APIServer::~APIServer() {}
+APIServer::~APIServer() {
+	for(auto session_ptr : api_sessions){
+		delete session_ptr;
+	}
+}
 
 void APIServer::dropSession(APISession* session_ptr) {
-	api_sessions.erase(std::unique_ptr<APISession>(session_ptr));
+	api_sessions.erase(session_ptr);
+	delete session_ptr;
 }
 
 } /* namespace api */

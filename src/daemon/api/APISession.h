@@ -25,7 +25,11 @@ class APIServer;
 
 class APISession : public Loggable, public boost::noncopyable {
 	std::map<uint32_t, std::shared_ptr<endpoint::LocalEndpoint>> endpoints;
+	uint32_t next_id;
+	uint32_t socket_count;
 
+	uint32_t registerNewSocket();
+	void unregisterSocket(uint32_t sock_id);
 protected:
 	APISession(APIServer* parent);
 
