@@ -21,12 +21,14 @@
 #include <cstdint>
 #else
 #include <stdint.h>
+#include <stddef.h>
 #endif
 
-#if BUILDING_LIBP2PNET && HAVE_VISIBILITY
-#define LIBP2PNET_DLL_EXPORTED __attribute__((__visibility__("default")))
-#elif BUILDING_LIBP2PNET && defined _MSC_VER
+#if BUILDING_LIBP2PNET && defined _MSC_VER
 #define LIBP2PNET_DLL_EXPORTED __declspec(dllexport)
+#elif BUILDING_LIBP2PNET
+#define LIBP2PNET_DLL_EXPORTED __attribute__((__visibility__("default")))
+
 #elif defined _MSC_VER
 #define LIBP2PNET_DLL_EXPORTED __declspec(dllimport)
 #else
@@ -36,8 +38,6 @@
 #ifdef __cplusplus
 namespace p2pnet {
 #endif
-
-// class P2PDaemonConnection
 
 #ifdef __cplusplus
 /**
@@ -49,14 +49,15 @@ namespace p2pnet {
  */
 class P2PDaemon;
 #else
-typedef struct P2PDaemon;
+typedef struct P2PDaemon P2PDaemon;
 #endif
 
-// TODO: complete P2PDaemonConnection in C
-
-// end of class P2PDaemonConnection
+// end of class P2PDaemon
 // class P2PContext
 
+#ifndef __cplusplus
+typedef
+#endif
 enum ContextType {
 	/**
 	 * Context, which is treated like stream (with congestion control and so on) with preserving bounds of packets, like SCTP.
@@ -65,11 +66,15 @@ enum ContextType {
 	CONTEXT_STREAM = 1,
 	CONTEXT_DATAGRAM = 2,
 	CONTEXT_ANY = 255
-};
+}
+#ifndef __cplusplus
+ContextType
+#endif
+;
 
 #ifdef __cplusplus
 class P2PSocket;
-class P2PContext {
+class LIBP2PNET_DLL_EXPORTED P2PContext {
 	class Impl; Impl* impl;
 public:
 	P2PContext(ContextType context_type, P2PSocket* parent_socket);
@@ -80,8 +85,8 @@ public:
 	P2PSocket* getParentSocket();
 };
 #else
-typedef struct P2PSocket;
-typedef struct P2PContext;
+typedef struct P2PSocket P2PSocket;
+typedef struct P2PContext P2PContext;
 #endif
 
 #ifdef __cplusplus
@@ -99,7 +104,7 @@ LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_getParentSocket(P2PContext* context);
 
 #ifdef __cplusplus
 
-class P2PSocket {
+class LIBP2PNET_DLL_EXPORTED P2PSocket {
 	class Impl; Impl* impl;
 	P2PSocket(std::shared_ptr<P2PDaemon> parent_shared_daemon);
 public:
@@ -126,7 +131,7 @@ public:
 	void closeContext(uint32_t context_number);	// "0" is really a synonym to disconnect().
 };
 #else
-typedef struct P2PSocket;
+//typedef struct P2PSocket P2PSocket;
 #endif
 
 #ifdef __cplusplus

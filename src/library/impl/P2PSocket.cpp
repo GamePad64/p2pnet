@@ -133,4 +133,19 @@ void P2PSocket::closeContext(P2PContext* context_ptr) {
 void P2PSocket::closeContext(uint32_t context_number) {
 }
 
+P2PSocket* p2p_createSocket() {	// TODO: Really stub
+	try {
+		auto new_socket = new P2PSocket();
+		return new_socket;
+	}catch(std::exception& e){
+		std::cout << e.what() << std::endl;
+		return 0;
+	}
+	return 0;
+}
+
+void p2p_destroySocket(P2PSocket* socket) {
+	delete socket;
+}
+
 } /* namespace p2pnet */

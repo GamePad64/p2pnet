@@ -23,8 +23,6 @@ OverlaySocket::OverlaySocket() : dht_service(this) {}
 
 OverlaySocket::~OverlaySocket() {}
 
-
-
 std::shared_ptr<OverlayConnection> OverlaySocket::getConnection(const overlay::TH& th) {
 	auto it_peer = m_peers_conns.find(th);
 

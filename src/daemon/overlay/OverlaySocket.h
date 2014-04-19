@@ -38,7 +38,7 @@ protected:
 		std::shared_ptr<OverlayConnection> connection;
 	};
 	std::map<overlay::TH, overlay_peer_conn_t> m_peers_conns;
-	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// For future use.
+	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// TODO: Banned peer list.
 
 public:
 	OverlaySocket();
