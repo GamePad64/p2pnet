@@ -144,6 +144,17 @@ P2PSocket* p2p_createSocket() {	// TODO: Really stub
 	return 0;
 }
 
+P2PSocket* p2p_createSocketOnDaemon(P2PDaemon* parent_socket_manager) {	// TODO: Really stub
+	try {
+		auto new_socket = new P2PSocket(parent_socket_manager);
+		return new_socket;
+	}catch(std::exception& e){
+		std::cout << e.what() << std::endl;
+		return 0;
+	}
+	return 0;
+}
+
 void p2p_destroySocket(P2PSocket* socket) {
 	delete socket;
 }
