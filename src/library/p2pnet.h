@@ -121,7 +121,7 @@ public:
 	void disconnect();
 
 	void bind(std::string base58_private_key);	// Assigns private key to this socket.
-	void listen();
+	void listen(int max_conn);
 
 	// Context-control methods
 	P2PContext* createContext(ContextType type);
@@ -145,7 +145,7 @@ LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_accept(P2PSocket* listening_socket);
 LIBP2PNET_DLL_EXPORTED void p2p_connect(P2PSocket* connecting_socket, char* SH, size_t SH_length);
 LIBP2PNET_DLL_EXPORTED void p2p_disconnect(P2PSocket* socket);
 
-LIBP2PNET_DLL_EXPORTED void p2p_bindSocket(P2PSocket* socket, char* base58_private_key, size_t base58_private_key_length);
+LIBP2PNET_DLL_EXPORTED void p2p_bindSocket(P2PSocket* socket, char* base58_private_key);
 LIBP2PNET_DLL_EXPORTED void p2p_listenSocket(P2PSocket* socket);
 
 LIBP2PNET_DLL_EXPORTED P2PContext* p2p_createContext(P2PSocket* socket, ContextType type);
@@ -157,6 +157,29 @@ LIBP2PNET_DLL_EXPORTED P2PContext* p2p_acceptContext(P2PSocket* socket, ContextT
 #endif
 
 // end of class P2PContext
+// free functions
+
+#ifdef __cplusplus
+LIBP2PNET_DLL_EXPORTED void generateKeyPair(std::string& private_key_b58, std::string& public_key_b58);
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+/**
+ * Generates key pair, which could be used in p2pnet functions. Basically, they are ECDSA keys.
+ * As this is Base58 representation of these keys, then we cannot predict their lengths, so this
+ * function allocates buffers by itself.
+ * So, do not forget to free() buffers later.
+ * @param private_key_b58 not allocated reference to (pointer of char*), which will point to private key.
+ * @param public_key_b58 not allocated reference to (pointer of char*), which will point to public key.
+ */
+LIBP2PNET_DLL_EXPORTED void p2p_generateKeyPair(char*& private_key_b58, char*& public_key_b58);
+#ifdef __cplusplus
+}
+#endif
+
+// end of free functions
 
 #ifdef __cplusplus
 } /* namespace p2pnet */
