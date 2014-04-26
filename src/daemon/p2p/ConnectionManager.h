@@ -14,14 +14,30 @@
 #ifndef CONNECTIONMANAGER_H_
 #define CONNECTIONMANAGER_H_
 
+#include "SH.h"
+
+#include <map>
+#include <set>
+
 namespace p2pnet {
+namespace api {class APISession;}
 namespace p2p {
 
+class LocalSocket;
+
 class ConnectionManager {
-	std::multimap<> all_connections;
+	friend class LocalSocket;
+
+	std::map<SH, LocalSocket*> bound_sockets;
+	std::set<LocalSocket*> not_bound_sockets;
 public:
 	ConnectionManager();
 	virtual ~ConnectionManager();
+
+	LocalSocket* createSocket();
+	LocalSocket* createSocket(api::APISession* api_session);
+
+	void destroySocket(LocalSocket* socket_ptr);
 };
 
 } /* namespace p2p */

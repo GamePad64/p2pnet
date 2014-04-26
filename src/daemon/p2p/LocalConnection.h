@@ -11,18 +11,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef SH_H_
-#define SH_H_
-
-#include "../../common/crypto/Hash.h"
+#ifndef LOCALCONNECTION_H_
+#define LOCALCONNECTION_H_
 
 namespace p2pnet {
 namespace p2p {
 
-typedef crypto::Hash SH;
+class LocalConnection {
+public:
+	LocalConnection();
+	virtual ~LocalConnection();
+};
 
 } /* namespace p2p */
 } /* namespace p2pnet */
 
-#endif /* SH_H_ */
+#endif /* LOCALCONNECTION_H_ */

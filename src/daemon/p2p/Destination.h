@@ -11,18 +11,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef SH_H_
-#define SH_H_
-
-#include "../../common/crypto/Hash.h"
+#ifndef DESTINATION_H_
+#define DESTINATION_H_
 
 namespace p2pnet {
 namespace p2p {
 
-typedef crypto::Hash SH;
+class Destination {
+public:
+	Destination();
+	virtual ~Destination();
+};
 
 } /* namespace p2p */
 } /* namespace p2pnet */
 
-#endif /* SH_H_ */
+#endif /* DESTINATION_H_ */

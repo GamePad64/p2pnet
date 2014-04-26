@@ -11,29 +11,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef GENERICDESTINATION_H_
-#define GENERICDESTINATION_H_
-
-#include <map>
-#include <memory>
+#include "LocalConnection.h"
 
 namespace p2pnet {
-namespace endpoint {
+namespace p2p {
 
-class EndpointSocket;
+LocalConnection::LocalConnection() {
+	// TODO Auto-generated constructor stub
 
-class GenericDestination {
-protected:
-	// Maps connected_socket_id to pointer
-	std::map<uint32_t, std::shared_ptr<EndpointSocket>> dest_connections;
-public:
-	GenericDestination();
-	virtual ~GenericDestination();
+}
 
-	virtual void handleConnectRequest(std::shared_ptr<GenericDestination> endpoint) = 0;
-};
+LocalConnection::~LocalConnection() {
+	// TODO Auto-generated destructor stub
+}
 
-} /* namespace endpoint */
+} /* namespace p2p */
 } /* namespace p2pnet */
-
-#endif /* GENERICDESTINATION_H_ */

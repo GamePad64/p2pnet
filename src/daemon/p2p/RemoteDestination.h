@@ -11,19 +11,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "GenericDestination.h"
+#ifndef REMOTEDESTINATION_H_
+#define REMOTEDESTINATION_H_
+
+#include "Destination.h"
 
 namespace p2pnet {
-namespace endpoint {
+namespace p2p {
 
-GenericDestination::GenericDestination() {
-	// TODO Auto-generated constructor stub
+class RemoteDestination : public Destination {
+public:
+	RemoteDestination();
+	virtual ~RemoteDestination();
+};
 
-}
-
-GenericDestination::~GenericDestination() {
-	// TODO Auto-generated destructor stub
-}
-
-} /* namespace endpoint */
+} /* namespace p2p */
 } /* namespace p2pnet */
+
+#endif /* REMOTEDESTINATION_H_ */

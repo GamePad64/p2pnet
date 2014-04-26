@@ -11,18 +11,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef SH_H_
-#define SH_H_
-
-#include "../../common/crypto/Hash.h"
+#include "RemoteDestination.h"
 
 namespace p2pnet {
 namespace p2p {
 
-typedef crypto::Hash SH;
+RemoteDestination::RemoteDestination() {
+	// TODO Auto-generated constructor stub
+
+}
+
+RemoteDestination::~RemoteDestination() {
+	// TODO Auto-generated destructor stub
+}
 
 } /* namespace p2p */
 } /* namespace p2pnet */
-
-#endif /* SH_H_ */

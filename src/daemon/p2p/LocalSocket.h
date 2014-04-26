@@ -14,13 +14,23 @@
 #ifndef LOCALSOCKET_H_
 #define LOCALSOCKET_H_
 
+#include "Destination.h"
+
 namespace p2pnet {
 namespace p2p {
 
-class LocalSocket {
+class LocalSocket : public Destination {
+	std::unique_ptr<Connection> connection;
+	SH bound_sh;
 public:
 	LocalSocket();
 	virtual ~LocalSocket();
+
+	bool isBound();
+	SH getLocalSH();
+
+	bool loopback();
+	void loopback(bool enabled);
 };
 
 } /* namespace p2p */
