@@ -71,6 +71,7 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 
 		// Endpoint
 		config.put("endpoint.allow_loopback", true);
+		config.put("endpoint.listen.max_connections", 128);
 
 		// Databases
 		// -- PersonalKeyStorage

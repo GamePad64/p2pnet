@@ -31,11 +31,11 @@ message APIMessage {
 		UNREGISTER_SOCKET = 6;
 		UNREGISTER_SOCKET_CALLBACK = 7;
 
-		GENERATE_PRIVATE_KEY = 8;	// Well, we make it here, but I will create an ability to generate it on client.
-		GENERATE_PRIVATE_KEY_CALLBACK = 9;
+		BIND_SOCKET = 8;
+		BIND_SOCKET_CALLBACK = 9;
 
-		BIND_SOCKET = 10;
-		BIND_SOCKET_CALLBACK = 11;
+		LISTEN = 10;
+		LISTEN_CALLBACK = 11;
 
 		CONNECT = 12;
 		CONNECT_CALLBACK = 13;
@@ -67,9 +67,12 @@ message APIMessage {
 	 */
 	optional string privkey_b58 = 5;
 
+	/* LISTEN */
+	optional uint32 max_connections = 6;
+
 	/* CONNECT */
-	optional string dest_sh = 6;
+	optional string dest_sh = 7;
 
 	/* CONNECT_CALLBACK */
-	optional string association = 7;
+	optional string association = 8;
 }

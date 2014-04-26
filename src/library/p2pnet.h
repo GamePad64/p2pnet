@@ -121,7 +121,7 @@ public:
 	void disconnect();
 
 	void bind(std::string base58_private_key);	// Assigns private key to this socket.
-	void listen(int max_conn);
+	void listen(uint32_t max_conn);
 
 	// Context-control methods
 	P2PContext* createContext(ContextType type);
@@ -146,7 +146,7 @@ LIBP2PNET_DLL_EXPORTED void p2p_connect(P2PSocket* connecting_socket, char* SH, 
 LIBP2PNET_DLL_EXPORTED void p2p_disconnect(P2PSocket* socket);
 
 LIBP2PNET_DLL_EXPORTED void p2p_bindSocket(P2PSocket* socket, char* base58_private_key);
-LIBP2PNET_DLL_EXPORTED void p2p_listenSocket(P2PSocket* socket);
+LIBP2PNET_DLL_EXPORTED void p2p_listenSocket(P2PSocket* socket, uint32_t max_conn);
 
 LIBP2PNET_DLL_EXPORTED P2PContext* p2p_createContext(P2PSocket* socket, ContextType type);
 LIBP2PNET_DLL_EXPORTED P2PContext* p2p_acceptContext(P2PSocket* socket, ContextType type);
@@ -160,21 +160,34 @@ LIBP2PNET_DLL_EXPORTED P2PContext* p2p_acceptContext(P2PSocket* socket, ContextT
 // free functions
 
 #ifdef __cplusplus
+/**
+ * Generates key pair, which could be used in p2pnet functions. Basically, they are ECDSA keys.
+ * These keys are presented as strings in Base58 encoding.
+ *
+ * @param private_key_b58 reference to std::string, where private key will be placed.
+ * @param public_key_b58 reference to std::string, where public key will be placed.
+ */
 LIBP2PNET_DLL_EXPORTED void generateKeyPair(std::string& private_key_b58, std::string& public_key_b58);
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * Key pair type. Holds pointers to null-terminated strings of private and public keys.
+ */
+typedef struct {
+	char* private_key;
+	char* public_key;
+} p2p_KeyPair;
 /**
  * Generates key pair, which could be used in p2pnet functions. Basically, they are ECDSA keys.
- * As this is Base58 representation of these keys, then we cannot predict their lengths, so this
- * function allocates buffers by itself.
- * So, do not forget to free() buffers later.
- * @param private_key_b58 not allocated reference to (pointer of char*), which will point to private key.
- * @param public_key_b58 not allocated reference to (pointer of char*), which will point to public key.
+ * These keys are presented as strings in Base58 encoding.
+ *
+ * @return structure, that holds key pair.
  */
-LIBP2PNET_DLL_EXPORTED void p2p_generateKeyPair(char*& private_key_b58, char*& public_key_b58);
+LIBP2PNET_DLL_EXPORTED p2p_KeyPair p2p_generateKeyPair();
 #ifdef __cplusplus
 }
 #endif

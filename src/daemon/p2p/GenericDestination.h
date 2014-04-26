@@ -11,24 +11,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "EndpointManager.h"
+#ifndef GENERICDESTINATION_H_
+#define GENERICDESTINATION_H_
+
+#include <map>
+#include <memory>
 
 namespace p2pnet {
 namespace endpoint {
 
-EndpointManager::EndpointManager() {
-	// TODO Auto-generated constructor stub
+class EndpointSocket;
 
-}
+class GenericDestination {
+protected:
+	// Maps connected_socket_id to pointer
+	std::map<uint32_t, std::shared_ptr<EndpointSocket>> dest_connections;
+public:
+	GenericDestination();
+	virtual ~GenericDestination();
 
-EndpointManager::~EndpointManager() {
-	// TODO Auto-generated destructor stub
-}
-
-std::shared_ptr< LocalEndpoint > EndpointManager::getEndpointPtrBySH(SH sh) {
-	auto endp_it = sh_all_endpoints.find(sh);
-	return (endp_it == sh_all_endpoints.end()) ? nullptr : endp_it->second;
-}
+	virtual void handleConnectRequest(std::shared_ptr<GenericDestination> endpoint) = 0;
+};
 
 } /* namespace endpoint */
 } /* namespace p2pnet */
+
+#endif /* GENERICDESTINATION_H_ */

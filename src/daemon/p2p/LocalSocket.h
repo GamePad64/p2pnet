@@ -11,29 +11,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "LocalEndpoint.h"
-#include "EndpointManager.h"
+#ifndef LOCALSOCKET_H_
+#define LOCALSOCKET_H_
 
 namespace p2pnet {
-namespace endpoint {
+namespace p2p {
 
-LocalEndpoint::LocalEndpoint() {
-	// TODO Auto-generated constructor stub
+class LocalSocket {
+public:
+	LocalSocket();
+	virtual ~LocalSocket();
+};
 
-}
-
-LocalEndpoint::~LocalEndpoint() {
-	// TODO Auto-generated destructor stub
-}
-
-bool LocalEndpoint::trySendLoopback(SH dest, std::string data) {
-	auto endpoint_ptr = EndpointManager::getInstance()->getEndpointPtrBySH(dest);
-	if(getValue<bool>("endpoint.allow_loopback") && endpoint_ptr){
-		endpoint_ptr->process(endpoint_sh, data);
-		return true;
-	}
-	return false;
-}
-
-} /* namespace endpoint */
+} /* namespace p2p */
 } /* namespace p2pnet */
+
+#endif /* LOCALSOCKET_H_ */

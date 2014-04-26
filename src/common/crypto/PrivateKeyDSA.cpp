@@ -21,7 +21,9 @@
 namespace p2pnet {
 namespace crypto {
 
-PrivateKeyDSA::PrivateKeyDSA() {}
+PrivateKeyDSA::PrivateKeyDSA() {
+	key_private = nullptr;
+}
 PrivateKeyDSA::PrivateKeyDSA(const PrivateKeyDSA& rvalue) {
 	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(
 			new Botan::ECDSA_PrivateKey(*(rvalue.key_private))
@@ -34,9 +36,8 @@ PrivateKeyDSA::PrivateKeyDSA(PrivateKeyDSA&& rvalue) {
 PrivateKeyDSA::~PrivateKeyDSA() {}
 
 PrivateKeyDSA& PrivateKeyDSA::operator =(const PrivateKeyDSA& rvalue) {
-	key_private = std::unique_ptr<Botan::ECDSA_PrivateKey>(
-			new Botan::ECDSA_PrivateKey(*(rvalue.key_private))
-	);
+	auto key_private_ptr = std::unique_ptr<Botan::ECDSA_PrivateKey>(new Botan::ECDSA_PrivateKey(*(rvalue.key_private)));
+	std::swap(key_private, key_private_ptr);
 	return *this;
 }
 PrivateKeyDSA& PrivateKeyDSA::operator =(PrivateKeyDSA&& rvalue) {

@@ -14,8 +14,12 @@
 #ifndef APISESSION_H_
 #define APISESSION_H_
 
-#include "../endpoint/LocalEndpoint.h"
+#include "../endpoint/EndpointSocket.h"
 #include "../../common/api/APIMessage.pb.h"
+
+#include "../../common/Loggable.h"
+#include "../../common/crypto/PrivateKeyDSA.h"
+
 #include <boost/noncopyable.hpp>
 
 namespace p2pnet {
@@ -24,12 +28,15 @@ namespace api {
 class APIServer;
 
 class APISession : public Loggable, public boost::noncopyable {
-	std::map<uint32_t, std::shared_ptr<endpoint::LocalEndpoint>> endpoints;
+	std::map<uint32_t, std::shared_ptr<endpoint::EndpointSocket>> endpoints;
 	uint32_t next_id;
 	uint32_t socket_count;
 
-	uint32_t registerNewSocket();
+	std::pair<uint32_t, std::shared_ptr<endpoint::EndpointSocket>> registerNewSocket();
 	void unregisterSocket(uint32_t sock_id);
+
+	void bind(uint32_t sock_id, crypto::PrivateKeyDSA private_key);
+	void listen(uint32_t sock_id, uint32_t max_connections);
 protected:
 	APISession(APIServer* parent);
 

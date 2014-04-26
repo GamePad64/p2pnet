@@ -28,15 +28,19 @@ LIBP2PNET_DLL_EXPORTED void generateKeyPair(std::string& private_key_b58, std::s
 	public_key_b58 = new_public_key.toBase58();
 }
 
-LIBP2PNET_DLL_EXPORTED void p2p_generateKeyPair(char*& private_key_b58, char*& public_key_b58){
+LIBP2PNET_DLL_EXPORTED p2p_KeyPair p2p_generateKeyPair(){
 	std::string private_key_b58_s, public_key_b58_s;
 	generateKeyPair(private_key_b58_s, public_key_b58_s);
 
-	private_key_b58 = new char[private_key_b58_s.size()+1];
-	public_key_b58 = new char[public_key_b58_s.size()+1];
+	p2p_KeyPair key_pair;
 
-	strcpy(private_key_b58, private_key_b58_s.c_str());
-	strcpy(public_key_b58, public_key_b58_s.c_str());
+	key_pair.private_key = new char[private_key_b58_s.size()+1];
+	key_pair.public_key = new char[public_key_b58_s.size()+1];
+
+	strcpy(key_pair.private_key, private_key_b58_s.c_str());
+	strcpy(key_pair.public_key, public_key_b58_s.c_str());
+
+	return key_pair;
 }
 
 } /* namespace p2pnet */

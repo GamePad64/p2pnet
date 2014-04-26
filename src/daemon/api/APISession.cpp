@@ -13,6 +13,9 @@
  */
 #include "APISession.h"
 #include "APIServer.h"
+
+#include "../endpoint/EndpointManager.h"
+
 #include "../../common/crypto/PrivateKeyDSA.h"
 #include "../../common/api/APIMessage.pb.h"
 
@@ -32,11 +35,11 @@ APISession::~APISession() {
 void APISession::process(APIMessage message) {
 	switch(message.type()){
 	case APIMessage::REGISTER_SOCKET:	{
-			auto sock_id = registerNewSocket();
+			auto socket = registerNewSocket();
 
 			APIMessage message_reply;
 			message_reply.set_type(APIMessage::REGISTER_SOCKET_CALLBACK);
-			message_reply.set_socket_id(sock_id);
+			message_reply.set_socket_id(socket.first);
 			send(message_reply);
 		}
 		break;
@@ -49,14 +52,43 @@ void APISession::process(APIMessage message) {
 			send(message_reply);
 		}
 		break;
+	case APIMessage::BIND_SOCKET:	{
+			auto private_key = crypto::PrivateKeyDSA::fromBase58(message.privkey_b58());
+			bind(message.socket_id(), private_key);
+
+			APIMessage message_reply;
+			message_reply.set_type(APIMessage::BIND_SOCKET_CALLBACK);
+			message_reply.set_socket_id(message.socket_id());
+			send(message_reply);
+		}
+		break;
+	case APIMessage::LISTEN:	{
+			auto max_connections = message.max_connections();
+			listen(message.socket_id(), max_connections);
+
+			APIMessage message_reply;
+			message_reply.set_type(APIMessage::BIND_SOCKET_CALLBACK);
+			message_reply.set_socket_id(message.socket_id());
+			send(message_reply);
+		}
+		break;
+	case APIMessage::REGISTER_SOCKET_CALLBACK:
+	case APIMessage::UNREGISTER_SOCKET_CALLBACK:
+	case APIMessage::BIND_SOCKET_CALLBACK:
+	case APIMessage::LISTEN_CALLBACK:
+		break;
 	}
 }
 
-uint32_t APISession::registerNewSocket() {
+std::pair<uint32_t, std::shared_ptr<endpoint::EndpointSocket>> APISession::registerNewSocket() {
 	if(next_id == 0)
-		return 0;
+		return std::make_pair(0, nullptr);
 	uint32_t socket_id = next_id;
-	auto it_pair = endpoints.insert(std::make_pair(socket_id, std::shared_ptr<endpoint::LocalEndpoint>()));
+
+	// Registration itself.
+	auto new_socket = std::make_shared<endpoint::EndpointSocket>(this);
+	auto it_pair = endpoints.insert(std::make_pair(socket_id, new_socket));
+	endpoint::EndpointManager::getInstance()->registerSocket(new_socket);
 
 	log() << "Registered socket #" << socket_id << std::endl;
 
@@ -76,16 +108,32 @@ uint32_t APISession::registerNewSocket() {
 		}
 	}
 
-	return socket_id;
+	return std::make_pair(socket_id, new_socket);
 }
 
 void APISession::unregisterSocket(uint32_t sock_id) {
 	auto it = endpoints.find(sock_id);
+	endpoint::EndpointManager::getInstance()->unregisterSocket(it->second);
 	endpoints.erase(it);
+
 	log() << "Unegistered socket #" << sock_id << std::endl;
 	if(next_id > sock_id || next_id == 0){
 		next_id = sock_id;
 	}
+}
+
+void APISession::bind(uint32_t sock_id, crypto::PrivateKeyDSA private_key) {
+	auto it = endpoints.find(sock_id);
+	if(it != endpoints.end()){
+		it->second->bind(private_key);
+	}//TODO: else error.
+}
+
+void APISession::listen(uint32_t sock_id, uint32_t max_connections) {
+	auto it = endpoints.find(sock_id);
+	if(it != endpoints.end()){
+		it->second->listen(max_connections);
+	}//TODO: else error.
 }
 
 void APISession::dropSession() {
