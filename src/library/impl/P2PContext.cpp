@@ -13,14 +13,9 @@
  */
 #include "../p2pnet.h"
 
-namespace p2pnet {
+#include "Impl.h"
 
-class P2PContext::Impl {
-public:
-	ContextType m_context_type;
-	uint32_t m_id;
-	P2PSocket* m_parent_socket;
-};
+namespace p2pnet {
 
 P2PContext::P2PContext(ContextType context_type, P2PSocket* parent_socket) {
 	impl = new Impl;

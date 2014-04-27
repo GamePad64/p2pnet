@@ -19,60 +19,100 @@ package p2pnet.api;
 
 message APIMessage {
 	enum MessageType {
-		READ = 0;
-		READ_CALLBACK = 1;
+		NODE_REGISTER = 0;
+		NODE_REGISTER_CALLBACK = 1;
 
-		WRITE = 2;
-		WRITE_CALLBACK = 3;
+		NODE_UNREGISTER = 2;
+		NODE_UNREGISTER_CALLBACK = 3;
 
-		REGISTER_SOCKET = 4;
-		REGISTER_SOCKET_CALLBACK = 5;
+		NODE_CONNECT = 4;
+		NODE_CONNECT_CALLBACK = 5;
 
-		UNREGISTER_SOCKET = 6;
-		UNREGISTER_SOCKET_CALLBACK = 7;
+		NODE_ACCEPT = 6;
+		NODE_ACCEPT_CALLBACK = 7;
 
-		BIND_SOCKET = 8;
-		BIND_SOCKET_CALLBACK = 9;
+		NODE_LISTEN = 8;
+		NODE_LISTEN_CALLBACK = 9;
 
-		LISTEN = 10;
-		LISTEN_CALLBACK = 11;
+		NODE_BIND = 10;
+		NODE_BIND_CALLBACK = 11;
 
-		CONNECT = 12;
-		CONNECT_CALLBACK = 13;
+		SOCKET_REGISTER = 12;
+		SOCKET_REGISTER_CALLBACK = 13;
 
-		ACCEPT = 14;
-		ACCEPT_CALLBACK = 15;
+		SOCKET_UNREGISTER = 14;
+		SOCKET_UNREGISTER_CALLBACK = 15;
 	}
 
 	required MessageType type = 1;
-	optional uint32 error_code = 2;
 
-	/* READ_CALLBACK,
-	 * WRITE
-	 */
-	optional bytes data = 3;
+	//optional uint32 error_code = 2;
+	//optional string error_what = 3;
 
-	/* REGISTER_SOCKET_CALLBACK,
-	 * UNREGISTER_SOCKET,
-	 * UNREGISTER_SOCKET_CALLBACK,
-	 * BIND_SOCKET,
-	 * CONNECT,
-	 * CONNECT_CALLBACK
-	 */
-	optional uint32 socket_id = 4;
+	optional bytes api_message = 4;
 
-	/*
-	 * GENERATE_PRIVATE_KEY_CALLBACK,
-	 * BIND_SOCKET
-	 */
-	optional string privkey_b58 = 5;
+	/* Message definitions */
+	message NodeRegister {}
+	message NodeRegisterCallback {
+		optional uint32 node_id = 1;
+	}
 
-	/* LISTEN */
-	optional uint32 max_connections = 6;
+	message NodeUnRegister {
+		optional uint32 node_id = 1;
+	}
+	message NodeUnRegisterCallback {
+		optional uint32 node_id = 1;
+	}
 
-	/* CONNECT */
-	optional string dest_sh = 7;
+	message NodeConnect {
+		optional uint32 node_id = 1;
+		optional string SH = 2;
+	}
+	message NodeConnectCallback {
+		optional uint32 node_id = 1;
+		optional uint32 socket_id = 2;
+	}
 
-	/* CONNECT_CALLBACK */
-	optional string association = 8;
+	message NodeAccept {
+		optional uint32 node_id = 1;
+	}
+	message NodeAcceptCallback {
+		optional uint32 node_id = 1;
+		optional uint32 socket_id = 2;
+		optional string SH = 3;
+	}
+
+	message NodeListen {
+		optional uint32 node_id = 1;
+		optional uint32 max_connections = 2;
+	}
+	message NodeListenCallback {
+		optional uint32 node_id = 1;
+	}
+
+	message NodeBind {
+		optional uint32 node_id = 1;
+		optional bytes binary_private_key = 2;
+		optional string b58_private_key = 3;
+	}
+	message NodeBindCallback {
+		optional uint32 node_id = 1;
+	}
+
+	message SocketRegister {
+		optional uint32 node_id = 1;
+	}
+	message SocketRegisterCallback {
+		optional uint32 node_id = 1;
+		optional uint32 socket_id = 2;
+	}
+
+	message SocketUnRegister {
+		optional uint32 node_id = 1;
+		optional uint32 socket_id = 2;
+	}
+	message SocketUnRegisterCallback {
+		optional uint32 node_id = 1;
+		optional uint32 socket_id = 2;
+	}
 }

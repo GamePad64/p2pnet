@@ -75,9 +75,11 @@ ContextType
 #ifdef __cplusplus
 class P2PSocket;
 class LIBP2PNET_DLL_EXPORTED P2PContext {
+	friend class P2PSocket;
 	class Impl; Impl* impl;
-public:
+protected:
 	P2PContext(ContextType context_type, P2PSocket* parent_socket);
+public:
 	virtual ~P2PContext();
 
 	ContextType getContextType() const;
@@ -100,28 +102,18 @@ LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_getParentSocket(P2PContext* context);
 #endif
 
 // end of class P2PContext
-// class P2PContext
+// class P2PSocket
 
 #ifdef __cplusplus
-
+class P2PNode;
 class LIBP2PNET_DLL_EXPORTED P2PSocket {
+	friend class P2PContext;
+
 	class Impl; Impl* impl;
-	P2PSocket(std::shared_ptr<P2PDaemon> parent_shared_daemon);
+protected:
+	P2PSocket(P2PNode* parent_node);
 public:
-	P2PSocket();
-	P2PSocket(P2PDaemon* parent_daemon);
-	P2PSocket(std::string base58_private_key);
-	P2PSocket(std::string base58_private_key, P2PDaemon* parent_daemon);
-
 	virtual ~P2PSocket();
-
-	// Connection-control methods
-	P2PSocket* accept();
-	void connect(std::string SH);
-	void disconnect();
-
-	void bind(std::string base58_private_key);	// Assigns private key to this socket.
-	void listen(uint32_t max_conn);
 
 	// Context-control methods
 	P2PContext* createContext(ContextType type);
@@ -137,16 +129,7 @@ public:
 #ifdef __cplusplus
 extern "C" {
 #endif
-LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_createSocket();
-LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_createSocketOnDaemon(P2PDaemon* parent_socket_manager);
-LIBP2PNET_DLL_EXPORTED void p2p_destroySocket(P2PSocket* socket);
-
-LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_accept(P2PSocket* listening_socket);
-LIBP2PNET_DLL_EXPORTED void p2p_connect(P2PSocket* connecting_socket, char* SH, size_t SH_length);
 LIBP2PNET_DLL_EXPORTED void p2p_disconnect(P2PSocket* socket);
-
-LIBP2PNET_DLL_EXPORTED void p2p_bindSocket(P2PSocket* socket, char* base58_private_key);
-LIBP2PNET_DLL_EXPORTED void p2p_listenSocket(P2PSocket* socket, uint32_t max_conn);
 
 LIBP2PNET_DLL_EXPORTED P2PContext* p2p_createContext(P2PSocket* socket, ContextType type);
 LIBP2PNET_DLL_EXPORTED P2PContext* p2p_acceptContext(P2PSocket* socket, ContextType type);
@@ -156,7 +139,49 @@ LIBP2PNET_DLL_EXPORTED P2PContext* p2p_acceptContext(P2PSocket* socket, ContextT
 }
 #endif
 
-// end of class P2PContext
+// end of class P2PSocket
+// class P2PNode
+
+#ifdef __cplusplus
+class LIBP2PNET_DLL_EXPORTED P2PNode {
+	friend class P2PSocket;
+	friend class P2PContext;
+
+	class Impl; Impl* impl;
+	P2PNode(std::shared_ptr<P2PDaemon> parent_shared_daemon);
+public:
+	P2PNode();
+	P2PNode(P2PDaemon* parent_daemon);
+	virtual ~P2PNode();
+
+	// Connection-control methods
+	P2PSocket* accept();
+	P2PSocket* connect(std::string SH);
+
+	void bind(std::string base58_private_key);
+	void listen(uint32_t max_conn);
+};
+#else
+//typedef struct P2PNode P2PNode;
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+LIBP2PNET_DLL_EXPORTED P2PNode* p2p_createNode();
+LIBP2PNET_DLL_EXPORTED P2PNode* p2p_createNodeOnDaemon(P2PDaemon* parent_socket_manager);
+LIBP2PNET_DLL_EXPORTED void p2p_destroyNode(P2PNode* node);
+
+LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_accept(P2PNode* listening_node);
+LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_connect(P2PNode* connecting_node, char* SH, size_t SH_length);
+
+LIBP2PNET_DLL_EXPORTED void p2p_bindNode(P2PNode* node, char* base58_private_key);
+LIBP2PNET_DLL_EXPORTED void p2p_listenNode(P2PNode* node, uint32_t max_conn);
+#ifdef __cplusplus
+}
+#endif
+
+// end of class P2PNode
 // free functions
 
 #ifdef __cplusplus
