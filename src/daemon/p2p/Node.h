@@ -11,23 +11,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "LocalSocket.h"
+#ifndef NODE_H_
+#define NODE_H_
 
 namespace p2pnet {
 namespace p2p {
 
-LocalSocket::LocalSocket() {
-	// TODO Auto-generated constructor stub
+/*
+	std::unique_ptr<Connection> connection;
+	SH bound_sh;
+	api::APISession* api_session;
+public:
+	LocalSocket();
+	LocalSocket(api::APISession* api_session);
+	virtual ~LocalSocket();
 
-}
+	bool isBound();
+	SH getLocalSH();
 
-LocalSocket::LocalSocket(api::APISession* api_session) {
-	this->api_session = api_session;
-}
+	bool loopback();
+	void loopback(bool enabled);
+*/
 
-LocalSocket::~LocalSocket() {
-	// TODO Auto-generated destructor stub
-}
+class Node {
+	SH bound_sh;
+public:
+	Node();
+	virtual ~Node();
+
+	bool isBound();
+	SH getLocalSH();
+};
 
 } /* namespace p2p */
 } /* namespace p2pnet */
+
+#endif /* NODE_H_ */

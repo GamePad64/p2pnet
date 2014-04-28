@@ -11,36 +11,46 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef CONNECTIONMANAGER_H_
-#define CONNECTIONMANAGER_H_
-
-#include "SH.h"
-
-#include <map>
-#include <set>
+#ifndef NODEMANAGER_H_
+#define NODEMANAGER_H_
 
 namespace p2pnet {
 namespace api {class APISession;}
 namespace p2p {
 
-class LocalSocket;
+class Node;
 
-class ConnectionManager {
-	friend class LocalSocket;
+class NodeManager : Singleton<NodeManager> {
+	std::map<SH, Node*> nodes_bound;
+	std::set<Node*> nodes_unbound;
 
-	std::map<SH, LocalSocket*> bound_sockets;
-	std::set<LocalSocket*> not_bound_sockets;
+	/**
+	 * This function only affects NodeManager's DB.
+	 * Sets specified SH to node.
+	 * @param node
+	 * @param sh
+	 */
+	void bindNode(Node* node, SH sh);
+	/**
+	 * This function only affects NodeManager's DB.
+	 * Resets bound node's SH.
+	 * @param node
+	 * @param sh
+	 */
+	void unbindNode(Node* node);
 public:
-	ConnectionManager();
-	virtual ~ConnectionManager();
+	NodeManager();
+	virtual ~NodeManager();
 
-	LocalSocket* createSocket();
-	LocalSocket* createSocket(api::APISession* api_session);
+	Node* createNode();
+	Node* createNode(api::APISession* api_session);
 
-	void destroySocket(LocalSocket* socket_ptr);
+	void createNode(Node* node);
+
+	void destroyNode(Node* node);
 };
 
 } /* namespace p2p */
 } /* namespace p2pnet */
 
-#endif /* CONNECTIONMANAGER_H_ */
+#endif /* NODEMANAGER_H_ */

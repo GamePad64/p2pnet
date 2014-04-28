@@ -11,18 +11,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "LocalConnection.h"
+#include "Node.h"
 
 namespace p2pnet {
 namespace p2p {
 
-LocalConnection::LocalConnection() {
-	// TODO Auto-generated constructor stub
+Node::Node() {}
+Node::~Node() {}
 
-}
-
-LocalConnection::~LocalConnection() {
-	// TODO Auto-generated destructor stub
+SH Node::getLocalSH() {
+	return bound_sh;
 }
 
 } /* namespace p2p */
