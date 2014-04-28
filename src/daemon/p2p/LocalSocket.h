@@ -19,11 +19,15 @@
 namespace p2pnet {
 namespace p2p {
 
+class Connection;
+
 class LocalSocket : public Destination {
 	std::unique_ptr<Connection> connection;
 	SH bound_sh;
+	api::APISession* api_session;
 public:
 	LocalSocket();
+	LocalSocket(api::APISession* api_session);
 	virtual ~LocalSocket();
 
 	bool isBound();

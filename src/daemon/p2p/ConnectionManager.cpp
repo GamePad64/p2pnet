@@ -12,6 +12,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ConnectionManager.h"
+#include "LocalSocket.h"
 
 namespace p2pnet {
 namespace p2p {

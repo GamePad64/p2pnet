@@ -21,6 +21,10 @@ LocalSocket::LocalSocket() {
 
 }
 
+LocalSocket::LocalSocket(api::APISession* api_session) {
+	this->api_session = api_session;
+}
+
 LocalSocket::~LocalSocket() {
 	// TODO Auto-generated destructor stub
 }
