@@ -11,33 +11,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef P2PDAEMON_H_
-#define P2PDAEMON_H_
+#ifndef P2PUNIXDAEMON_H_
+#define P2PUNIXDAEMON_H_
 
-#include "../../common/api/APIMessage.pb.h"
+#include "../../common/api/UnixAPISocket.h"
+#include "../P2PDaemon.h"
+
+#include <thread>
 
 namespace p2pnet {
 
-class P2PDaemon {
-/*
+class P2PUnixDaemon : public P2PDaemon {
+	std::string m_socket_path;
+	api::unix::UnixAPISocket* m_socket;
+
 	std::thread* socket_thread;
-	boost::asio::io_service* m_io_service;
-	bool m_external_io_service;
-
-	std::map< int, std::shared_ptr< P2PSocket > > m_socket_ids;
-*/
+	boost::asio::io_service m_io_service;
+	bool connected;
 public:
-	P2PDaemon(){};
-	virtual ~P2PDaemon(){};
+	P2PUnixDaemon();
+	virtual ~P2PUnixDaemon();
 
-	virtual void send(api::APIMessage data, int& error_code) = 0;
-	virtual api::APIMessage receive(int& error_code) = 0;
+	virtual void asyncSend(api::APIMessage data, SendHandler handler);
+	virtual void asyncReceive(ReceiveHandler handler);
 
-	virtual int connect() = 0;
-	virtual bool is_connected() = 0;
-	virtual int disconnect() = 0;
+	void connect();
+	void connect(std::string path);
+	bool is_connected();
+	int disconnect();
 };
 
 } /* namespace p2pnet */
 
-#endif /* P2PDAEMON_H_ */
+#endif /* P2PUNIXDAEMON_H_ */

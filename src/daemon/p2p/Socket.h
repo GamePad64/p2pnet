@@ -11,38 +11,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef P2PUNIXDAEMON_H_
-#define P2PUNIXDAEMON_H_
-
-#include "../../../common/api/UnixAPISocket.h"
-#include "../P2PDaemon.h"
-
-#include <thread>
+#ifndef SOCKET_H_
+#define SOCKET_H_
 
 namespace p2pnet {
+namespace p2p {
 
-class P2PUnixDaemon : public P2PDaemon {
-	std::string m_socket_path;
-	api::unix::UnixAPISocket* m_socket;
-
-	std::thread* socket_thread;
-	boost::asio::io_service* m_io_service;
-	bool m_external_io_service;
-	bool connected;
+class Socket {
 public:
-	P2PUnixDaemon();
-	P2PUnixDaemon(boost::asio::io_service& io_service);
-	virtual ~P2PUnixDaemon();
-
-	void send(api::APIMessage data, int& error_code);
-	api::APIMessage receive(int& error_code);
-
-	int connect();
-	int connect(std::string path);
-	bool is_connected();
-	int disconnect();
+	Socket();
+	virtual ~Socket();
 };
 
+} /* namespace p2p */
 } /* namespace p2pnet */
 
-#endif /* P2PUNIXDAEMON_H_ */
+#endif /* SOCKET_H_ */

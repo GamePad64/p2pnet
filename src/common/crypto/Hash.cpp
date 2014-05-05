@@ -58,6 +58,10 @@ bool Hash::operator == (const Hash& rhash){
 	return hash == rhash.hash;
 }
 
+Hash::operator bool(){
+	return !(hash.empty());
+}
+
 Hash Hash::computeNew(const std::string& data) {
 	Hash h;
 	h.compute(data);
@@ -115,6 +119,10 @@ std::vector<unsigned char> Hash::operator^(const Hash& rhash) const {
 
 bool Hash::operator <(const Hash& lhash) const {
 	return hash < lhash.hash;
+}
+
+void Hash::clear(){
+	hash.clear();
 }
 
 } /* namespace crypto */

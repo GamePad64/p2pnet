@@ -12,6 +12,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "NodeManager.h"
+#include "Node.h"
 
 namespace p2pnet {
 namespace p2p {
@@ -56,9 +57,6 @@ Node* NodeManager::createNode() {
 }
 
 Node* NodeManager::createNode(api::APISession* api_session) {
-}
-
-void NodeManager::createNode(Node* node) {
 }
 
 void NodeManager::destroyNode(Node* node) {

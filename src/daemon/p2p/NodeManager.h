@@ -14,13 +14,19 @@
 #ifndef NODEMANAGER_H_
 #define NODEMANAGER_H_
 
+#include "SH.h"
+#include "../../common/Singleton.h"
+#include <map>
+#include <set>
+
 namespace p2pnet {
 namespace api {class APISession;}
 namespace p2p {
 
 class Node;
 
-class NodeManager : Singleton<NodeManager> {
+class NodeManager : public Singleton<NodeManager> {
+	friend class Node;
 	std::map<SH, Node*> nodes_bound;
 	std::set<Node*> nodes_unbound;
 
@@ -44,8 +50,6 @@ public:
 
 	Node* createNode();
 	Node* createNode(api::APISession* api_session);
-
-	void createNode(Node* node);
 
 	void destroyNode(Node* node);
 };

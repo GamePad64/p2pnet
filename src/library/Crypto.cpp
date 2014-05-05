@@ -12,9 +12,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../common/crypto/PrivateKeyDSA.h"
-#include "../../common/crypto/PublicKeyDSA.h"
-#include "../../common/crypto/Hash.h"
+#include "../common/crypto/PrivateKeyDSA.h"
+#include "../common/crypto/PublicKeyDSA.h"
+#include "../common/crypto/Hash.h"
 
 #include "../p2pnet.h"
 

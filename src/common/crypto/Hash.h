@@ -47,6 +47,8 @@ public:
 
 	bool operator == (const Hash& rhash);
 
+	operator bool();
+
 	static Hash computeNew(const std::string& data);
 	void compute(const std::string& data);
 
@@ -69,6 +71,8 @@ public:
 	 * @return
 	 */
 	static std::string getAlgoName();
+
+	void clear();
 };
 
 } /* namespace crypto */

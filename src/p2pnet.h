@@ -19,6 +19,7 @@
 #include <boost/asio.hpp>
 #endif
 #include <cstdint>
+#include <system_error>
 #else
 #include <stdint.h>
 #include <stddef.h>
@@ -35,6 +36,58 @@
 #define LIBP2PNET_DLL_EXPORTED
 #endif
 
+/* Errors section */
+#ifdef __cplusplus
+namespace p2pnet {
+#endif
+#ifndef __cplusplus
+typedef
+#endif
+enum
+#ifdef __cplusplus
+class
+#endif
+P2PError {
+	success = 0,
+	daemon_connection_problem = 256,
+	too_many_nodes = 257,
+	too_many_sockets = 258,
+	nonexistent_node = 259,
+	nonexistent_socket = 260
+}
+#ifndef __cplusplus
+P2PError
+#endif
+;
+#ifdef __cplusplus
+} /* namespace p2pnet */
+
+namespace std {
+template<> struct is_error_condition_enum<p2pnet::P2PError> : public true_type {};
+}
+
+namespace p2pnet {
+class LIBP2PNET_DLL_EXPORTED P2PErrorCategory_t : public std::error_category {
+public:
+	virtual const char* name() const noexcept;
+	const char* message_c(int error_value) const;
+	virtual std::string message(int error_value) const;
+};
+LIBP2PNET_DLL_EXPORTED extern P2PErrorCategory_t P2PErrorCategory;
+} /* namespace p2pnet */
+#endif
+
+#ifdef __cplusplus
+namespace p2pnet {
+extern "C" {
+#endif
+LIBP2PNET_DLL_EXPORTED const char* p2p_getErrorMessage(P2PError context);
+#ifdef __cplusplus
+}
+}
+#endif
+
+/* Classes section */
 #ifdef __cplusplus
 namespace p2pnet {
 #endif
@@ -108,10 +161,11 @@ LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_getParentSocket(P2PContext* context);
 class P2PNode;
 class LIBP2PNET_DLL_EXPORTED P2PSocket {
 	friend class P2PContext;
+	friend class P2PNode;
 
 	class Impl; Impl* impl;
 protected:
-	P2PSocket(P2PNode* parent_node);
+	P2PSocket(P2PNode* parent_node, uint32_t socket_id);
 public:
 	virtual ~P2PSocket();
 
@@ -168,15 +222,15 @@ public:
 #ifdef __cplusplus
 extern "C" {
 #endif
-LIBP2PNET_DLL_EXPORTED P2PNode* p2p_createNode();
-LIBP2PNET_DLL_EXPORTED P2PNode* p2p_createNodeOnDaemon(P2PDaemon* parent_socket_manager);
+LIBP2PNET_DLL_EXPORTED P2PNode* p2p_createNode(int& ec);
+LIBP2PNET_DLL_EXPORTED P2PNode* p2p_createNodeOnDaemon(P2PDaemon* parent_daemon, int& ec);
 LIBP2PNET_DLL_EXPORTED void p2p_destroyNode(P2PNode* node);
 
-LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_accept(P2PNode* listening_node);
-LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_connect(P2PNode* connecting_node, char* SH, size_t SH_length);
+LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_accept(P2PNode* listening_node, int& ec);
+LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_connect(P2PNode* connecting_node, char* SH, size_t SH_length, int& ec);
 
-LIBP2PNET_DLL_EXPORTED void p2p_bindNode(P2PNode* node, char* base58_private_key);
-LIBP2PNET_DLL_EXPORTED void p2p_listenNode(P2PNode* node, uint32_t max_conn);
+LIBP2PNET_DLL_EXPORTED void p2p_bindNode(P2PNode* node, char* base58_private_key, int& ec);
+LIBP2PNET_DLL_EXPORTED void p2p_listenNode(P2PNode* node, uint32_t max_conn, int& ec);
 #ifdef __cplusplus
 }
 #endif

@@ -15,37 +15,25 @@
 
 #ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
 #include "P2PUnixDaemon.h"
-#include "../../../common/api/UnixAPISocket.h"
+#include "../../common/api/UnixAPISocket.h"
 
 namespace p2pnet {
 
 P2PUnixDaemon::P2PUnixDaemon() {
-	m_external_io_service = false;
-	m_io_service = new boost::asio::io_service();
-	socket_thread = new std::thread([&]() {m_io_service->run();});
-
-	connect();
-}
-
-P2PUnixDaemon::P2PUnixDaemon(boost::asio::io_service& io_service) {
-	m_external_io_service = true;
-	m_io_service = &io_service;
+	socket_thread = new std::thread([&]() {m_io_service.run();});
 
 	connect();
 }
 
 P2PUnixDaemon::~P2PUnixDaemon() {
-	if (!m_external_io_service) {
-		m_io_service->stop();
-		if (socket_thread->joinable())
-			socket_thread->join();
-		delete socket_thread;
-		delete m_io_service;
-	}
+	m_io_service.stop();
+	if (socket_thread->joinable())
+		socket_thread->join();
+	delete socket_thread;
 }
 
-int P2PUnixDaemon::connect() {
-	m_socket = new api::unix::UnixAPISocket(*m_io_service);
+void P2PUnixDaemon::connect() {
+	m_socket = new api::unix::UnixAPISocket(m_io_service);
 	bool connected = false;
 
 	auto path_list = api::unix::getSocketPathList();
@@ -58,15 +46,14 @@ int P2PUnixDaemon::connect() {
 		} catch (boost::system::system_error& e) {
 			if(++it == path_list.end()){	// sic! increment is here.
 				connected = false;
-				return -1;
+				throw std::system_error(e.code().value(), std::generic_category());	// or would it be better to throw from p2pnet::P2PErrorCategory?
 			}
 		}
 	}
-	return 0;
 }
 
-int P2PUnixDaemon::connect(std::string path) {
-	m_socket = new api::unix::UnixAPISocket(*m_io_service);
+void P2PUnixDaemon::connect(std::string path) {
+	m_socket = new api::unix::UnixAPISocket(m_io_service);
 	connected = false;
 
 	try {
@@ -75,22 +62,20 @@ int P2PUnixDaemon::connect(std::string path) {
 		connected = true;
 	} catch (boost::system::system_error& e) {
 		connected = false;
-		return -1;
+		throw std::system_error(e.code().value(), std::generic_category());
 	}
-	return 0;
 }
 
 bool P2PUnixDaemon::is_connected() {
 	return connected;
 }
 
-void P2PUnixDaemon::send(api::APIMessage data, int& error_code) {
-	m_socket->send(data, error_code);
+void P2PUnixDaemon::asyncSend(api::APIMessage data, SendHandler handler) {
+	m_socket->asyncSend(data, handler);
 }
 
-api::APIMessage P2PUnixDaemon::receive(int& error_code) {
-	auto message = m_socket->receive(error_code);
-	return message;
+void P2PUnixDaemon::asyncReceive(ReceiveHandler handler) {
+	m_socket->asyncReceive(handler);
 }
 
 int P2PUnixDaemon::disconnect() {

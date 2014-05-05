@@ -25,12 +25,12 @@ public:
 	P2PLocalDaemon();
 	virtual ~P2PLocalDaemon();
 
-	void send(api::APIMessage data, int& error_code);
-	api::APIMessage receive(int& error_code);
+	virtual void asyncSend(api::APIMessage data, SendHandler handler);
+	virtual void asyncReceive(ReceiveHandler handler);
 
-	int connect();
-	bool is_connected();
-	int disconnect();
+	virtual void connect();
+	virtual bool is_connected();
+	virtual int disconnect();
 };
 
 } /* namespace p2pnet */

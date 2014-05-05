@@ -14,6 +14,7 @@
 #ifndef UNIXAPISOCKET_H_
 #define UNIXAPISOCKET_H_
 
+#include "api_handlers.h"
 #include "APIMessage.pb.h"
 #include "../Loggable.h"
 #include <boost/asio.hpp>
@@ -31,22 +32,20 @@ namespace unix {
 std::list<std::string> getSocketPathList();
 
 class UnixAPISocket : protected Loggable {
-	typedef std::function<void(int&)> SendHandler;
-	typedef std::function<void(api::APIMessage, int&)> ReceiveHandler;
-
 	stream_protocol::socket session_socket;
 
+	std::error_condition stdErrorFromBoostError(boost::system::error_code boost_error);
 	std::string generateSendString(std::string from);
 
-	void handleSend(const boost::system::error_code& error,
+	void handleSend(const boost::system::error_code& boost_error,
 			std::size_t bytes_transferred,
 			SendHandler send_handler);
 
-	void handleReceiveSize(const boost::system::error_code& error,
+	void handleReceiveSize(const boost::system::error_code& boost_error,
 			std::size_t bytes_transferred,
 			char* char_message_size,
 			ReceiveHandler receive_handler);
-	void handleReceive(const boost::system::error_code& error,
+	void handleReceive(const boost::system::error_code& boost_error,
 			char* message, uint32_t size,
 			ReceiveHandler receive_handler);
 public:
@@ -55,8 +54,8 @@ public:
 
 	stream_protocol::socket& getSocket();
 
-	void send(api::APIMessage data, int& error);
-	api::APIMessage receive(int& error);
+	void send(api::APIMessage data, std::error_condition& error);
+	api::APIMessage receive(std::error_condition& error);
 
 	void asyncSend(api::APIMessage data, SendHandler send_handler);
 	void asyncReceive(ReceiveHandler receive_handler);

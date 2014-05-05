@@ -14,7 +14,9 @@
 #include "APISession.h"
 #include "APIServer.h"
 
-#include "../endpoint/EndpointManager.h"
+#include "../p2p/NodeManager.h"
+#include "../p2p/Node.h"
+#include "../p2p/Socket.h"
 
 #include "../../common/crypto/PrivateKeyDSA.h"
 #include "../../common/api/APIMessage.pb.h"
@@ -24,8 +26,7 @@ namespace api {
 
 APISession::APISession(APIServer* parent) {
 	parent_api_server = parent;
-	socket_count = 0;
-	next_id = 1;
+	next_node_id = 1;
 	log() << "New API session started" << std::endl;
 }
 APISession::~APISession() {
@@ -34,106 +35,102 @@ APISession::~APISession() {
 
 void APISession::process(APIMessage message) {
 	switch(message.type()){
-	case APIMessage::REGISTER_SOCKET:	{
-			auto socket = registerNewSocket();
-
-			APIMessage message_reply;
-			message_reply.set_type(APIMessage::REGISTER_SOCKET_CALLBACK);
-			message_reply.set_socket_id(socket.first);
-			send(message_reply);
-		}
-		break;
-	case APIMessage::UNREGISTER_SOCKET:	{
-			unregisterSocket(message.socket_id());
-
-			APIMessage message_reply;
-			message_reply.set_type(APIMessage::UNREGISTER_SOCKET_CALLBACK);
-			message_reply.set_socket_id(message.socket_id());
-			send(message_reply);
-		}
-		break;
-	case APIMessage::BIND_SOCKET:	{
-			auto private_key = crypto::PrivateKeyDSA::fromBase58(message.privkey_b58());
-			bind(message.socket_id(), private_key);
-
-			APIMessage message_reply;
-			message_reply.set_type(APIMessage::BIND_SOCKET_CALLBACK);
-			message_reply.set_socket_id(message.socket_id());
-			send(message_reply);
-		}
-		break;
-	case APIMessage::LISTEN:	{
-			auto max_connections = message.max_connections();
-			listen(message.socket_id(), max_connections);
-
-			APIMessage message_reply;
-			message_reply.set_type(APIMessage::BIND_SOCKET_CALLBACK);
-			message_reply.set_socket_id(message.socket_id());
-			send(message_reply);
-		}
-		break;
-	case APIMessage::REGISTER_SOCKET_CALLBACK:
-	case APIMessage::UNREGISTER_SOCKET_CALLBACK:
-	case APIMessage::BIND_SOCKET_CALLBACK:
-	case APIMessage::LISTEN_CALLBACK:
-		break;
+	case APIMessage::NODE_REGISTER: NodeRegister(message); break;
+	case APIMessage::NODE_UNREGISTER: NodeUnRegister(message); break;
+	case APIMessage::NODE_CONNECT: NodeConnect(message); break;
+	case APIMessage::NODE_ACCEPT: NodeAccept(message); break;
+	case APIMessage::NODE_LISTEN: NodeListen(message); break;
+	case APIMessage::NODE_BIND: NodeBind(message); break;
+	case APIMessage::SOCKET_UNREGISTER: SocketUnRegister(message); break;
+	default: return;
 	}
 }
 
-std::pair<uint32_t, std::shared_ptr<endpoint::EndpointSocket>> APISession::registerNewSocket() {
-	if(next_id == 0)
-		return std::make_pair(0, nullptr);
-	uint32_t socket_id = next_id;
+void APISession::NodeRegister(APIMessage message) {
+	APIMessage reply;
+	reply.set_type(reply.NODE_REGISTER_CALLBACK);
+
+	if(next_node_id == 0){
+		// Problem. We reached the limit of nodes.
+		// TODO: error handling.
+		reply.mutable_error()->set_error_code(1);
+		reply.mutable_error()->set_error_what("Node limit exceeded.");
+		send(reply);
+		return;
+	}
+	uint32_t node_id = next_node_id;
 
 	// Registration itself.
-	auto new_socket = std::make_shared<endpoint::EndpointSocket>(this);
-	auto it_pair = endpoints.insert(std::make_pair(socket_id, new_socket));
-	endpoint::EndpointManager::getInstance()->registerSocket(new_socket);
+	auto new_node = p2p::NodeManager::getInstance()->createNode(this);
 
-	log() << "Registered socket #" << socket_id << std::endl;
+	node_t new_node_t;
+	new_node_t.node = new_node;
+	new_node_t.next_socket_id = 1;
 
-	socket_count++;
+	auto nodes_inserted_it = nodes.insert(std::make_pair(node_id, new_node_t));
 
-	next_id++;	// If it turns into zero, than this was the last socket we can create;
+	// Sending callback
+	APIMessage_NodeRegisterCallback callback;
+	callback.set_node_id(node_id);
+	reply.set_api_message(callback.SerializeAsString());
+	send(reply);
 
-	auto new_iterator = it_pair.first;
+	log() << "Registered socket #" << node_id << std::endl;
+
+	// Computing next node_id
+	next_node_id++;	// If it turns into zero, than this was the last node we can create on this APISession;
+
+	auto new_iterator = nodes_inserted_it.first;
 	new_iterator++;
 
-	while(next_id != 0 && new_iterator != endpoints.end()){
-		if(new_iterator->first <= next_id){
-			next_id++;
+	while(next_node_id != 0 && new_iterator != nodes.end()){
+		if(new_iterator->first <= next_node_id){
+			next_node_id++;
 			new_iterator++;
 		}else{
 			break;
 		}
 	}
-
-	return std::make_pair(socket_id, new_socket);
 }
 
-void APISession::unregisterSocket(uint32_t sock_id) {
-	auto it = endpoints.find(sock_id);
-	endpoint::EndpointManager::getInstance()->unregisterSocket(it->second);
-	endpoints.erase(it);
+void APISession::NodeUnRegister(APIMessage message) {
+	APIMessage::NodeUnRegister api_message;
+	api_message.ParseFromString(message.api_message());
 
-	log() << "Unegistered socket #" << sock_id << std::endl;
-	if(next_id > sock_id || next_id == 0){
-		next_id = sock_id;
+	auto it = nodes.find(api_message.node_id());
+	p2p::NodeManager::getInstance()->destroyNode(it->second.node);
+	nodes.erase(it);
+
+	log() << "Unegistered node #" << api_message.node_id() << std::endl;
+	if(next_node_id > api_message.node_id() || next_node_id == 0){
+		next_node_id = api_message.node_id();
+	}//TODO: Callback
+}
+
+void APISession::NodeConnect(APIMessage message) {
+	throw;
+}
+
+void APISession::NodeAccept(APIMessage message) {
+	throw;
+}
+
+void APISession::NodeListen(APIMessage message) {
+	APIMessage::NodeListen api_message;
+	api_message.ParseFromString(message.api_message());
+
+	auto node_it = nodes.find(api_message.node_id());
+	if(node_it != nodes.end()){
+		node_it->second.node->listen(api_message.max_connections());
+	}else{
+		// TODO: send error to client. Unknown socket.
 	}
 }
 
-void APISession::bind(uint32_t sock_id, crypto::PrivateKeyDSA private_key) {
-	auto it = endpoints.find(sock_id);
-	if(it != endpoints.end()){
-		it->second->bind(private_key);
-	}//TODO: else error.
+void APISession::NodeBind(APIMessage message) {
 }
 
-void APISession::listen(uint32_t sock_id, uint32_t max_connections) {
-	auto it = endpoints.find(sock_id);
-	if(it != endpoints.end()){
-		it->second->listen(max_connections);
-	}//TODO: else error.
+void APISession::SocketUnRegister(APIMessage message) {
 }
 
 void APISession::dropSession() {

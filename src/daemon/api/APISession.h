@@ -14,7 +14,6 @@
 #ifndef APISESSION_H_
 #define APISESSION_H_
 
-#include "../endpoint/EndpointSocket.h"
 #include "../../common/api/APIMessage.pb.h"
 
 #include "../../common/Loggable.h"
@@ -23,20 +22,29 @@
 #include <boost/noncopyable.hpp>
 
 namespace p2pnet {
+namespace p2p {class Socket;class Node;}
 namespace api {
 
 class APIServer;
 
 class APISession : public Loggable, public boost::noncopyable {
-	std::map<uint32_t, std::shared_ptr<endpoint::EndpointSocket>> endpoints;
-	uint32_t next_id;
-	uint32_t socket_count;
+	struct node_t {	// We need to store it somewhere
+		p2p::Node* node;
+		uint32_t next_socket_id;
+		std::map<uint32_t, p2p::Socket*> sockets;
+	};
+	std::map<uint32_t, node_t> nodes;
+	uint32_t next_node_id;
 
-	std::pair<uint32_t, std::shared_ptr<endpoint::EndpointSocket>> registerNewSocket();
-	void unregisterSocket(uint32_t sock_id);
+	// Functions that respond to specific MessageType of APIMessage.
+	void NodeRegister(APIMessage message);
+	void NodeUnRegister(APIMessage message);
+	void NodeConnect(APIMessage message);
+	void NodeAccept(APIMessage message);
+	void NodeListen(APIMessage message);
+	void NodeBind(APIMessage message);
+	void SocketUnRegister(APIMessage message);
 
-	void bind(uint32_t sock_id, crypto::PrivateKeyDSA private_key);
-	void listen(uint32_t sock_id, uint32_t max_connections);
 protected:
 	APISession(APIServer* parent);
 

@@ -11,34 +11,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "Node.h"
+#ifndef API_HANDLERS_H_
+#define API_HANDLERS_H_
+
+#include "APIMessage.pb.h"
+
+#include <system_error>
+#include <functional>
 
 namespace p2pnet {
-namespace p2p {
+namespace api {
 
-Node::Node() {}
-Node::Node(api::APISession* api_session) {
-	this->api_session = api_session;
-}
-Node::~Node() {}
+typedef std::function<void(std::error_condition&)> SendHandler;
+typedef std::function<void(api::APIMessage, std::error_condition&)> ReceiveHandler;
 
-SH Node::getLocalSH() {
-	return bound_sh;
-}
-
-bool Node::isBound() {
-	return bool(bound_sh);
-}
-
-void Node::bind(crypto::PrivateKeyDSA private_key) {
-	bound_private_key = private_key;
-	bound_sh = SH(private_key.derivePublicKey());
-	NodeManager::getInstance()->bindNode(this, bound_sh);
-}
-
-void Node::listen(uint32_t max_connections) {
-	this->max_connections = max_connections;
-}
-
-} /* namespace p2p */
+} /* namespace api */
 } /* namespace p2pnet */
+
+#endif /* API_HANDLERS_H_ */

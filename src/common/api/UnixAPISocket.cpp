@@ -38,6 +38,10 @@ UnixAPISocket::~UnixAPISocket() {
 	session_socket.close();
 }
 
+std::error_condition UnixAPISocket::stdErrorFromBoostError(boost::system::error_code boost_error){
+	return std::error_condition(boost_error.value(), std::generic_category());
+}
+
 std::string UnixAPISocket::generateSendString(std::string from){
 	MESSAGE_SIZE_TYPE native_size = from.size();
 	MESSAGE_SIZE_TYPE size_netlong = htonl(native_size);
@@ -50,20 +54,20 @@ stream_protocol::socket& UnixAPISocket::getSocket() {
 	return session_socket;
 }
 
-void UnixAPISocket::send(api::APIMessage data, int& error){
+void UnixAPISocket::send(api::APIMessage data, std::error_condition& error){
 	auto send_string = generateSendString(data.SerializeAsString());
 
 	boost::system::error_code boost_error;
 	boost::asio::write(session_socket, boost::asio::buffer(send_string), boost_error);
-	error = boost_error.value();
+	error = stdErrorFromBoostError(boost_error);
 }
 
-api::APIMessage UnixAPISocket::receive(int& error){
+api::APIMessage UnixAPISocket::receive(std::error_condition& error){
 	char* char_message_size = new char[MESSAGE_SIZE_LENGTH];
 
 	boost::system::error_code boost_error;
 	boost::asio::read(session_socket, boost::asio::buffer(char_message_size, MESSAGE_SIZE_LENGTH), boost_error);
-	error = boost_error.value();
+	error = stdErrorFromBoostError(boost_error);
 
 	if(boost_error){
 		return api::APIMessage();
@@ -74,7 +78,7 @@ api::APIMessage UnixAPISocket::receive(int& error){
 
 	char* buffer = new char[size];
 	boost::asio::read(session_socket, boost::asio::buffer(buffer, size), boost_error);
-	error = boost_error.value();
+	error = stdErrorFromBoostError(boost_error);
 
 	if(boost_error){
 		return api::APIMessage();
@@ -100,18 +104,18 @@ void UnixAPISocket::asyncReceive(ReceiveHandler receive_handler) {
 			std::bind(&UnixAPISocket::handleReceiveSize, this, std::placeholders::_1, std::placeholders::_2, buffer, receive_handler));
 }
 
-void UnixAPISocket::handleSend(const boost::system::error_code& error,
+void UnixAPISocket::handleSend(const boost::system::error_code& boost_error,
 		std::size_t bytes_transferred,
 		SendHandler send_handler) {
-	session_socket.get_io_service().dispatch(std::bind(send_handler, error.value()));
+	session_socket.get_io_service().dispatch(std::bind(send_handler, stdErrorFromBoostError(boost_error)));
 }
 
-void UnixAPISocket::handleReceiveSize(const boost::system::error_code& error,
+void UnixAPISocket::handleReceiveSize(const boost::system::error_code& boost_error,
 		std::size_t bytes_transferred,
 		char* char_message_size,
 		ReceiveHandler receive_handler) {
-	if(error){
-		session_socket.get_io_service().dispatch(std::bind(receive_handler, api::APIMessage(), error.value()));
+	if(boost_error){
+		session_socket.get_io_service().dispatch(std::bind(receive_handler, api::APIMessage(), stdErrorFromBoostError(boost_error)));
 		return;
 	}
 	MESSAGE_SIZE_TYPE size = ntohl(*reinterpret_cast<MESSAGE_SIZE_TYPE*>(char_message_size));
@@ -122,18 +126,18 @@ void UnixAPISocket::handleReceiveSize(const boost::system::error_code& error,
 			std::bind(&UnixAPISocket::handleReceive, this, std::placeholders::_1, buffer, std::placeholders::_2, receive_handler));
 }
 
-void UnixAPISocket::handleReceive(const boost::system::error_code& error,
+void UnixAPISocket::handleReceive(const boost::system::error_code& boost_error,
 		char* message, uint32_t size,
 		ReceiveHandler receive_handler) {
-	if(error){
-		session_socket.get_io_service().dispatch(std::bind(receive_handler, api::APIMessage(), error.value()));
+	if(boost_error){
+		session_socket.get_io_service().dispatch(std::bind(receive_handler, api::APIMessage(), stdErrorFromBoostError(boost_error)));
 		return;
 	}
 	APIMessage message_proto;
 	message_proto.ParseFromArray(message, size);
 	delete[] message;
 
-	session_socket.get_io_service().dispatch(std::bind(receive_handler, message_proto, 0));
+	session_socket.get_io_service().dispatch(std::bind(receive_handler, message_proto, stdErrorFromBoostError(boost_error)));
 	asyncReceive(receive_handler);
 }
 

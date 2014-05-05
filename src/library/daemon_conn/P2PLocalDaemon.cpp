@@ -23,16 +23,16 @@ P2PLocalDaemon::~P2PLocalDaemon() {
 	delete underlying_daemon;
 }
 
-void P2PLocalDaemon::send(api::APIMessage data, int& error_code) {
-	underlying_daemon->send(data, error_code);
+void P2PLocalDaemon::asyncSend(api::APIMessage data, SendHandler handler) {
+	underlying_daemon->asyncSend(data, handler);
 }
 
-api::APIMessage P2PLocalDaemon::receive(int& error_code) {
-	return underlying_daemon->receive(error_code);
+void P2PLocalDaemon::asyncReceive(ReceiveHandler handler) {
+	underlying_daemon->asyncReceive(handler);
 }
 
-int P2PLocalDaemon::connect() {
-	return underlying_daemon->connect();
+void P2PLocalDaemon::connect() {
+	underlying_daemon->connect();
 }
 
 bool P2PLocalDaemon::is_connected() {

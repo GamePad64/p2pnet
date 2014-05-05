@@ -14,7 +14,12 @@
 #ifndef NODE_H_
 #define NODE_H_
 
+#include "SH.h"
+#include "../../common/crypto/PrivateKeyDSA.h"
+#include "Socket.h"
+
 namespace p2pnet {
+namespace api {class APISession;}
 namespace p2p {
 
 /*
@@ -34,13 +39,23 @@ public:
 */
 
 class Node {
+	crypto::PrivateKeyDSA bound_private_key;
 	SH bound_sh;
+	api::APISession* api_session;
+
+	uint32_t max_connections;
+
+	std::map<SH, Socket> connected_sockets;
 public:
 	Node();
+	Node(api::APISession* api_session);
 	virtual ~Node();
 
 	bool isBound();
 	SH getLocalSH();
+
+	void bind(crypto::PrivateKeyDSA private_key);
+	void listen(uint32_t max_connections);
 };
 
 } /* namespace p2p */

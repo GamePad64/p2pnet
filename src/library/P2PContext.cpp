@@ -33,7 +33,7 @@ ContextType P2PContext::getContextType() const {
 LIBP2PNET_DLL_EXPORTED ContextType p2p_getContextType(P2PContext* context) {return context->getContextType();};
 
 uint32_t P2PContext::getContextID() const {
-	return impl->m_id;
+	return impl->context_id;
 }
 LIBP2PNET_DLL_EXPORTED uint32_t p2p_getContextID(P2PContext* context) {return context->getContextID();};
 

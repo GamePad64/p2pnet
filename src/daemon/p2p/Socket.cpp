@@ -11,44 +11,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef IMPL_H_
-#define IMPL_H_
-
-#include "../p2pnet.h"
-#include "../../common/crypto/PrivateKeyDSA.h"
-
-#include <memory>
+#include "Socket.h"
 
 namespace p2pnet {
+namespace p2p {
 
-class P2PContext::Impl {
-public:
-	ContextType m_context_type;
-	uint32_t m_id;
-	P2PSocket* m_parent_socket;
-};
+Socket::Socket()
+{
+	// TODO Auto-generated constructor stub
 
-class P2PSocket::Impl {
-public:
-	P2PNode* m_parent_node;
-	P2PDaemon* m_parent_daemon_ptr;
+}
 
-	uint32_t node_id;
-	uint32_t socket_id;
-	std::map<uint32_t, P2PContext*> m_contexts;
+Socket::~Socket()
+{
+	// TODO Auto-generated destructor stub
+}
 
-	std::string m_remote_sh;
-};
-
-class P2PNode::Impl {
-public:
-	std::shared_ptr<P2PDaemon> m_parent_daemon_shared;
-	P2PDaemon* m_parent_daemon_ptr;
-
-	uint32_t node_id;
-	crypto::PrivateKeyDSA m_bound_private_key;
-};
-
+}
+/* namespace p2p */
 } /* namespace p2pnet */
-
-#endif /* IMPL_H_ */
