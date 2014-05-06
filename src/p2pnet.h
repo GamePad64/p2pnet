@@ -53,20 +53,16 @@ P2PError {
 	too_many_nodes = 257,
 	too_many_sockets = 258,
 	nonexistent_node = 259,
-	nonexistent_socket = 260
+	nonexistent_socket = 260,
+
+	nodemanager_db_non_consistent = 261
 }
 #ifndef __cplusplus
 P2PError
 #endif
 ;
+
 #ifdef __cplusplus
-} /* namespace p2pnet */
-
-namespace std {
-template<> struct is_error_condition_enum<p2pnet::P2PError> : public true_type {};
-}
-
-namespace p2pnet {
 class LIBP2PNET_DLL_EXPORTED P2PErrorCategory_t : public std::error_category {
 public:
 	virtual const char* name() const noexcept;
@@ -75,6 +71,10 @@ public:
 };
 LIBP2PNET_DLL_EXPORTED extern P2PErrorCategory_t P2PErrorCategory;
 } /* namespace p2pnet */
+
+namespace std {
+template<> struct is_error_condition_enum<p2pnet::P2PError> : public true_type {};
+}
 #endif
 
 #ifdef __cplusplus
@@ -88,11 +88,12 @@ LIBP2PNET_DLL_EXPORTED const char* p2p_getErrorMessage(P2PError context);
 #endif
 
 /* Classes section */
-#ifdef __cplusplus
-namespace p2pnet {
-#endif
 
+/* Declaration */
 #ifdef __cplusplus
+/* C++-style declaration */
+
+namespace p2pnet {
 /**
  * This class is used for connection to p2pnetd.
  *
@@ -101,11 +102,25 @@ namespace p2pnet {
  * you don't need to bother with this class, just create P2PSocket.
  */
 class P2PDaemon;
+class P2PContext;
+class P2PSocket;
+class P2PNode;
+
+} /* namespace p2pnet */
+
 #else
+/* C-style declaration */
 typedef struct P2PDaemon P2PDaemon;
+typedef struct P2PContext P2PContext;
+typedef struct P2PSocket P2PSocket;
+typedef struct P2PNode P2PNode;
 #endif
 
-// end of class P2PDaemon
+/* Implementation */
+#ifdef __cplusplus
+namespace p2pnet {
+#endif
+
 // class P2PContext
 
 #ifndef __cplusplus
@@ -126,7 +141,6 @@ ContextType
 ;
 
 #ifdef __cplusplus
-class P2PSocket;
 class LIBP2PNET_DLL_EXPORTED P2PContext {
 	friend class P2PSocket;
 	class Impl; Impl* impl;
@@ -139,9 +153,6 @@ public:
 	uint32_t getContextID() const;
 	P2PSocket* getParentSocket();
 };
-#else
-typedef struct P2PSocket P2PSocket;
-typedef struct P2PContext P2PContext;
 #endif
 
 #ifdef __cplusplus
@@ -158,7 +169,6 @@ LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_getParentSocket(P2PContext* context);
 // class P2PSocket
 
 #ifdef __cplusplus
-class P2PNode;
 class LIBP2PNET_DLL_EXPORTED P2PSocket {
 	friend class P2PContext;
 	friend class P2PNode;
@@ -176,8 +186,6 @@ public:
 	void closeContext(P2PContext* context_ptr);
 	void closeContext(uint32_t context_number);	// "0" is really a synonym to disconnect().
 };
-#else
-//typedef struct P2PSocket P2PSocket;
 #endif
 
 #ifdef __cplusplus
@@ -215,22 +223,20 @@ public:
 	void bind(std::string base58_private_key);
 	void listen(uint32_t max_conn);
 };
-#else
-//typedef struct P2PNode P2PNode;
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-LIBP2PNET_DLL_EXPORTED P2PNode* p2p_createNode(int& ec);
-LIBP2PNET_DLL_EXPORTED P2PNode* p2p_createNodeOnDaemon(P2PDaemon* parent_daemon, int& ec);
+LIBP2PNET_DLL_EXPORTED int p2p_createNode(P2PNode* node);
+LIBP2PNET_DLL_EXPORTED int p2p_createNodeOnDaemon(P2PNode* node, P2PDaemon* parent_daemon);
 LIBP2PNET_DLL_EXPORTED void p2p_destroyNode(P2PNode* node);
 
-LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_accept(P2PNode* listening_node, int& ec);
-LIBP2PNET_DLL_EXPORTED P2PSocket* p2p_connect(P2PNode* connecting_node, char* SH, size_t SH_length, int& ec);
+LIBP2PNET_DLL_EXPORTED int p2p_accept(P2PSocket* socket, P2PNode* listening_node);
+LIBP2PNET_DLL_EXPORTED int p2p_connect(P2PSocket* socket, P2PNode* connecting_node, char* SH, size_t SH_length);
 
-LIBP2PNET_DLL_EXPORTED void p2p_bindNode(P2PNode* node, char* base58_private_key, int& ec);
-LIBP2PNET_DLL_EXPORTED void p2p_listenNode(P2PNode* node, uint32_t max_conn, int& ec);
+LIBP2PNET_DLL_EXPORTED int p2p_bindNode(P2PNode* node, char* base58_private_key);
+LIBP2PNET_DLL_EXPORTED int p2p_listenNode(P2PNode* node, uint32_t max_conn);
 #ifdef __cplusplus
 }
 #endif

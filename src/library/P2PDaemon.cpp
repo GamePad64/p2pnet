@@ -17,15 +17,14 @@ namespace p2pnet {
 
 P2PDaemon::P2PDaemon() {}
 
-void P2PDaemon::handleSend(uint32_t message_token, std::error_condition& error) {
-	awaiting_receive[message_token];
-}
+void P2PDaemon::handleSend(uint32_t message_token, std::error_condition& error) {}
 
 void P2PDaemon::handleReceive(api::APIMessage message, std::error_condition& error) {
 	auto token = message.message_token();
 
-	auto promise_it = awaiting_receive.find(token);
-	promise_it->second.set_value(message);
+	auto locked_msg_it = awaiting_receive.find(token);
+	locked_msg_it->second.second->CopyFrom(message);
+	locked_msg_it->second.first->unlock();
 
 	// Continue receive loop
 	startReceiveLoop();
@@ -35,22 +34,33 @@ void P2PDaemon::startReceiveLoop(){
 	asyncReceive(std::bind(&P2PDaemon::handleReceive, this, std::placeholders::_1, std::placeholders::_2));	// Start receive loop.
 }
 
-void P2PDaemon::markMessage(api::APIMessage& message) {
-	message.set_message_token(next_msg_token++);
+uint32_t P2PDaemon::markMessage(api::APIMessage& message) {
+	uint32_t token = next_msg_token++;
+	message.set_message_token(token);
+	return token;
 }
 
 api::APIMessage P2PDaemon::clientExchange(api::APIMessage request_message) {
 	// First, we assign a token to message.
-	markMessage(request_message);
+	auto token = markMessage(request_message);
 	try {
+		// Then we create a mutex aka lock.
+		auto locked_message = std::make_pair(new std::mutex(), new api::APIMessage());
+		awaiting_receive.insert(std::make_pair(token, locked_message));
+
+		locked_message.first->lock();
 		// Then we send message
 		asyncSend(request_message, std::bind(&P2PDaemon::handleSend, this, request_message.message_token(), std::placeholders::_1));
 		// Then we receive it. It will be received by receive loop in handleReceive().
 		// Then we lock until received.
-		auto promise_it = awaiting_receive.find(request_message.message_token());
-		auto message_future = promise_it->second.get_future();
-		auto reply_message = message_future.get();
+		locked_message.first->lock();
+		api::APIMessage reply_message;
+		reply_message.CopyFrom(*(locked_message.second));
+		locked_message.first->unlock();
 		// After receiving we cleanup awaiting_receive.
+		delete locked_message.first;
+		delete locked_message.second;
+		auto promise_it = awaiting_receive.find(request_message.message_token());
 		awaiting_receive.erase(promise_it);
 
 		// Okay, the message can include something we call remote-throw

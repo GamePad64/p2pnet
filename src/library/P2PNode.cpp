@@ -124,26 +124,21 @@ void P2PNode::listen(uint32_t max_conn) {
 	impl->parent_daemon->clientExchange(message_request);
 }
 
-P2PNode* p2p_createNode(int& ec) {	// TODO: Really stub
+int p2p_createNode(P2PNode* node) {
 	try {
-		auto new_socket = new P2PNode();
-		ec = (int)P2PError::success;
-		return new_socket;
-	}catch(std::exception& e){
-		std::cout << e.what() << std::endl;
-		return 0;
+		node = new P2PNode();
+		return (int)P2PError::success;
+	}catch(std::system_error& e){
+		return e.code().value();
 	}
-	return 0;
 }
 
-P2PNode* p2p_createNodeOnDaemon(P2PDaemon* parent_daemon, int& ec) {	// TODO: Really stub
+int p2p_createNodeOnDaemon(P2PNode* node, P2PDaemon* parent_daemon) {	// TODO: Really stub
 	try {
-		auto new_socket = new P2PNode(parent_daemon);
-		ec = (int)P2PError::success;
-		return new_socket;
+		node = new P2PNode(parent_daemon);
+		return (int)P2PError::success;
 	}catch(std::system_error& e){
-		ec = e.code().value();
-		return 0;
+		return e.code().value();
 	}
 }
 
@@ -151,43 +146,39 @@ void p2p_destroyNode(P2PNode* node) {
 	delete node;
 }
 
-P2PSocket* p2p_accept(P2PNode* listening_node, int& ec){
+int p2p_accept(P2PSocket* socket, P2PNode* listening_node) {
 	try {
-		auto new_socket = listening_node->accept();
-		ec = (int)P2PError::success;
-		return new_socket;
+		socket = listening_node->accept();
+		return (int)P2PError::success;
 	}catch(std::system_error& e){
-		ec = e.code().value();
-		return 0;
+		return e.code().value();
 	}
 }
 
-P2PSocket* p2p_connect(P2PNode* connecting_node, char* SH, size_t SH_length, int& ec){
+int p2p_connect(P2PSocket* socket, P2PNode* connecting_node, char* SH, size_t SH_length) {
 	try {
-		auto new_socket = connecting_node->connect(std::string(SH, SH_length));
-		ec = (int)P2PError::success;
-		return new_socket;
+		socket = connecting_node->connect(std::string(SH, SH_length));
+		return (int)P2PError::success;
 	}catch(std::system_error& e){
-		ec = e.code().value();
-		return 0;
+		return e.code().value();
 	}
 }
 
-void p2p_bindSocket(P2PNode* socket, char* base58_private_key, int& ec) {
+int p2p_bindNode(P2PNode* node, char* base58_private_key) {
 	try {
-		socket->bind(std::string(base58_private_key));
-		ec = (int)P2PError::success;
+		node->bind(std::string(base58_private_key));
+		return (int)P2PError::success;
 	}catch(std::system_error& e){
-		ec = e.code().value();
+		return e.code().value();
 	}
 }
 
-void p2p_listenSocket(P2PNode* socket, uint32_t max_conn, int& ec) {
+int p2p_listenNode(P2PNode* node, uint32_t max_conn) {
 	try {
-		socket->listen(max_conn);
-		ec = (int)P2PError::success;
+		node->listen(max_conn);
+		return (int)P2PError::success;
 	}catch(std::system_error& e){
-		ec = e.code().value();
+		return e.code().value();
 	}
 }
 

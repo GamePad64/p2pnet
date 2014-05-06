@@ -36,14 +36,21 @@ class APISession : public Loggable, public boost::noncopyable {
 	std::map<uint32_t, node_t> nodes;
 	uint32_t next_node_id;
 
+	/**
+	 * Throws std::system_error on client. It is thrown in answer to request_message.
+	 * @param request_message
+	 * @param error
+	 */
+	void remoteThrow(APIMessage request_message, std::error_condition error);
+
 	// Functions that respond to specific MessageType of APIMessage.
-	void NodeRegister(APIMessage message);
-	void NodeUnRegister(APIMessage message);
-	void NodeConnect(APIMessage message);
-	void NodeAccept(APIMessage message);
-	void NodeListen(APIMessage message);
-	void NodeBind(APIMessage message);
-	void SocketUnRegister(APIMessage message);
+	void NodeRegister(APIMessage request_message);
+	void NodeUnRegister(APIMessage request_message);
+	void NodeConnect(APIMessage request_message);
+	void NodeAccept(APIMessage request_message);
+	void NodeListen(APIMessage request_message);
+	void NodeBind(APIMessage request_message);
+	void SocketUnRegister(APIMessage request_message);
 
 protected:
 	APISession(APIServer* parent);
@@ -52,8 +59,8 @@ protected:
 public:
 	virtual ~APISession();
 
-	virtual void send(APIMessage message) = 0;
-	void process(APIMessage message);
+	virtual void send(APIMessage reply_message) = 0;
+	void process(APIMessage request_message);
 
 	void dropSession();	// Just a caution: deletes this APISession instance;
 };

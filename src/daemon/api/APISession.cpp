@@ -33,29 +33,23 @@ APISession::~APISession() {
 	log() << "API session shut down" << std::endl;
 }
 
-void APISession::process(APIMessage message) {
-	switch(message.type()){
-	case APIMessage::NODE_REGISTER: NodeRegister(message); break;
-	case APIMessage::NODE_UNREGISTER: NodeUnRegister(message); break;
-	case APIMessage::NODE_CONNECT: NodeConnect(message); break;
-	case APIMessage::NODE_ACCEPT: NodeAccept(message); break;
-	case APIMessage::NODE_LISTEN: NodeListen(message); break;
-	case APIMessage::NODE_BIND: NodeBind(message); break;
-	case APIMessage::SOCKET_UNREGISTER: SocketUnRegister(message); break;
+void APISession::process(APIMessage request_message) {
+	switch(request_message.type()){
+	case APIMessage::NODE_REGISTER: NodeRegister(request_message); break;
+	case APIMessage::NODE_UNREGISTER: NodeUnRegister(request_message); break;
+	case APIMessage::NODE_CONNECT: NodeConnect(request_message); break;
+	case APIMessage::NODE_ACCEPT: NodeAccept(request_message); break;
+	case APIMessage::NODE_LISTEN: NodeListen(request_message); break;
+	case APIMessage::NODE_BIND: NodeBind(request_message); break;
+	case APIMessage::SOCKET_UNREGISTER: SocketUnRegister(request_message); break;
 	default: return;
 	}
 }
 
-void APISession::NodeRegister(APIMessage message) {
-	APIMessage reply;
-	reply.set_type(reply.NODE_REGISTER_CALLBACK);
-
+void APISession::NodeRegister(APIMessage request_message) {
 	if(next_node_id == 0){
 		// Problem. We reached the limit of nodes.
-		// TODO: error handling.
-		reply.mutable_error()->set_error_code(1);
-		reply.mutable_error()->set_error_what("Node limit exceeded.");
-		send(reply);
+		remoteThrow(request_message, std::error_condition((int)P2PError::too_many_nodes, P2PErrorCategory));
 		return;
 	}
 	uint32_t node_id = next_node_id;
@@ -70,10 +64,10 @@ void APISession::NodeRegister(APIMessage message) {
 	auto nodes_inserted_it = nodes.insert(std::make_pair(node_id, new_node_t));
 
 	// Sending callback
-	APIMessage_NodeRegisterCallback callback;
-	callback.set_node_id(node_id);
-	reply.set_api_message(callback.SerializeAsString());
-	send(reply);
+	APIMessage message_reply;
+	message_reply.set_type(message_reply.NODE_REGISTER);
+	message_reply.mutable_node_register()->set_node_id(node_id);
+	send(message_reply);
 
 	log() << "Registered socket #" << node_id << std::endl;
 
@@ -93,44 +87,68 @@ void APISession::NodeRegister(APIMessage message) {
 	}
 }
 
-void APISession::NodeUnRegister(APIMessage message) {
-	APIMessage::NodeUnRegister api_message;
-	api_message.ParseFromString(message.api_message());
+void APISession::NodeUnRegister(APIMessage request_message) {
+	auto it = nodes.find(request_message.node_unregister().node_id());
+	if(it == nodes.end()){
+		remoteThrow(request_message, std::error_condition((int)P2PError::nonexistent_node, P2PErrorCategory));
+		return;
+	}
 
-	auto it = nodes.find(api_message.node_id());
 	p2p::NodeManager::getInstance()->destroyNode(it->second.node);
 	nodes.erase(it);
 
-	log() << "Unegistered node #" << api_message.node_id() << std::endl;
-	if(next_node_id > api_message.node_id() || next_node_id == 0){
-		next_node_id = api_message.node_id();
-	}//TODO: Callback
+	log() << "Unegistered node #" << request_message.node_unregister().node_id() << std::endl;
+	if(next_node_id > request_message.node_unregister().node_id() || next_node_id == 0){
+		next_node_id = request_message.node_unregister().node_id();
+	}
+
+	// Reply to client
+	APIMessage reply_message(request_message);
+	send(reply_message);
 }
 
-void APISession::NodeConnect(APIMessage message) {
+void APISession::NodeConnect(APIMessage request_message) {
 	throw;
 }
 
-void APISession::NodeAccept(APIMessage message) {
+void APISession::NodeAccept(APIMessage request_message) {
 	throw;
 }
 
-void APISession::NodeListen(APIMessage message) {
-	APIMessage::NodeListen api_message;
-	api_message.ParseFromString(message.api_message());
+void APISession::NodeListen(APIMessage request_message) {
+	auto node_it = nodes.find(request_message.node_listen().node_id());
+	if(node_it == nodes.end()){
+		remoteThrow(request_message, std::error_condition((int)P2PError::nonexistent_node, P2PErrorCategory));
+		return;
+	}
+	node_it->second.node->listen(request_message.node_listen().max_connections());
+}
 
-	auto node_it = nodes.find(api_message.node_id());
-	if(node_it != nodes.end()){
-		node_it->second.node->listen(api_message.max_connections());
-	}else{
-		// TODO: send error to client. Unknown socket.
+void APISession::NodeBind(APIMessage request_message) {
+	auto node_it = nodes.find(request_message.node_bind().node_id());
+	if(node_it == nodes.end()){
+		remoteThrow(request_message, std::error_condition((int)P2PError::nonexistent_node, P2PErrorCategory));
+		return;
+	}
+
+	if(request_message.node_bind().has_binary_private_key()){
+		node_it->second.node->bind(crypto::PrivateKeyDSA::fromBinaryString(request_message.node_bind().binary_private_key()));
+	}else if(request_message.node_bind().has_b58_private_key()){
+		node_it->second.node->bind(crypto::PrivateKeyDSA::fromBase58(request_message.node_bind().b58_private_key()));
 	}
 }
 
-void APISession::NodeBind(APIMessage message) {
+void APISession::SocketUnRegister(APIMessage request_message) {
 }
 
-void APISession::SocketUnRegister(APIMessage message) {
+void APISession::remoteThrow(APIMessage request_message, std::error_condition error){
+	APIMessage reply_message;
+	reply_message.mutable_error()->set_error_category(error.category().name());
+	reply_message.mutable_error()->set_error_code(error.value());
+	reply_message.mutable_error()->set_error_what(error.message());
+
+	reply_message.set_type(request_message.type());
+	reply_message.set_message_token(request_message.message_token());
 }
 
 void APISession::dropSession() {

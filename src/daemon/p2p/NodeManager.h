@@ -16,6 +16,7 @@
 
 #include "SH.h"
 #include "../../common/Singleton.h"
+#include "../../p2pnet.h"
 #include <map>
 #include <set>
 

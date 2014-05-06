@@ -26,7 +26,10 @@ protected:
 	typedef std::function<void(std::error_condition&)> SendHandler;
 	typedef std::function<void(api::APIMessage, std::error_condition&)> ReceiveHandler;
 
-	std::map<uint32_t, std::promise<api::APIMessage>> awaiting_receive;
+	std::thread* socket_thread;
+	boost::asio::io_service m_io_service;
+
+	std::map<uint32_t, std::pair<std::mutex*, api::APIMessage*>> awaiting_receive;
 	uint32_t next_msg_token = 0;
 
 	void handleSend(uint32_t message_token, std::error_condition& error);
@@ -37,8 +40,9 @@ protected:
 	/**
 	 * Adds token number to message
 	 * @param message
+	 * @return token
 	 */
-	void markMessage(api::APIMessage& message);
+	uint32_t markMessage(api::APIMessage& message);
 public:
 	P2PDaemon();
 	virtual ~P2PDaemon(){};

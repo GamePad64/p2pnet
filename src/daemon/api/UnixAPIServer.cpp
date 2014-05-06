@@ -29,9 +29,9 @@ UnixAPISession::~UnixAPISession() {
 }
 
 void UnixAPISession::send(APIMessage message) {
-	int error_code = 0;
-	m_unix_socket->send(message, error_code);
-	if(error_code != 0){
+	std::error_condition error_condition;
+	m_unix_socket->send(message, error_condition);
+	if(error_condition){
 		dropSession();
 	}
 }
@@ -74,8 +74,8 @@ void UnixAPIServer::handleAccept(UnixAPISocket* new_socket) {
 	accept();
 }
 
-void UnixAPIServer::handleReceive(UnixAPISession* new_session, api::APIMessage message, int& error_code) {
-	if(error_code != 0){
+void UnixAPIServer::handleReceive(UnixAPISession* new_session, api::APIMessage message, std::error_condition& error_condition) {
+	if(error_condition){
 		dropSession(new_session);
 	}else{
 		new_session->process(message);

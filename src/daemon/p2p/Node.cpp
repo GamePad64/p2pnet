@@ -12,6 +12,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Node.h"
+#include "NodeManager.h"
+#include "../../common/crypto/PublicKeyDSA.h"
 
 namespace p2pnet {
 namespace p2p {

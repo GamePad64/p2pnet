@@ -17,6 +17,8 @@ namespace p2pnet {
 
 P2PLocalDaemon::P2PLocalDaemon() {
 	underlying_daemon = new P2PUnixDaemon();
+
+	asyncReceive(std::bind(&P2PDaemon::handleReceive, this, std::placeholders::_1, std::placeholders::_2));	// Start receive loop.
 }
 
 P2PLocalDaemon::~P2PLocalDaemon() {

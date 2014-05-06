@@ -14,6 +14,8 @@
 #include "NodeManager.h"
 #include "Node.h"
 
+#include <system_error>
+
 namespace p2pnet {
 namespace p2p {
 
@@ -38,8 +40,7 @@ void NodeManager::bindNode(Node* node, SH sh) {
 			nodes_bound.erase(bound_it);
 			nodes_bound.insert(std::make_pair(sh, node));
 		}else{
-			// TODO: Exception model
-			throw std::runtime_error("NodeManager's DB is inconsistent");
+			throw std::system_error((int)P2PError::nodemanager_db_non_consistent, P2PErrorCategory);
 		}
 	}
 }
@@ -60,6 +61,19 @@ Node* NodeManager::createNode(api::APISession* api_session) {
 }
 
 void NodeManager::destroyNode(Node* node) {
+	auto unbound_it = nodes_unbound.find(node);
+	if(unbound_it != nodes_unbound.end()){
+		nodes_unbound.erase(node);
+	}else{
+		auto bound_it = nodes_bound.find(node->getLocalSH());
+		if(bound_it != nodes_bound.end()){
+			nodes_bound.erase(bound_it);
+		}else{
+			throw std::system_error((int)P2PError::nodemanager_db_non_consistent, P2PErrorCategory);
+		}
+	}
+
+	delete node;
 }
 
 } /* namespace p2p */

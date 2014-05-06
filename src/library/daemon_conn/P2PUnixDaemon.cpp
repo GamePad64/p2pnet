@@ -20,9 +20,9 @@
 namespace p2pnet {
 
 P2PUnixDaemon::P2PUnixDaemon() {
-	socket_thread = new std::thread([&]() {m_io_service.run();});
-
 	connect();
+	startReceiveLoop();
+	socket_thread = new std::thread([&]() {m_io_service.run();});
 }
 
 P2PUnixDaemon::~P2PUnixDaemon() {

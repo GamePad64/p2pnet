@@ -29,6 +29,8 @@ const char* P2PErrorCategory_t::message_c(int error_value) const {
 		case (int)P2PError::nonexistent_node:				return "Node doesn't exist";
 		case (int)P2PError::nonexistent_socket:				return "Socket doesn't exist on specific Node";
 
+		case (int)P2PError::nodemanager_db_non_consistent:	return "NodeManager DB is inconsistent";
+
 		default: 											return "Unknown error";
 	}
 }

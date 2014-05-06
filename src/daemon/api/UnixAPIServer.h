@@ -63,7 +63,7 @@ public:
 	void accept();
 	void handleAccept(UnixAPISocket* new_socket);
 
-	void handleReceive(UnixAPISession* new_session, api::APIMessage message, int& error_code);
+	void handleReceive(UnixAPISession* new_session, api::APIMessage message, std::error_condition& error_condition);
 };
 
 } /* namespace unix */
