@@ -64,12 +64,11 @@ void APISession::NodeRegister(APIMessage request_message) {
 	auto nodes_inserted_it = nodes.insert(std::make_pair(node_id, new_node_t));
 
 	// Sending callback
-	APIMessage message_reply;
-	message_reply.set_type(message_reply.NODE_REGISTER);
+	APIMessage message_reply(request_message);
 	message_reply.mutable_node_register()->set_node_id(node_id);
 	send(message_reply);
 
-	log() << "Registered socket #" << node_id << std::endl;
+	log() << "Registered node #" << node_id << std::endl;
 
 	// Computing next node_id
 	next_node_id++;	// If it turns into zero, than this was the last node we can create on this APISession;
@@ -122,6 +121,9 @@ void APISession::NodeListen(APIMessage request_message) {
 		return;
 	}
 	node_it->second.node->listen(request_message.node_listen().max_connections());
+
+	APIMessage reply_message(request_message);
+	send(reply_message);
 }
 
 void APISession::NodeBind(APIMessage request_message) {
@@ -136,6 +138,11 @@ void APISession::NodeBind(APIMessage request_message) {
 	}else if(request_message.node_bind().has_b58_private_key()){
 		node_it->second.node->bind(crypto::PrivateKeyDSA::fromBase58(request_message.node_bind().b58_private_key()));
 	}
+
+	log() << "Bound node #" << request_message.node_bind().node_id() << std::endl;
+
+	APIMessage reply_message(request_message);
+	send(reply_message);
 }
 
 void APISession::SocketUnRegister(APIMessage request_message) {
@@ -152,6 +159,7 @@ void APISession::remoteThrow(APIMessage request_message, std::error_condition er
 }
 
 void APISession::dropSession() {
+	//TODO: delete nodes.
 	parent_api_server->dropSession(this);
 }
 

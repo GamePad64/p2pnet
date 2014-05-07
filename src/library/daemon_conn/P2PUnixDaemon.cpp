@@ -14,26 +14,26 @@
 #include "../../p2pnet.h"
 
 #ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
-#include "P2PUnixDaemon.h"
 #include "../../common/api/UnixAPISocket.h"
+
+#include "../P2PSession.h"
+
+#include "P2PUnixDaemon.h"
 
 namespace p2pnet {
 
 P2PUnixDaemon::P2PUnixDaemon() {
 	connect();
-	startReceiveLoop();
-	socket_thread = new std::thread([&]() {m_io_service.run();});
 }
 
+P2PUnixDaemon::P2PUnixDaemon(std::shared_ptr<P2PSession> session) : P2PDaemon(session) {}
+
 P2PUnixDaemon::~P2PUnixDaemon() {
-	m_io_service.stop();
-	if (socket_thread->joinable())
-		socket_thread->join();
-	delete socket_thread;
+	disconnect();
 }
 
 void P2PUnixDaemon::connect() {
-	m_socket = new api::unix::UnixAPISocket(m_io_service);
+	m_socket = new api::unix::UnixAPISocket(session->getIOService());
 	bool connected = false;
 
 	auto path_list = api::unix::getSocketPathList();
@@ -50,10 +50,12 @@ void P2PUnixDaemon::connect() {
 			}
 		}
 	}
+
+	receiveLoop();
 }
 
 void P2PUnixDaemon::connect(std::string path) {
-	m_socket = new api::unix::UnixAPISocket(m_io_service);
+	m_socket = new api::unix::UnixAPISocket(session->getIOService());
 	connected = false;
 
 	try {
@@ -64,17 +66,19 @@ void P2PUnixDaemon::connect(std::string path) {
 		connected = false;
 		throw std::system_error(e.code().value(), std::generic_category());
 	}
+
+	receiveLoop();
 }
 
 bool P2PUnixDaemon::is_connected() {
 	return connected;
 }
 
-void P2PUnixDaemon::asyncSend(api::APIMessage data, SendHandler handler) {
+void P2PUnixDaemon::asyncSend(api::APIMessage data, api::SendHandler handler) {
 	m_socket->asyncSend(data, handler);
 }
 
-void P2PUnixDaemon::asyncReceive(ReceiveHandler handler) {
+void P2PUnixDaemon::asyncReceive(api::ReceiveHandler handler) {
 	m_socket->asyncReceive(handler);
 }
 

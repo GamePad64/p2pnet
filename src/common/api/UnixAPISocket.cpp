@@ -138,7 +138,6 @@ void UnixAPISocket::handleReceive(const boost::system::error_code& boost_error,
 	delete[] message;
 
 	session_socket.get_io_service().dispatch(std::bind(receive_handler, message_proto, stdErrorFromBoostError(boost_error)));
-	asyncReceive(receive_handler);
 }
 
 } /* namespace unix */

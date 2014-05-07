@@ -55,9 +55,15 @@ void NodeManager::unbindNode(Node* node) {
 }
 
 Node* NodeManager::createNode() {
+	auto node = new Node();
+	nodes_unbound.insert(node);
+	return node;
 }
 
 Node* NodeManager::createNode(api::APISession* api_session) {
+	auto node = new Node(api_session);
+	nodes_unbound.insert(node);
+	return node;
 }
 
 void NodeManager::destroyNode(Node* node) {

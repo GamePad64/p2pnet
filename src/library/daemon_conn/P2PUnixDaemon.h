@@ -25,15 +25,14 @@ class P2PUnixDaemon : public P2PDaemon {
 	std::string m_socket_path;
 	api::unix::UnixAPISocket* m_socket;
 
-	std::thread* socket_thread;
-	boost::asio::io_service m_io_service;
 	bool connected;
 public:
 	P2PUnixDaemon();
+	P2PUnixDaemon(std::shared_ptr<P2PSession> session);
 	virtual ~P2PUnixDaemon();
 
-	virtual void asyncSend(api::APIMessage data, SendHandler handler);
-	virtual void asyncReceive(ReceiveHandler handler);
+	virtual void asyncSend(api::APIMessage data, api::SendHandler handler);
+	virtual void asyncReceive(api::ReceiveHandler handler);
 
 	void connect();
 	void connect(std::string path);

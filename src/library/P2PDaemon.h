@@ -15,42 +15,32 @@
 #define P2PDAEMON_H_
 
 #include "../common/api/APIMessage.pb.h"
+#include "../common/api/api_handlers.h"
 #include "../p2pnet.h"
 
 #include <future>
 
 namespace p2pnet {
 
+class P2PSession;
 class P2PDaemon {
 protected:
-	typedef std::function<void(std::error_condition&)> SendHandler;
-	typedef std::function<void(api::APIMessage, std::error_condition&)> ReceiveHandler;
-
-	std::thread* socket_thread;
-	boost::asio::io_service m_io_service;
-
-	std::map<uint32_t, std::pair<std::mutex*, api::APIMessage*>> awaiting_receive;
-	uint32_t next_msg_token = 0;
-
-	void handleSend(uint32_t message_token, std::error_condition& error);
-	void handleReceive(api::APIMessage message, std::error_condition& error);
-
-	void startReceiveLoop();
-
-	/**
-	 * Adds token number to message
-	 * @param message
-	 * @return token
-	 */
-	uint32_t markMessage(api::APIMessage& message);
+	std::shared_ptr<P2PSession> session;
 public:
 	P2PDaemon();
+	/**
+	 * For something like P2PAutoDaemon, where we need to use child daemons.
+	 * It does not connect automatically. Needs to connect() explicitly.
+	 * @param session
+	 */
+	P2PDaemon(std::shared_ptr<P2PSession> session);
 	virtual ~P2PDaemon(){};
 
 	// We use asynchronous I/O.
-	virtual void asyncSend(api::APIMessage data, SendHandler handler) = 0;
-	virtual void asyncReceive(ReceiveHandler handler) = 0;
+	virtual void asyncSend(api::APIMessage data, api::SendHandler handler) = 0;
+	virtual void asyncReceive(api::ReceiveHandler handler) = 0;
 
+	void receiveLoop();
 	api::APIMessage clientExchange(api::APIMessage request_message);
 
 	virtual void connect() = 0;

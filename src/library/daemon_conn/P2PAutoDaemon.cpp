@@ -11,37 +11,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "P2PLocalDaemon.h"
+#include "P2PAutoDaemon.h"
 
 namespace p2pnet {
 
-P2PLocalDaemon::P2PLocalDaemon() {
-	underlying_daemon = new P2PUnixDaemon();
-
-	asyncReceive(std::bind(&P2PDaemon::handleReceive, this, std::placeholders::_1, std::placeholders::_2));	// Start receive loop.
+P2PAutoDaemon::P2PAutoDaemon() {
+	underlying_daemon = new P2PUnixDaemon(session);
+	connect();
 }
 
-P2PLocalDaemon::~P2PLocalDaemon() {
+P2PAutoDaemon::P2PAutoDaemon(std::shared_ptr<P2PSession> session) : P2PDaemon(session) {
+	underlying_daemon = new P2PUnixDaemon(session);
+}
+
+P2PAutoDaemon::~P2PAutoDaemon() {
 	delete underlying_daemon;
 }
 
-void P2PLocalDaemon::asyncSend(api::APIMessage data, SendHandler handler) {
+void P2PAutoDaemon::asyncSend(api::APIMessage data, api::SendHandler handler) {
 	underlying_daemon->asyncSend(data, handler);
 }
 
-void P2PLocalDaemon::asyncReceive(ReceiveHandler handler) {
+void P2PAutoDaemon::asyncReceive(api::ReceiveHandler handler) {
 	underlying_daemon->asyncReceive(handler);
 }
 
-void P2PLocalDaemon::connect() {
+void P2PAutoDaemon::connect() {
 	underlying_daemon->connect();
 }
 
-bool P2PLocalDaemon::is_connected() {
+bool P2PAutoDaemon::is_connected() {
 	return underlying_daemon->is_connected();
 }
 
-int P2PLocalDaemon::disconnect() {
+int P2PAutoDaemon::disconnect() {
 	return underlying_daemon->disconnect();
 }
 

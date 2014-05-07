@@ -60,6 +60,10 @@ UnixAPIServer::UnixAPIServer(boost::asio::io_service& io_service) :
 
 UnixAPIServer::~UnixAPIServer() {}
 
+void UnixAPIServer::receiveLoop(UnixAPISession* session){
+	session->getUnixSocket().asyncReceive(std::bind(&UnixAPIServer::handleReceive, this, session, std::placeholders::_1, std::placeholders::_2));
+}
+
 void UnixAPIServer::accept() {
 	auto new_socket = new UnixAPISocket(asio_io_service);
 	acceptor_ptr->async_accept(new_socket->getSocket(), std::bind(&UnixAPIServer::handleAccept, this, new_socket));
@@ -69,7 +73,7 @@ void UnixAPIServer::handleAccept(UnixAPISocket* new_socket) {
 	auto new_session = new UnixAPISession(new_socket, this);
 
 	api_sessions.insert(new_session);
-	new_socket->asyncReceive(std::bind(&UnixAPIServer::handleReceive, this, new_session, std::placeholders::_1, std::placeholders::_2));
+	receiveLoop(new_session);
 
 	accept();
 }
@@ -79,6 +83,7 @@ void UnixAPIServer::handleReceive(UnixAPISession* new_session, api::APIMessage m
 		dropSession(new_session);
 	}else{
 		new_session->process(message);
+		receiveLoop(new_session);
 	}
 }
 

@@ -18,8 +18,10 @@
 namespace p2pnet {
 namespace p2p {
 
-Node::Node() {}
-Node::Node(api::APISession* api_session) {
+Node::Node() {
+	api_session = nullptr;
+}
+Node::Node(api::APISession* api_session) : Node() {
 	this->api_session = api_session;
 }
 Node::~Node() {}

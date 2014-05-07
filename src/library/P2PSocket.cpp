@@ -12,12 +12,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "../p2pnet.h"
-#include "daemon_conn/P2PLocalDaemon.h"
+#include "P2PDaemon.h"
 
 #include "../common/crypto/PrivateKeyDSA.h"
 #include "../common/Singleton.h"
 
+
 #include "Impl.h"
+
+#include "../common/Loggable.h"
 
 namespace p2pnet {
 

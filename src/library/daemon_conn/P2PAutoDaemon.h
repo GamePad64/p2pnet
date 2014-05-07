@@ -11,22 +11,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef P2PLOCALDAEMON_H_
-#define P2PLOCALDAEMON_H_
+#ifndef P2PAUTODAEMON_H_
+#define P2PAUTODAEMON_H_
 
 #include "../P2PDaemon.h"
 #include "P2PUnixDaemon.h"
 
 namespace p2pnet {
 
-class P2PLocalDaemon : public P2PDaemon {
+class P2PAutoDaemon : public P2PDaemon {
 	P2PDaemon* underlying_daemon;
 public:
-	P2PLocalDaemon();
-	virtual ~P2PLocalDaemon();
+	P2PAutoDaemon();
+	P2PAutoDaemon(std::shared_ptr<P2PSession> session);
+	virtual ~P2PAutoDaemon();
 
-	virtual void asyncSend(api::APIMessage data, SendHandler handler);
-	virtual void asyncReceive(ReceiveHandler handler);
+	virtual void asyncSend(api::APIMessage data, api::SendHandler handler);
+	virtual void asyncReceive(api::ReceiveHandler handler);
 
 	virtual void connect();
 	virtual bool is_connected();
@@ -35,4 +36,4 @@ public:
 
 } /* namespace p2pnet */
 
-#endif /* P2PLOCALDAEMON_H_ */
+#endif /* P2PAUTODAEMON_H_ */

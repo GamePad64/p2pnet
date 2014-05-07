@@ -51,6 +51,8 @@ class UnixAPIServer : public APIServer, ConfigClient, Loggable {
 	std::string socket_path;
 
 	boost::asio::io_service& asio_io_service;
+
+	void receiveLoop(UnixAPISession* session);
 public:
 	/**
 	 * Constructs and starts Unix Domain Socket API server.

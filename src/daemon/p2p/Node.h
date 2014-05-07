@@ -43,7 +43,7 @@ class Node {
 	SH bound_sh;
 	api::APISession* api_session;
 
-	uint32_t max_connections;
+	uint32_t max_connections = 0;
 
 	std::map<SH, Socket> connected_sockets;
 public:

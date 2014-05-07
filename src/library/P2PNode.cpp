@@ -12,7 +12,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "../p2pnet.h"
-#include "daemon_conn/P2PLocalDaemon.h"
+#include "daemon_conn/P2PAutoDaemon.h"
 
 #include "../common/Singleton.h"
 
@@ -21,7 +21,7 @@
 namespace p2pnet {
 
 // Constructors
-P2PNode::P2PNode() : P2PNode(SharedSingleton<P2PLocalDaemon>::getInstance()) {}
+P2PNode::P2PNode() : P2PNode(SharedSingleton<P2PAutoDaemon>::getInstance()) {}
 
 P2PNode::P2PNode(P2PDaemon* parent_daemon) {
 	impl = new Impl();
@@ -56,11 +56,12 @@ P2PNode::~P2PNode() {
 	message_request.mutable_node_unregister()->set_node_id(impl->node_id);
 	// End of request
 
-	Loggable::log("P2PSocket") << "Unregistering node: #" << impl->node_id << std::endl;
+	Loggable::log("P2PNode") << "Unregistering node: #" << impl->node_id << std::endl;
 	try {
 		impl->parent_daemon->clientExchange(message_request);
+		Loggable::log("P2PNode") << "Unregistered node: #" << impl->node_id << std::endl;
 	} catch (std::system_error& e){
-		Loggable::log("P2PSocket") << "Node #" << impl->node_id << " not destructed properly. Exception: " << e.what() << std::endl;
+		Loggable::log("P2PNode") << "Node #" << impl->node_id << " not destructed properly. Exception: " << e.what() << std::endl;
 	}
 
 	delete impl;
