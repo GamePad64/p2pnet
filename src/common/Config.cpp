@@ -42,6 +42,7 @@ ConfigClient::~ConfigClient() {
 
 // ConfigManager
 ConfigManager::ConfigManager() {
+	initDefaults();
 	config_directory = getDefaultDirectory();
 	config_file = getDefaultFile();
 
@@ -50,6 +51,10 @@ ConfigManager::ConfigManager() {
 }
 
 ConfigManager::~ConfigManager() {this->saveToFile();}
+
+const config_t& ConfigManager::getDefaults() const {
+	return internal_config_defaults;
+}
 
 std::string ConfigManager::getDefaultDirectory() {
 	// Setting up paths on multiple platforms
@@ -117,6 +122,7 @@ void ConfigManager::loadFromFile() {
 		read_json(file, internal_config);
 		log() << "Configuration file loaded" << std::endl;
 	}catch(boost::property_tree::file_parser_error& parser_error){
+		internal_config = internal_config_defaults;
 		log() << "Configuration file not found. Using default values." << std::endl;
 	}
 	file.close();

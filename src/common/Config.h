@@ -43,13 +43,14 @@ protected:
 
 class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 	config_t internal_config;
+	config_t internal_config_defaults;
 	std::string config_directory;
 	std::string config_file;
 
 	std::mutex config_io_mutex;
 
-	config_t getDefaults() const {
-		config_t config;
+	void initDefaults() {
+		config_t& config = internal_config_defaults;
 
 		//config.put("policies.permissions.outgoing_only", false);	// Drops ConnectionRequest and disables UDPLPD.
 
@@ -70,8 +71,8 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 		config.put("overlay.connection.processed_queue_size", 100);
 
 		// Endpoint
-		config.put("endpoint.allow_loopback", true);
-		config.put("endpoint.listen.max_connections", 128);
+		config.put("p2p.allow_loopback", true);
+		config.put("p2p.listen.max_connections", 128);
 
 		// Databases
 		// -- PersonalKeyStorage
@@ -95,9 +96,8 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 		config.put("discovery.udpv6.local_ip", "0::0");
 		config.put("discovery.udpv6.multicast.ip", "ff08::BD02");
 		config.put("discovery.udpv6.multicast.port", 28915);
-
-		return config;
 	};
+	const config_t& getDefaults() const;
 
 	std::string getDefaultDirectory();
 	void setDirectory(std::string directory);
@@ -147,7 +147,11 @@ inline void ConfigClient::setValue(std::string path, T value){
 
 template< class T >
 inline T ConfigManager::getValue(std::string path) const {
-	return internal_config.get(path, getDefaults().get<T>(path));
+	try {
+		return internal_config.get<T>(path);
+	}catch(boost::property_tree::ptree_bad_path&){
+		return getDefaults().get<T>(path);
+	}
 }
 
 template< class T >
