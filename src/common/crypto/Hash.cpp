@@ -54,7 +54,7 @@ Hash& Hash::operator =(Hash&& rhash) {
 	return *this;
 }
 
-bool Hash::operator == (const Hash& rhash){
+bool Hash::operator == (const Hash& rhash) const{
 	return hash == rhash.hash;
 }
 

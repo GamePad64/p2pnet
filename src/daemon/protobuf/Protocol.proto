@@ -44,18 +44,25 @@ message OverlayMessage {
 
 			/* payload part */
 			optional bytes src_ecdsa_pubkey = 2;	// Our ECDSA key.
-			optional string expires = 3;	// Its expiry time in ISO 8601 like YYYYMMDDThhmmss.
-			optional string lost = 4;	// We will 'forget' our private key after this time.
+			optional string expiration_time = 3;	// Its expiry time in ISO 8601 like YYYYMMDDThhmmss.
+			optional string lose_time = 4;	// We will 'forget' our private key after this time.
 
 			optional bytes src_ecdh_pubkey = 5;	// This connection ECDH key, signed with our ECDSA key.
 			optional bytes signature = 6; // OUR_ECDSA_SIG(src_ecdh_pubkey)
 		}
 
 		message KeyRotationPart {
-			optional bytes old_ecdsa_key = 1;
-			optional bytes new_ecdsa_key = 2;
-			optional bytes old_signature = 3;
-			optional bytes new_signature = 4;
+			message SignedContent {
+				optional bytes old_ecdsa_key = 1;
+				optional bytes new_ecdsa_key = 2;
+
+				optional string expiration_time = 3;	// Its expiry time in ISO 8601 like YYYYMMDDThhmmss.
+				optional string lose_time = 4;	// We will 'forget' our private key after this time.
+			}
+
+			optional SignedContent signed_content = 1;
+			optional bytes old_signature = 2;
+			optional bytes new_signature = 3;
 		}
 
 		optional ConnectionPart connection_part = 1;

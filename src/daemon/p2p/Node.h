@@ -18,6 +18,11 @@
 #include "../../common/crypto/PrivateKeyDSA.h"
 #include "Socket.h"
 
+#include "../../common/Config.h"
+
+#include <boost/optional.hpp>
+#include <deque>
+
 namespace p2pnet {
 namespace api {class APISession;}
 namespace p2p {
@@ -38,14 +43,17 @@ public:
 	void loopback(bool enabled);
 */
 
-class Node {
+class Node : public ConfigClient {
 	crypto::PrivateKeyDSA bound_private_key;
 	SH bound_sh;
 	api::APISession* api_session;
 
 	uint32_t max_connections = 0;
+	boost::optional<bool> loopback_param;
 
-	std::map<SH, Socket> connected_sockets;
+	std::map<SH, Socket*> connected_sockets;
+
+	std::deque<Connection*> incoming_connections;
 public:
 	Node();
 	Node(api::APISession* api_session);
@@ -56,6 +64,13 @@ public:
 
 	void bind(crypto::PrivateKeyDSA private_key);
 	void listen(uint32_t max_connections);
+
+	void connect(SH sh);
+	void accept();
+
+	bool loopback();
+	void loopback(bool set_loopback);
+	void resetLoopback();
 };
 
 } /* namespace p2p */

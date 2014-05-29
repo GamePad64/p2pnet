@@ -15,8 +15,9 @@
 #define OVERLAYSOCKET_H_
 
 #include "TH.h"
-#include "OverlayPeer.h"
 #include "OverlayDHT.h"
+#include "OverlayKeyProvider.h"
+
 #include "../transport/TransportSocketEndpoint.h"
 #include "../../common/Singleton.h"
 #include "../../common/Loggable.h"
@@ -27,34 +28,36 @@ namespace overlay {
 class OverlayConnection;
 
 class OverlaySocket : public Singleton<OverlaySocket>, Loggable {
-	friend class OverlayPeer;
 	friend class OverlayConnection;
 	friend class OverlayDHT;
 protected:
-	OverlayDHT dht_service;
-
-	struct overlay_peer_conn_t {
-		std::shared_ptr<OverlayPeer> peer;
-		std::shared_ptr<OverlayConnection> connection;
-	};
-	std::map<overlay::TH, overlay_peer_conn_t> m_peers_conns;
+	std::map<TH, OverlayConnection*> m_connections;
 	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// TODO: Banned peer list.
 
+	OverlayKeyProvider key_provider;
+	OverlayDHT dht_service;
+
 public:
+	enum class Priority {
+		REALTIME = protocol::OverlayMessage_Header_MessagePriority_REALTIME,
+		RELIABLE = protocol::OverlayMessage_Header_MessagePriority_RELIABLE
+	};
+
 	OverlaySocket();
 	virtual ~OverlaySocket();
 
-	std::string getComponentName(){return "OverlaySocket";}
-
-	void send(const overlay::TH& dest,
-			const protocol::OverlayMessage_Payload& message_payload,
-			protocol::OverlayMessage_Header_MessagePriority prio);
+	void send(const TH& dest,
+			const protocol::OverlayMessage_Payload& message_payload, Priority prio);
 	void process(std::string data, const transport::TransportSocketEndpoint& from);
 
-	std::shared_ptr<OverlayConnection> getConnection(const overlay::TH& th);
-	std::shared_ptr<OverlayPeer> getPeer(const overlay::TH& th);
-	void removePeer(const overlay::TH& th);
-	void movePeer(const overlay::TH& from, const overlay::TH& to);
+	OverlayConnection* getConnection(const TH& th);
+	void removePeer(const TH& th);
+	void movePeer(const TH& from, const TH& to);
+
+	void notifyKeysUpdated(std::pair<crypto::PrivateKeyDSA, TH> previous_keys, std::pair<crypto::PrivateKeyDSA, TH> new_keys);
+
+	OverlayKeyProvider* getKeyProvider();
+	OverlayDHT* getDHT();
 };
 
 } /* namespace overlay */

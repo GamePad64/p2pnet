@@ -13,49 +13,30 @@
  */
 #include "OverlaySocket.h"
 #include "OverlayConnection.h"
-#include "OverlayPeer.h"
 #include "../protobuf/Protocol.pb.h"
 
 namespace p2pnet {
 namespace overlay {
 
-OverlaySocket::OverlaySocket() : dht_service(this) {}
+OverlaySocket::OverlaySocket() : m_connections(), key_provider(this), dht_service(this) {}
 
 OverlaySocket::~OverlaySocket() {}
 
-std::shared_ptr<OverlayConnection> OverlaySocket::getConnection(const overlay::TH& th) {
-	auto it_peer = m_peers_conns.find(th);
+OverlayConnection* OverlaySocket::getConnection(const overlay::TH& th) {
+	auto it_peer = m_connections.find(th);
 
-	if(it_peer != m_peers_conns.end()){
-		return it_peer->second.connection;
+	if(it_peer != m_connections.end()){
+		return it_peer->second;
 	}
 
-	auto new_peer = std::make_shared<OverlayPeer>(th);
-	auto new_connection = std::make_shared<OverlayConnection>(new_peer);
-	overlay_peer_conn_t peer_conn = {new_peer, new_connection};
+	auto conn_ptr = new OverlayConnection(th);
+	m_connections.insert(std::make_pair(th, conn_ptr));
 
-	m_peers_conns.insert(std::make_pair(th, peer_conn));
-	return peer_conn.connection;
+	return conn_ptr;
 }
 
-std::shared_ptr<OverlayPeer> OverlaySocket::getPeer(const overlay::TH& th) {
-	auto it_peer = m_peers_conns.find(th);
-
-	if(it_peer != m_peers_conns.end()){
-		return it_peer->second.peer;
-	}
-
-	auto new_peer = std::make_shared<OverlayPeer>(th);
-	auto new_connection = std::make_shared<OverlayConnection>(new_peer);
-	overlay_peer_conn_t peer_conn = {new_peer, new_connection};
-
-	m_peers_conns.insert(std::make_pair(th, peer_conn));
-	return peer_conn.peer;
-}
-
-void OverlaySocket::send(const overlay::TH& dest,
-		const protocol::OverlayMessage_Payload& message_payload,
-		protocol::OverlayMessage_Header_MessagePriority prio) {
+void OverlaySocket::send(const TH& dest,
+		const protocol::OverlayMessage_Payload& message_payload, Priority prio) {
 	getConnection(dest)->send(message_payload, prio);
 }
 
@@ -65,24 +46,40 @@ void OverlaySocket::process(std::string data, const transport::TransportSocketEn
 	if(overlay_message.ParseFromString(data)){
 		overlay::TH packet_src_th(overlay::TH::fromBinaryString(overlay_message.header().src_th()));
 
-		log() << "Received Overlay Message from: TH:" << overlay::TH::fromBinaryString(overlay_message.header().src_th()).toBase58() << std::endl;
+		log() << "<- OverlayMessage: TH:" << overlay::TH::fromBinaryString(overlay_message.header().src_th()).toBase58() << std::endl;
 
 		getConnection(packet_src_th)->process(overlay_message, from);
 	}else if(request_message.ParseFromString(data)){
 		overlay::TH packet_src_th(overlay::TH::fromBinaryString(request_message.src_th()));
 
-		log() << "Received Connection Request from: TH:" << overlay::TH::fromBinaryString(request_message.src_th()).toBase58() << std::endl;
+		log() << "<- Connection Request: TH:" << overlay::TH::fromBinaryString(request_message.src_th()).toBase58() << std::endl;
 
 		getConnection(packet_src_th)->process(request_message, from);
 	}	// else drop
 }
 
 void OverlaySocket::removePeer(const overlay::TH& th) {
-	m_peers_conns.erase(th);
+	m_connections.erase(th);
 }
 
 void OverlaySocket::movePeer(const overlay::TH& from, const overlay::TH& to) {
-	m_peers_conns[to] = m_peers_conns[from];
+	m_connections[to] = m_connections[from];
+}
+
+void OverlaySocket::notifyKeysUpdated(std::pair<crypto::PrivateKeyDSA, TH> previous_keys, std::pair<crypto::PrivateKeyDSA, TH> new_keys){
+	for(auto connection : m_connections){
+		connection.second->performRemoteKeyRotation(previous_keys);
+	}
+
+	dht_service.recomputeAll();
+}
+
+OverlayKeyProvider* OverlaySocket::getKeyProvider() {
+	return &key_provider;
+}
+
+OverlayDHT* OverlaySocket::getDHT() {
+	return &dht_service;
 }
 
 } /* namespace overlay */

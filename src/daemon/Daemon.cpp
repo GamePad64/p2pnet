@@ -19,14 +19,12 @@ namespace p2pnet {
 
 Daemon::Daemon() {
 	config_manager = ConfigManager::getInstance();
-	m_pk_storage = databases::PersonalKeyStorage::getInstance();
 	m_transport_socket = transport::TransportSocket::getInstance();
 	m_overlay_socket = overlay::OverlaySocket::getInstance();
 }
 Daemon::~Daemon() {
 	m_overlay_socket->clear();
 	m_transport_socket->clear();
-	m_pk_storage->clear();
 	config_manager->clear();
 }
 

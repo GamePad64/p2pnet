@@ -22,3 +22,6 @@
 /contrib
 /docs
 /libtest
+
+.SyncID
+.SyncIgnore

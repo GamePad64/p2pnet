@@ -14,7 +14,6 @@
 
 #include "DiscoveryService.h"
 #include "../protobuf/Protocol.pb.h"
-#include "../databases/PersonalKeyStorage.h"
 #include "../transport/TransportConnection.h"
 #include "../transport/TransportSocket.h"
 
@@ -25,10 +24,10 @@ DiscoveryService::DiscoveryService() {}
 DiscoveryService::~DiscoveryService() {}
 
 protocol::ConnectionRequestMessage DiscoveryService::generateConnectionRequest() {
-	auto pks = databases::PersonalKeyStorage::getInstance();
+	auto pks = overlay::OverlaySocket::getInstance()->getKeyProvider();
 
 	protocol::ConnectionRequestMessage message;
-	message.set_src_th(pks->getMyTransportHash().toBinaryString());
+	message.set_src_th(pks->getTH().toBinaryString());
 	return message;
 }
 

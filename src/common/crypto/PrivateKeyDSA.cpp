@@ -45,6 +45,10 @@ PrivateKeyDSA& PrivateKeyDSA::operator =(PrivateKeyDSA&& rvalue) {
 	return *this;
 }
 
+bool PrivateKeyDSA::operator == (const PrivateKeyDSA& rvalue) const{
+	return key_private->private_value() == rvalue.key_private->private_value();
+}
+
 PrivateKeyDSA PrivateKeyDSA::generateNewKey(){
 	PrivateKeyDSA privkey;
 	privkey.generateKey();

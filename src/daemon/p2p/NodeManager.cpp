@@ -82,5 +82,13 @@ void NodeManager::destroyNode(Node* node) {
 	delete node;
 }
 
+Node* NodeManager::getBoundNode(SH sh){
+	auto node_it = nodes_bound.find(sh);
+	if(node_it != nodes_bound.end()){
+		return node_it->second;
+	}
+	return nullptr;
+}
+
 } /* namespace p2p */
 } /* namespace p2pnet */

@@ -15,6 +15,8 @@
 #include "NodeManager.h"
 #include "../../common/crypto/PublicKeyDSA.h"
 
+#include <boost/none.hpp>
+
 namespace p2pnet {
 namespace p2p {
 
@@ -42,6 +44,28 @@ void Node::bind(crypto::PrivateKeyDSA private_key) {
 
 void Node::listen(uint32_t max_connections) {
 	this->max_connections = max_connections;
+}
+
+void Node::connect(SH sh) {
+	Socket* connecting_socket = new Socket(this, sh);
+}
+
+void Node::accept() {
+	Socket* accepting_socket = new Socket(this, incoming_connections.front());
+	incoming_connections.pop_front();
+	connected_sockets.insert(std::make_pair(accepting_socket->getRemoteSH(), accepting_socket));
+}
+
+bool Node::loopback() {
+	return loopback_param.get_value_or(getValue<bool>("p2p.allow_loopback"));
+}
+
+void Node::loopback(bool set_loopback) {
+	loopback_param = set_loopback;
+}
+
+void Node::resetLoopback() {
+	loopback_param = boost::none;
 }
 
 } /* namespace p2p */

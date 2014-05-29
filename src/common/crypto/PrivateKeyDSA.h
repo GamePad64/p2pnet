@@ -39,6 +39,8 @@ public:
 	PrivateKeyDSA& operator =(const PrivateKeyDSA& rvalue);
 	PrivateKeyDSA& operator =(PrivateKeyDSA&& rvalue);
 
+	bool operator == (const PrivateKeyDSA& rvalue) const;
+
 	static PrivateKeyDSA generateNewKey();
 	void generateKey();
 

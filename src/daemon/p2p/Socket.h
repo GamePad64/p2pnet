@@ -14,13 +14,25 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
+#include "SH.h"
+#include "../../common/crypto/PublicKeyDSA.h"
+
 namespace p2pnet {
 namespace p2p {
 
+class Node;
+class Connection;
+
 class Socket {
+	Node* parent_node;
+
+	Connection* connection;
 public:
-	Socket();
+	Socket(Node* node, Connection* incoming_connection);	// Accept incoming connection
+	Socket(Node* node, SH sh_to_connect);	// Connect to remote node
 	virtual ~Socket();
+
+	SH getRemoteSH();
 };
 
 } /* namespace p2p */

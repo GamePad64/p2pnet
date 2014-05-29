@@ -15,17 +15,17 @@
 #define OVERLAYDHT_H_
 
 #include "../dht/DHTService.h"
-#include "../databases/PersonalKeyStorage.h"
+#include "../../common/Loggable.h"
 
 namespace p2pnet {
 namespace overlay {
 
 class OverlaySocket;
-class OverlayPeer;
+class OverlayConnection;
 
-class OverlayDHT : public dht::DHTService, databases::PersonalKeyStorageClient {
+class OverlayDHT : public dht::DHTService, Loggable {
 	OverlaySocket* parent_socket_ptr;
-	std::array<std::set<std::shared_ptr<OverlayPeer>>, crypto::HASH_LENGTH> k_buckets;
+	std::array<std::set<OverlayConnection*>, crypto::HASH_LENGTH> k_buckets;
 public:
 	OverlayDHT();
 	OverlayDHT(OverlaySocket* socket_ptr);
@@ -38,14 +38,14 @@ public:
 	boost::optional<std::string> getLocalNodeInfo(const crypto::Hash& hash);
 	void putLocalNodeInfo(const crypto::Hash& hash, std::string node_info);
 
-	void registerInKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance);
-	void registerInKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash);
-	void registerInKBucket(std::shared_ptr<OverlayPeer> peer);
-	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, unsigned short distance);
-	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer, const crypto::Hash& my_hash);
-	void removeFromKBucket(std::shared_ptr<OverlayPeer> peer);
+	void registerInKBucket(OverlayConnection* peer, unsigned short distance);
+	void registerInKBucket(OverlayConnection* peer, const crypto::Hash& my_hash);
+	void registerInKBucket(OverlayConnection* peer);
+	void removeFromKBucket(OverlayConnection* peer, unsigned short distance);
+	void removeFromKBucket(OverlayConnection* peer, const crypto::Hash& my_hash);
+	void removeFromKBucket(OverlayConnection* peer);
 
-	void keysUpdated(boost::posix_time::ptime expiry_time, boost::posix_time::ptime lose_time);
+	void recomputeAll();
 };
 
 } /* namespace overlay */

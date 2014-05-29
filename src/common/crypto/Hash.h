@@ -45,7 +45,7 @@ public:
 	Hash& operator = (const Hash& rhash);
 	Hash& operator = (Hash&& rhash);
 
-	bool operator == (const Hash& rhash);
+	bool operator == (const Hash& rhash) const;
 
 	operator bool();
 

@@ -19,8 +19,6 @@
 #include "../common/Loggable.h"
 #include "AsioIOService.h"
 
-#include "databases/PersonalKeyStorage.h"
-
 #include "api/APIManager.h"
 
 #include "transport/TransportSocket.h"
@@ -38,8 +36,6 @@ class Daemon : public Loggable {
 	void initDiscoveryServices();
 public:
 	ConfigManager* config_manager;
-
-	databases::PersonalKeyStorage* m_pk_storage;
 
 	transport::TransportSocket* m_transport_socket;
 	overlay::OverlaySocket* m_overlay_socket;

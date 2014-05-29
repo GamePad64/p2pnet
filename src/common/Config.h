@@ -69,28 +69,26 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 
 		// Overlay
 		config.put("overlay.connection.processed_queue_size", 100);
+		config.put("overlay.connection.key_rotation_spam_limit", 5);
+		config.put("overlay.key_provider.history_size", 10);
+		config.put("overlay.key_provider.renew_interval", 10);
 
 		// Endpoint
 		config.put("p2p.allow_loopback", true);
 		config.put("p2p.listen.max_connections", 128);
 
-		// Databases
-		// -- PersonalKeyStorage
-		config.put("databases.pks.history_size", 10);
-		config.put("databases.pks.renew_interval", 10);
-
 		// Discovery
 		// -- Bootstrap
 		config.put("discovery.bootstrap.filename", "bootstrap.txt");
 
-		// UDPv4
+		// -- UDPv4
 		config.put("discovery.udpv4.enabled", true);
 		config.put("discovery.udpv4.timer", 10);
 		config.put("discovery.udpv4.local_ip", "0.0.0.0");
 		config.put("discovery.udpv4.multicast.ip", "239.192.152.144");
 		config.put("discovery.udpv4.multicast.port", 28915);
 
-		// UDPv6
+		// -- UDPv6
 		config.put("discovery.udpv6.enabled", true);
 		config.put("discovery.udpv6.timer", 10);
 		config.put("discovery.udpv6.local_ip", "0::0");
@@ -126,8 +124,6 @@ public:
 		USER
 	};
 	permissions_t getPermissions();
-
-	std::string getComponentName(){return "ConfigManager";}
 
 	template<class T>
 	T getValue(std::string path) const;

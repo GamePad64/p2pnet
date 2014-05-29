@@ -51,8 +51,9 @@ public:
 
 	Node* createNode();
 	Node* createNode(api::APISession* api_session);
-
 	void destroyNode(Node* node);
+
+	Node* getBoundNode(SH sh);
 };
 
 } /* namespace p2p */
