@@ -38,7 +38,7 @@ float Loggable::getTimeFromStart() {
 std::string Loggable::log_tag(log_class c) {
 	switch(c){
 	case ERROR:
-		return "(EE)";
+		return "(EE) ";
 		break;
 	default:
 		break;
@@ -47,27 +47,20 @@ std::string Loggable::log_tag(log_class c) {
 }
 
 std::string Loggable::getComponentName() {
-	return demangle(typeid(*this).name());
-}
-
-std::ostream& Loggable::log(std::string component) {
-	std::clog << "(" << getTimeFromStart() << ") [" << component << "] ";
-	return std::clog;
+	auto demangled_name = demangle(typeid(*this).name());
+	if(demangled_name.compare(0, 8, "p2pnet::") == 0){
+		return demangled_name.substr(8);
+	}
+	return demangled_name;
 }
 
 std::ostream& Loggable::log(std::string component, log_class c) {
-	std::clog << "(" << getTimeFromStart() << ") [" << component << "] " << log_tag(c) << " ";
-	return std::clog;
-}
-
-std::ostream& Loggable::log() {
-	std::clog << "(" << getTimeFromStart() << ") [" << getComponentName() << "] ";
+	std::clog << "(" << getTimeFromStart() << ") [" << component << "] " << log_tag(c);
 	return std::clog;
 }
 
 std::ostream& Loggable::log(log_class c) {
-	std::clog << "(" << getTimeFromStart() << ") [" << getComponentName() << "] " << log_tag(c) << " ";
-	return std::clog;
+	return log(getComponentName(), c);
 }
 
 } /* namespace p2pnet */

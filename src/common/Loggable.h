@@ -24,6 +24,7 @@ namespace p2pnet {
 class Loggable {
 public:
 	enum log_class {
+		NONE,
 		ERROR
 	};
 private:
@@ -36,12 +37,10 @@ public:
 	Loggable();
 	virtual ~Loggable();
 
-	virtual std::string getComponentName();	// Basic implementation makes hard use of RTTI.
+	std::string getComponentName();	// Basic implementation uses RTTI!
 
-	static std::ostream& log(std::string component);
-	static std::ostream& log(std::string component, log_class c);
-	std::ostream& log();
-	std::ostream& log(log_class c);
+	static std::ostream& log(std::string component, log_class c = NONE);
+	std::ostream& log(log_class c = NONE);
 };
 
 } /* namespace p2pnet */
