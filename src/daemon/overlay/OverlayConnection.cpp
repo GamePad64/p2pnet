@@ -22,15 +22,17 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlayConnection::OverlayConnection(const TH& th) :
+OverlayConnection::OverlayConnection(const TH& th) : DHTClient(OverlaySocket::getInstance()->getDHT()),
 		remote_key_lose_timer(AsioIOService::getIOService()),
 		key_rotation_spam_timer(AsioIOService::getIOService()),
 		key_rotation_spam_limit(getValue<long>("overlay.connection.key_rotation_spam_limit")) {
 	remote_th = th;
 	log() << "New Overlay Connection initiated with TH:" << remoteTH().toBase58() << std::endl;
+	OverlaySocket::getInstance()->getDHT()->registerInKBucket(this);
 }
 
 OverlayConnection::~OverlayConnection() {
+	OverlaySocket::getInstance()->getDHT()->removeFromKBucket(this);
 	disconnect();
 }
 
@@ -128,7 +130,7 @@ void OverlayConnection::performRemoteKeyRotation(std::pair<crypto::PrivateKeyDSA
 		message.mutable_header()->set_prio(message.header().REALTIME);
 
 		message.mutable_payload()->mutable_key_rotation_part()->CopyFrom(generateKeyRotationPart(previous_keys.first));
-		sendRawMessage(message);
+		sendMessage(message);
 	}
 }
 
@@ -141,32 +143,8 @@ void OverlayConnection::setState(const State& state_to_set){
 	}
 }
 
-void OverlayConnection::sendBinaryData(std::string data) {
-	auto& transport_socket_connections = transport::TransportSocket::getInstance()->m_connections;
-
-	std::shared_ptr<transport::TransportConnection> conn;
-
-	// Searching for at least one "living" TransportConnection
-	for(auto& conn_it : transport_endpoints){
-		auto sock_it = transport_socket_connections.find(conn_it);
-		if(sock_it->second->connected()){
-			conn = sock_it->second;
-			break;
-		}
-	}
-
-	if(conn){
-		conn->send(data);
-		log() << "-> OverlayMessage: TH:" << remoteTH().toBase58() << std::endl;
-	}else{
-		// If there are no connections alive, we store messages to "suspended".
-		// And, when they will be sent after some connections arrive.
-		suspended_binary_data.push_front(data);
-	}
-}
-
-void OverlayConnection::sendRawMessage(protocol::OverlayMessage send_message) {
-	if(!(localTH().toBinaryString() == send_message.header().src_th())){
+void OverlayConnection::sendMessage(protocol::OverlayMessage send_message) {
+	if(localTH().toBinaryString() != send_message.header().src_th()){
 		auto our_historic_key = getKeyProvider()->getPrivateKey(send_message.header().src_th());
 		if(our_historic_key != boost::none){
 			if(send_message.header().prio() == send_message.header().RELIABLE){
@@ -192,7 +170,31 @@ void OverlayConnection::sendRawMessage(protocol::OverlayMessage send_message) {
 		acked_messages.clear();	//TODO: dunno
 	}
 
-	sendBinaryData(send_message.SerializeAsString());
+	//
+
+	auto& transport_socket_connections = transport::TransportSocket::getInstance()->m_connections;
+
+	std::shared_ptr<transport::TransportConnection> conn;
+
+	// Searching for at least one "living" TransportConnection
+	for(auto& conn_it : transport_endpoints){
+		auto sock_it = transport_socket_connections.find(conn_it);
+		if(sock_it->second->connected()){
+			conn = sock_it->second;
+			break;
+		}
+	}
+
+	if(conn){
+		conn->send(send_message.SerializeAsString());
+		log() << "-> OverlayMessage: TH:" << remoteTH().toBase58() << std::endl;
+	}else{
+		// If there are no connections alive, we store messages to "suspended".
+		// And, when they will be sent after some connections arrive.
+		suspended_messages.push_front(send_message);
+		// Then we will try to find additional nodes
+		findNode(remoteTH());
+	}
 }
 
 protocol::OverlayMessage OverlayConnection::generateReplySkel(const protocol::OverlayMessage& recv_message){
@@ -296,7 +298,7 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 
 		setState(State::PUBKEY_RECEIVED);
 
-		sendRawMessage(reply);
+		sendMessage(reply);
 	}else if(static_cast<Stage>(recv_message.payload().connection_part().stage()) == Stage::PUBKEY_ACK){
 		/* We need to send back ECDH */
 		reply.mutable_header()->set_prio(reply.header().RELIABLE);
@@ -304,7 +306,7 @@ void OverlayConnection::processConnectionPartPUBKEY(const protocol::OverlayMessa
 
 		setState(State::ECDH_SENT);
 
-		sendRawMessage(reply);
+		sendMessage(reply);
 	}
 }
 
@@ -328,7 +330,7 @@ void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage
 
 		setState(State::ECDH_RECEIVED);
 
-		sendRawMessage(reply);
+		sendMessage(reply);
 	}else if(recv_message.payload().connection_part().stage() == recv_message.payload().connection_part().ECDH_ACK && state == State::ECDH_SENT){
 		/* We need to send back AES */
 		reply.mutable_header()->set_prio(reply.header().RELIABLE);
@@ -336,7 +338,7 @@ void OverlayConnection::processConnectionPartECDH(const protocol::OverlayMessage
 		not_encrypted_payload.mutable_connection_part()->CopyFrom(generateConnectionPart(Stage::AES));
 		reply.set_encrypted_payload(encryptPayload(not_encrypted_payload));
 
-		sendRawMessage(reply);
+		sendMessage(reply);
 
 		setState(State::ESTABLISHED);
 		log() << "AES encrypted connection with TH:" << remoteTH().toBase58() << " established" << std::endl;
@@ -364,12 +366,15 @@ void OverlayConnection::send(const protocol::OverlayMessage_Payload& send_payloa
 		message.mutable_header()->set_dest_th(remoteTH().toBinaryString());
 		message.mutable_header()->set_prio((protocol::OverlayMessage_Header_MessagePriority)prio);
 		message.set_encrypted_payload(encryptPayload(send_payload));
-		sendRawMessage(message);
+		sendMessage(message);
 	}else{
 		if(prio == Priority::RELIABLE){
 			suspended_payloads.push_back(std::make_pair(send_payload, prio));
 		}else if(prio == Priority::REALTIME){
 			// TODO: We need a new queue for use with realtime messages.
+		}
+		if(state == State::CLOSED){
+			connect();
 		}
 	}
 }
@@ -399,7 +404,7 @@ void OverlayConnection::process(const protocol::OverlayMessage& recv_message, co
 				updateEndpoint(from, true);
 				processConnectionPart(recv_message, decrypted_payload);
 				// DHT
-				//OverlaySocket::getInstance()->dht_service.process(src_th, recv_message.payload().GetExtension(protocol::dht_part));
+				OverlaySocket::getInstance()->getDHT()->process(src_th, recv_message.payload().GetExtension(protocol::dht_part));
 			}else{
 				// TODO: Reconnect
 			}
@@ -436,12 +441,14 @@ void OverlayConnection::connect() {
 	message.mutable_header()->set_dest_th(remoteTH().toBinaryString());
 	message.mutable_header()->set_prio(message.header().RELIABLE);
 	message.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(Stage::PUBKEY));
-	sendRawMessage(message);
+	sendMessage(message);
 }
 
 void OverlayConnection::disconnect() {
 	state = State::CLOSED;
 }
+
+void OverlayConnection::foundNode(const crypto::Hash& coords, std::string node_info){}
 
 } /* namespace overlay */
 } /* namespace p2pnet */

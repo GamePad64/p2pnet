@@ -40,7 +40,7 @@ class DHTClient : boost::noncopyable {
 	DHTService* service_ptr;
 public:
 	DHTClient(DHTService* parent_service);
-	virtual ~DHTClient(){};
+	virtual ~DHTClient();
 	// Signals
 	void findNode(const crypto::Hash& coords);
 	virtual void foundNode(const crypto::Hash& coords, std::string node_info) = 0;
@@ -74,7 +74,6 @@ private:
 			unsigned short max_from_bucket,
 			unsigned short max_nodes_total);
 
-	void findNode(const crypto::Hash& hash, DHTClient* client = nullptr);
 	void foundNode(const crypto::Hash& hash, std::string node_info);
 protected:
 	virtual crypto::Hash getMyHash() = 0;
@@ -91,6 +90,8 @@ public:
 
 	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) = 0;
 	void process(const crypto::Hash& from, const protocol::DHTPart& dht_part);
+
+	void findNode(const crypto::Hash& hash, DHTClient* client = nullptr);
 };
 
 } /* namespace dht */

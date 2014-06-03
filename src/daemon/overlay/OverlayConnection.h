@@ -21,17 +21,15 @@
 #include "../../common/crypto/PublicKeyDSA.h"
 #include "../protobuf/Protocol.pb.h"
 #include "../../common/Config.h"
+#include "../dht/DHTService.h"
 
 #include <deque>
 #include <unordered_map>
 
-// TODO: fetch this thing from configuration
-#define KEY_ROTATION_LIMIT 5
-
 namespace p2pnet {
 namespace overlay {
 
-class OverlayConnection : public Loggable, public std::enable_shared_from_this<OverlayConnection>, public ConfigClient {
+class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnection>, public ConfigClient, public dht::DHTClient {
 	friend class OverlaySocket;
 	// Types
 	enum class State {
@@ -73,7 +71,7 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 	 * They can be suspended because all TransportSockets are inactive.
 	 * They will be sent after discovery new route to TH.
 	 */
-	std::deque<std::string> suspended_binary_data;
+	std::deque<protocol::OverlayMessage> suspended_messages;
 	/**
 	 * This variable holds messages, that were suspended inside send() function
 	 * They can be suspended because AES encryption is not set up yet.
@@ -122,8 +120,7 @@ class OverlayConnection : public Loggable, public std::enable_shared_from_this<O
 	 * This function is about connectivity, and "send" is about encryption.
 	 * @param data
 	 */
-	void sendBinaryData(std::string data);
-	void sendRawMessage(protocol::OverlayMessage send_message);
+	void sendMessage(protocol::OverlayMessage send_message);
 
 	// Generators
 	protocol::OverlayMessage generateReplySkel(const protocol::OverlayMessage& recv_message);
@@ -165,6 +162,8 @@ public:
 
 	// Public setters
 	void updateEndpoint(const transport::TransportSocketEndpoint& endpoint, bool verified = false);
+
+	void foundNode(const crypto::Hash& coords, std::string node_info);
 };
 
 } /* namespace overlay */

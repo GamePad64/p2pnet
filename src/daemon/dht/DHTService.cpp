@@ -20,6 +20,15 @@ namespace dht {
 /* DHTClient */
 DHTClient::DHTClient(DHTService* parent_service) {
 	service_ptr = parent_service;
+	service_ptr->registerClient(this);
+}
+
+DHTClient::~DHTClient() {
+	service_ptr->unregisterClient(this);
+}
+
+void DHTClient::findNode(const crypto::Hash& coords){
+	service_ptr->findNode(coords, this);
 }
 
 /* DHTService */

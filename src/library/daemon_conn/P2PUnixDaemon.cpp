@@ -26,7 +26,10 @@ P2PUnixDaemon::P2PUnixDaemon() {
 	connect();
 }
 
-P2PUnixDaemon::P2PUnixDaemon(std::shared_ptr<P2PSession> session) : P2PDaemon(session) {}
+P2PUnixDaemon::P2PUnixDaemon(std::shared_ptr<P2PSession> session) : P2PDaemon(session) {
+	connected = false;
+	m_socket = nullptr;
+}
 
 P2PUnixDaemon::~P2PUnixDaemon() {
 	disconnect();
@@ -34,7 +37,7 @@ P2PUnixDaemon::~P2PUnixDaemon() {
 
 void P2PUnixDaemon::connect() {
 	m_socket = new api::unix::UnixAPISocket(session->getIOService());
-	bool connected = false;
+	connected = false;
 
 	auto path_list = api::unix::getSocketPathList();
 	auto it = path_list.begin();
