@@ -43,8 +43,8 @@ class OverlayKeyProvider : ConfigClient, public Loggable {
 	boost::posix_time::ptime expiration_time;
 	boost::posix_time::ptime lose_time;
 
-	boost::posix_time::minutes expiration_interval;
-	boost::posix_time::minutes lose_interval;
+	boost::posix_time::seconds expiration_interval;
+	boost::posix_time::seconds lose_interval;
 
 	std::thread generator_thread;
 	std::mutex key_mutex;

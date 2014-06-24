@@ -71,7 +71,7 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 		config.put("overlay.connection.processed_queue_size", 100);
 		config.put("overlay.connection.key_rotation_spam_limit", 5);
 		config.put("overlay.key_provider.history_size", 10);
-		config.put("overlay.key_provider.renew_interval", 10);
+		config.put("overlay.key_provider.renew_interval", 600);
 
 		// Endpoint
 		config.put("p2p.allow_loopback", true);
