@@ -27,22 +27,6 @@ namespace p2pnet {
 namespace api {class APISession;}
 namespace p2p {
 
-/*
-	std::unique_ptr<Connection> connection;
-	SH bound_sh;
-	api::APISession* api_session;
-public:
-	LocalSocket();
-	LocalSocket(api::APISession* api_session);
-	virtual ~LocalSocket();
-
-	bool isBound();
-	SH getLocalSH();
-
-	bool loopback();
-	void loopback(bool enabled);
-*/
-
 class Node : public ConfigClient {
 	crypto::PrivateKeyDSA bound_private_key;
 	SH bound_sh;
