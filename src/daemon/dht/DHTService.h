@@ -23,75 +23,72 @@
 #include <list>
 #include <set>
 #include <boost/noncopyable.hpp>
-#include <boost/date_time.hpp>
-#include <boost/optional.hpp>
+
+using boost::posix_time::seconds;
 
 namespace p2pnet {
 namespace dht {
 
-struct DHTCoords {
-	std::string ns;	// I can't use word "namespace", it is reserved.
-	crypto::Hash hash;
-};
-
-class DHTService;
-
-class DHTClient : boost::noncopyable {
-	DHTService* service_ptr;
-public:
-	DHTClient(DHTService* parent_service);
-	virtual ~DHTClient();
-	// Signals
-	void findNode(const crypto::Hash& coords);
-	virtual void foundNode(const crypto::Hash& coords, std::string node_info) = 0;
-
-	//void findValue(DHTCoords coords);
-	//virtual std::string postValue(DHTCoords coords, std::string value);
-	//virtual void foundValue(DHTCoords coords, std::string value) = 0;
-};
-
-struct DHTStoredValue {
-	boost::posix_time::ptime timestamp_expires;
-	DHTClient* client_ptr;
-	std::string value;
-};
-
 /**
- * This is what we call 2D-DHT. It is a modified version of Kademlia protocol.
- * 2D means that we have namespace and keyspace.
+ * This is basic implementation of Kademlia DHT, specifications defined here:
+ * http://xlattice.sourceforge.net/components/protocol/kademlia/specs.html
+ *
+ * Constants, such as: alpha, k, B, tExpire, tRefresh, tReplicate, tRepublish
+ * are defined just like in the original paper, except for B, as we use
+ * SHA3-224 (224 bit long) instead of SHA-1 (160 bit long).
  */
 class DHTService : boost::noncopyable {
-	friend class DHTClient;
-private:
-	std::set<DHTClient*> clients;	// All the clients hooked to this DHTService
-	/* Structures that map queries to clients to inform these clients later */
-	std::multimap<crypto::Hash, DHTClient*> node_queries;
-	std::multimap<DHTCoords, DHTClient*> value_queries;
-
-	std::map<DHTCoords, DHTStoredValue> posted_values;
-
-	std::list<crypto::Hash> getClosestTo(const crypto::Hash& hash,
-			unsigned short max_from_bucket,
-			unsigned short max_nodes_total);
-
-	void foundNode(const crypto::Hash& hash, std::string node_info);
 protected:
-	virtual crypto::Hash getMyHash() = 0;
-	virtual std::vector<crypto::Hash> getNNodesFromBucket(unsigned short bucket) = 0;
-	virtual boost::optional<std::string> getLocalNodeInfo(const crypto::Hash& hash) = 0;
-	virtual void putLocalNodeInfo(const crypto::Hash& hash, std::string node_info) = 0;
+	/* Kademlia definition constants */
+	const uint16_t alpha, k, B;
+	const seconds tExpire, tRefresh, tReplicate, tRepublish;
 
-	/* Client management */
-	void registerClient(DHTClient* client_ptr);
-	void unregisterClient(DHTClient* client_ptr);
+	/* K-buckets themselves */
+	std::vector<std::deque<DHTNode*>> k_buckets;
+
+	/**
+	 * Protected constructor, as we don't suppose to create DHTService objects.
+	 * Its parameters are Kademlia definition constants.
+	 * @param alpha - measure of parallelism, number of asynchronous network calls
+	 * @param k - number of nodes in bucket
+	 * @param B - bits in NodeID (aka crypto::Hash)
+	 * @param tExpire - the time after which a key/value pair expires; this is a time-to-live (TTL) from the original publication date
+	 * @param tRefresh - after which an otherwise unaccessed bucket must be refreshed
+	 * @param tReplicate - the interval between Kademlia replication events, when a node is required to publish its entire database
+	 * @param tRepublish - the time after which the original publisher must republish a key/value pair
+	 */
+	DHTService(
+			uint16_t alpha = 3,
+			uint16_t k = 20,
+			uint16_t B = 224,
+			seconds tExpire = 86400,
+			seconds tRefresh = 3600,
+			seconds tReplicate = 3600,
+			seconds tRepublish = 86410	// See note in http://xlattice.sourceforge.net/components/protocol/kademlia/specs.html#constants
+			);
+
+	virtual crypto::Hash getMyHash() = 0;
+	virtual std::list<DHTNode*> getClosestTo(const crypto::Hash& hash, int16_t count, bool exchangeable_only);
+
+	virtual boost::optional<DHTNode*> getNodeByHash(const crypto::Hash& hash);
+
 public:
-	DHTService();
 	virtual ~DHTService();
 
+	/* Send/process */
 	virtual void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) = 0;
 	void process(const crypto::Hash& from, const protocol::DHTPart& dht_part);
 
-	void findNode(const crypto::Hash& hash, DHTClient* client = nullptr);
+	/* Primitive actions */
+	virtual void findNode(const crypto::Hash& find_hash, const crypto::Hash& dest_hash);
+	virtual void findValue(const crypto::Hash& find_value, const crypto::Hash& dest_hash);
+	virtual void storeValue(const std::string& value, const crypto::Hash& dest_hash);
+	virtual void pingNode(const crypto::Hash& dest_hash);
+
+	/* Iterative actions */
+	virtual void findNodeIterative(const crypto::Hash& find_hash);
+	virtual void findValueIterative(const crypto::Hash& find_hash);
+	virtual void storeValueIterative(const std::string& value);
 };
 
 } /* namespace dht */
