@@ -27,7 +27,7 @@ namespace dht {
 class KBucket {
 	const int index;
 	std::pair<std::unique_ptr<KBucket>, std::unique_ptr<KBucket>> split_buckets = {nullptr, nullptr};
-	std::deque<DHTNode*> bucket_contents;
+	std::list<DHTNode*> bucket_contents;
 	const bool splittable;
 
 	std::shared_ptr<const crypto::Hash> node_hash_ptr;
@@ -66,6 +66,7 @@ public:
 	virtual ~KBucket();	// Unique_ptr's will delete nested k-buckets recursively!
 
 	void addNode(DHTNode* node);
+	void removeNode(DHTNode* node);
 	std::list<DHTNode*> getClosest(const crypto::Hash& hash, int n = 0);
 
 	/**

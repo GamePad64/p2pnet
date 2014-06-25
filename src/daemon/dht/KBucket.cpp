@@ -87,11 +87,23 @@ void KBucket::addNode(DHTNode* node) {
 	}
 }
 
+void KBucket::removeNode(DHTNode* node) {
+	auto node_hash = node->getHash();
+
+	if(!isSplit()){
+		auto erase_it = std::find(bucket_contents.begin(), bucket_contents.end(), node);
+		if(erase_it != bucket_contents.end())
+			bucket_contents.erase(erase_it);
+	}else{
+		determineBucket(node_hash)->removeNode(node);
+	}
+}
+
 std::list<DHTNode*> KBucket::getClosest(const crypto::Hash& hash, int n) {
 	std::list<DHTNode*> result_list;
 
 	if(!isSplit()){
-		int i = 0;
+		decltype(n) i = 0;
 		auto it = bucket_contents.begin();
 		while(i < n || it != bucket_contents.end()){
 			result_list.push_back(*it);
