@@ -16,11 +16,11 @@
 namespace p2pnet {
 namespace dht {
 
-KBucket::KBucket(const crypto::Hash& node_hash) : index(0), splittable(true) {
+KBucket::KBucket(const crypto::Hash& node_hash, uint16_t k) : index(0), splittable(true), k(k) {
 	node_hash_ptr = std::make_shared<const crypto::Hash>(node_hash);
 }
 
-KBucket::KBucket(int index, bool splittable, std::shared_ptr<const crypto::Hash> node_hash_ptr) :
+KBucket::KBucket(int index, bool splittable, std::shared_ptr<const crypto::Hash> node_hash_ptr, uint16_t k) :
 		index(index),
 		splittable(splittable),
 		node_hash_ptr(node_hash_ptr) {}
@@ -33,8 +33,8 @@ void KBucket::split() {
 
 	auto my_hash_bit = getBit(*node_hash_ptr, index+1);
 
-	split_buckets.first = std::unique_ptr<KBucket>(new KBucket(index+1, !my_hash_bit, node_hash_ptr));
-	split_buckets.second = std::unique_ptr<KBucket>(new KBucket(index+1, my_hash_bit, node_hash_ptr));
+	split_buckets.first = std::unique_ptr<KBucket>(new KBucket(index+1, !my_hash_bit, node_hash_ptr, k));
+	split_buckets.second = std::unique_ptr<KBucket>(new KBucket(index+1, my_hash_bit, node_hash_ptr, k));
 
 	for(auto node : bucket_contents){
 		determineBucket(node->getHash())->bucket_contents.push_back(node);
@@ -53,6 +53,14 @@ KBucket* KBucket::determineBucket(const crypto::Hash& hash) {
 		return split_buckets.second.get();
 }
 
+void KBucket::cleanup(){
+	for(auto it = bucket_contents.begin(); it != bucket_contents.end(); it++){
+		if((*it)->getReliability() == DHTNode::Reliability::BAD){
+			bucket_contents.erase(it);
+		}
+	}
+}
+
 bool KBucket::getBit(const crypto::Hash& hash, int bit_index){
 	int split_byte = bit_index / 8;
 	int split_bit = bit_index % 8;
@@ -64,23 +72,24 @@ bool KBucket::isSplit() const {
 	return split_buckets.first != nullptr && split_buckets.second != nullptr;
 }
 
-void KBucket::addNode(DHTNode* node) {
+void KBucket::addNode(DHTNode* node, bool force) {
 	auto node_hash = node->getHash();
 
 	if(!isSplit()){
-		bool bucket_full = true;
-		for(auto ex_node_it = bucket_contents.begin(); ex_node_it != bucket_contents.end(); ex_node_it++){
-			if((*ex_node_it)->getReliability() != DHTNode::Reliability::GOOD){	// If there is a DHTNode, which is not GOOD
-				bucket_full = false;	// Then the bucket is not full
-				bucket_contents.erase(ex_node_it);	// Because we can get empty space
-				bucket_contents.push_back(node);	// For the new node
-				break;
-			}
-		}
+		if(bucket_contents.size() < k){	// Then we don't need this cleanup routine
+			bucket_contents.push_back(node);
+		}else{
+			// Okay, we need to cleanup. So, we leave only GOOD nodes.
+			std::remove_if(bucket_contents.begin(), bucket_contents.end(),
+					[](DHTNode* pred_node){return pred_node->getReliability() == DHTNode::Reliability::BAD;}
+			);
 
-		if(bucket_full && splittable){	// If the bucket is full, but splittable
-			split();	// Then we can split it
-			determineBucket(node_hash)->addNode(node);	// And let our children decide what to do with this node.
+			if(bucket_contents.size() < k){
+				bucket_contents.push_back(node);
+			}else if(splittable){
+				split();
+				determineBucket(node_hash)->addNode(node);
+			}
 		}
 	}else{
 		determineBucket(node_hash)->addNode(node);
@@ -126,7 +135,7 @@ std::list<DHTNode*> KBucket::getClosest(const crypto::Hash& hash, int n) {
 	}
 }
 
-int KBucket::count() {
+int KBucket::count() const {
 	if(isSplit()){
 		return split_buckets.first->count() + split_buckets.second->count();
 	}else{

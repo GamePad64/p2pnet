@@ -26,16 +26,17 @@ namespace dht {
  */
 class KBucket {
 	const int index;
+	const uint16_t k;
 	std::pair<std::unique_ptr<KBucket>, std::unique_ptr<KBucket>> split_buckets = {nullptr, nullptr};
 	std::list<DHTNode*> bucket_contents;
 	const bool splittable;
 
 	std::shared_ptr<const crypto::Hash> node_hash_ptr;
 
-	KBucket(int index, bool splittable, std::shared_ptr<const crypto::Hash> node_hash_ptr);
+	KBucket(int index, bool splittable, std::shared_ptr<const crypto::Hash> node_hash_ptr, uint16_t k);
 
 	/**
-	 * Splits this KBucket into two. Uses index to determine, by whick byte shall we split.
+	 * Splits this KBucket into two. Uses index to determine, by which byte shall we split.
 	 */
 	void split();
 
@@ -45,6 +46,8 @@ class KBucket {
 	 * @return
 	 */
 	KBucket* determineBucket(const crypto::Hash& hash);
+
+	void cleanup();
 
 	/**
 	 * Gets specific bit in hash
@@ -62,10 +65,10 @@ public:
 	 * KBucket public constructor. It constructs new KBucket, using node_hash as its own node's hash.
 	 * @param node_hash Own node's hash.
 	 */
-	KBucket(const crypto::Hash& node_hash);
+	KBucket(const crypto::Hash& node_hash, uint16_t k);
 	virtual ~KBucket();	// Unique_ptr's will delete nested k-buckets recursively!
 
-	void addNode(DHTNode* node);
+	void addNode(DHTNode* node, bool force = false);
 	void removeNode(DHTNode* node);
 	std::list<DHTNode*> getClosest(const crypto::Hash& hash, int n = 0);
 
@@ -73,7 +76,7 @@ public:
 	 * Counts elements in this KBucket. This function walks around all children KBuckets.
 	 * @return Elements in KBucket.
 	 */
-	int count();
+	int count() const;
 };
 
 } /* namespace dht */
