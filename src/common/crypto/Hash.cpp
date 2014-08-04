@@ -79,46 +79,25 @@ bool Hash::check(const std::string& data) {
 	return (h.toBinaryString() == this->toBinaryString());
 }
 
-unsigned short Hash::computeDistance(const Hash& rhash) const {
-	unsigned short distance = 0;
-
-	binary_vector_t rhash_vector = rhash.toBinaryVector();
-
-	auto char1 = hash.begin();
-	auto char2 = rhash_vector.begin();
-
-	unsigned char comp_value;
-
-	while (char1 != hash.end() && char2 != rhash_vector.end()) {
-		comp_value = (*char1) ^ (*char2);
-		while (comp_value) {
-			++distance;
-			comp_value &= comp_value - 1;
-		}
-		++char1;
-		++char2;
-	}
-
-	return distance;
-}
-
-std::vector<unsigned char> Hash::operator^(const Hash& rhash) const {
-	std::list<unsigned char> result_v;
+Hash Hash::operator^(const Hash& rhash) const {
 	binary_vector_t this_v = this->toBinaryVector();
 	binary_vector_t right_v = rhash.toBinaryVector();
 
-	auto this_i = this_v.begin();
-	auto left_i = right_v.begin();
-	while( (this_i != this_v.end()) && (left_i != right_v.end()) ){
-		result_v.push_back( (*this_i) ^ (*left_i) );
-		this_i++;
-		left_i++;
+	auto max_size = std::max(this_v.size(), right_v.size());
+	this_v.resize(max_size);
+	right_v.resize(max_size);
+
+	binary_vector_t result_v(max_size);
+
+	for(size_t i; i < max_size; i++) {
+		result_v[i] = this_v[i] ^ right_v[i];
 	}
-	return ( std::vector<unsigned char>(result_v.begin(), result_v.end()) );
+	return result_v;
 }
 
 bool Hash::operator <(const Hash& lhash) const {
-	return hash < lhash.hash;
+	return std::string(hash.begin(), hash.end()) <
+			std::string(lhash.hash.begin(), lhash.hash.end());
 }
 
 void Hash::clear(){

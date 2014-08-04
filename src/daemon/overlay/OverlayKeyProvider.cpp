@@ -56,7 +56,9 @@ void OverlayKeyProvider::renewKeys() {
 
 	if(!history.empty()){
 		// Notify OverlaySocket about key rotation, so it could notify connections, recompute DHT K-buckets, do stuff...
-		AsioIOService::getIOService().dispatch(std::bind(&OverlaySocket::notifyKeysUpdated, parent, history.front(), history_entry));
+		AsioIOService::getIOService().dispatch([&](){
+			rotation_signal();}
+		);
 	}
 
 	history.push_front(history_entry);
@@ -72,7 +74,7 @@ void OverlayKeyProvider::loopGenerate(){
 		generator_thread.join();
 	}
 
-	auto now = boost::posix_time::second_clock::universal_time();
+	auto now = std::chrono::system_clock::now();
 
 	expiration_time = now+expiration_interval;
 	lose_time = now+lose_interval;
@@ -81,10 +83,6 @@ void OverlayKeyProvider::loopGenerate(){
 
 	timer.expires_at(expiration_time);
 	timer.async_wait(boost::bind(&OverlayKeyProvider::loopGenerate, this));
-}
-
-void OverlayKeyProvider::generatedCallback(std::pair<crypto::PrivateKeyDSA, TH> old_keys, std::pair<crypto::PrivateKeyDSA, TH> new_keys){
-
 }
 
 overlay::TH OverlayKeyProvider::getTH() {
@@ -119,18 +117,11 @@ boost::optional<crypto::PrivateKeyDSA> OverlayKeyProvider::getPrivateKey(std::st
 	return getPrivateKey(TH::fromBinaryString(binary_th));
 }
 
-boost::posix_time::ptime OverlayKeyProvider::getExpirationTime(){
+std::chrono::system_clock::time_point OverlayKeyProvider::getExpirationTime(){
 	return expiration_time;
 }
-
-std::string OverlayKeyProvider::getExpirationISOTime(){
-	return boost::posix_time::to_iso_string(expiration_time);
-}
-boost::posix_time::ptime OverlayKeyProvider::getLoseTime(){
+std::chrono::system_clock::time_point OverlayKeyProvider::getLoseTime(){
 	return lose_time;
-}
-std::string OverlayKeyProvider::getLoseISOTime(){
-	return boost::posix_time::to_iso_string(lose_time);
 }
 
 } /* namespace databases */

@@ -84,15 +84,20 @@ void KBucket::addNode(DHTNode* node, bool force) {
 					[](DHTNode* pred_node){return pred_node->getReliability() == DHTNode::Reliability::BAD;}
 			);
 
-			if(bucket_contents.size() < k){
-				bucket_contents.push_back(node);
-			}else if(splittable){
+			for(auto node_ptr : bucket_contents){
+				if(node_ptr == node)
+					return;	// This node is already here
+			}
+
+			if(bucket_contents.size() >= k && splittable){
 				split();
-				determineBucket(node_hash)->addNode(node);
+				determineBucket(node_hash)->addNode(node, force);
+			}else if(bucket_contents.size() < k || force){
+				bucket_contents.push_back(node);
 			}
 		}
 	}else{
-		determineBucket(node_hash)->addNode(node);
+		determineBucket(node_hash)->addNode(node, force);
 	}
 }
 
@@ -132,6 +137,15 @@ std::list<DHTNode*> KBucket::getClosest(const crypto::Hash& hash, int n) {
 		}
 
 		return result_list;
+	}
+}
+
+void KBucket::rebuild(const crypto::Hash& node_hash, const std::set<DHTNode*>& node_list) {
+	bucket_contents.clear();
+	split_buckets = {nullptr, nullptr};
+
+	for(auto node_ptr : node_list){
+		addNode(node_ptr);
 	}
 }
 

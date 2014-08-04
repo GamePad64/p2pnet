@@ -253,10 +253,10 @@
 		<configuration configurationName="Test"/>
 		<configuration configurationName="D_linamd64_lib"/>
 		<configuration configurationName="D_linamd64"/>
+		<configuration configurationName="T_linamd64"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/p2pnet"/>
 		</configuration>
-		<configuration configurationName="T_linamd64"/>
 		<configuration configurationName="R_linamd64"/>
 		<configuration configurationName="R_linamg64">
 			<resource resourceType="PROJECT" workspacePath="/p2pnet"/>

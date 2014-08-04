@@ -17,6 +17,7 @@
 #include "TH.h"
 #include "OverlayDHT.h"
 #include "OverlayKeyProvider.h"
+#include "OverlayNodeDB.h"
 
 #include "../transport/TransportSocketEndpoint.h"
 #include "../../common/Singleton.h"
@@ -27,14 +28,14 @@ namespace overlay {
 
 class OverlayConnection;
 
-class OverlaySocket : public Singleton<OverlaySocket>, Loggable {
+class OverlaySocket : public Singleton<OverlaySocket>, Loggable, ConfigClient {
 	friend class OverlayConnection;
 	friend class OverlayDHT;
 protected:
-	std::map<TH, OverlayConnection*> m_connections;
-	//std::set<transport::TransportSocketEndpoint> banned_peer_list;	// TODO: Banned peer list.
+	std::set<transport::TransportSocketEndpoint> banned_peer_list;
 
 	OverlayKeyProvider key_provider;
+	OverlayNodeDB node_db;
 	OverlayDHT dht_service;
 
 public:
@@ -50,14 +51,9 @@ public:
 			const protocol::OverlayMessage_Payload& message_payload, Priority prio);
 	void process(std::string data, const transport::TransportSocketEndpoint& from);
 
-	OverlayConnection* getConnection(const TH& th);
-	void removePeer(const TH& th);
-	void movePeer(const TH& from, const TH& to);
-
-	void notifyKeysUpdated(std::pair<crypto::PrivateKeyDSA, TH> previous_keys, std::pair<crypto::PrivateKeyDSA, TH> new_keys);
-
-	OverlayKeyProvider* getKeyProvider();
-	OverlayDHT* getDHT();
+	OverlayKeyProvider* getKeyProvider(){return &key_provider;};
+	OverlayNodeDB* getNodeDB(){return &node_db;};
+	OverlayDHT* getDHT(){return &dht_service;};
 };
 
 } /* namespace overlay */

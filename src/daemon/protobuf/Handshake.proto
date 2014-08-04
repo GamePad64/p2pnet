@@ -1,0 +1,51 @@
+/*
+ * You may redistribute this program and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+syntax = "proto2";
+
+import "Protocol.proto";
+package p2pnet.protocol;
+
+message Handshake {
+	enum Stage {
+		PUBKEY = 0; PUBKEY_ACK = 1;
+		ECDH = 2; ECDH_ACK = 3;
+
+		PUBKEY_ROTATION = 8;
+	}
+
+	required Stage stage = 1;
+
+	message PubkeyStage {
+		message SignedContent {
+			optional bytes old_ecdsa_key = 1;	// not used in PUBKEY, PUBKEY_ACK
+			required bytes new_ecdsa_key = 2;
+
+			required int64 expiration_time = 3;
+			required int64 lose_time = 4;
+		}
+
+		required SignedContent signed_content = 1;
+		optional bytes old_signature = 2;	// not used, either
+		optional bytes new_signature = 3;	// not used, either
+	}
+
+	message ECDHStage {
+		optional bytes src_ecdh_pubkey = 5;	// This connection ECDH key, signed with our ECDSA key.
+		optional bytes signature = 6; // OUR_ECDSA_SIG(src_ecdh_pubkey)
+	}
+
+	optional PubkeyStage pubkey = 2;
+	optional ECDHStage ecdh = 3;
+}

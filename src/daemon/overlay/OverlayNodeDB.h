@@ -11,16 +11,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "DHTNode.h"
+#ifndef OVERLAYNODEDB_H_
+#define OVERLAYNODEDB_H_
+
+#include "OverlayNode.h"
+
+#include <map>
 
 namespace p2pnet {
-namespace dht {
+namespace overlay {
 
-DHTNode::DHTNode() {}
-DHTNode::~DHTNode() {}
+class OverlayNodeDB {
+	friend class OverlayNode;	// As OverlayNode will call moveNode
 
-DHTNode::Reliability DHTNode::getReliability() const {return Reliability::GOOD;}
+	std::map<crypto::Hash, OverlayNode*> nodes;
 
+	void moveNode(const TH& from, const TH& to);
+public:
+	OverlayNodeDB();
+	virtual ~OverlayNodeDB();
 
-} /* namespace dht */
+	std::set<OverlayNode*> getAllNodes();
+	OverlayNode* getNode(const overlay::TH& th);
+
+	void notifyKeysUpdated(std::pair<crypto::PrivateKeyDSA, TH> previous_keys, std::pair<crypto::PrivateKeyDSA, TH> new_keys);
+};
+
+} /* namespace overlay */
 } /* namespace p2pnet */
+
+#endif /* OVERLAYNODEDB_H_ */

@@ -17,14 +17,17 @@
 #define MAX_NODES_TOTAL 30
 #define MAX_FROM_BUCKET 5
 
+#include "KBucket.h"
+#include "DHTNode.h"
+
 #include "../../common/crypto/Hash.h"
 #include "../protobuf/DHT.pb.h"
+
+#include <boost/noncopyable.hpp>
+#include <boost/optional.hpp>
 #include <unordered_map>
 #include <list>
 #include <set>
-#include <boost/noncopyable.hpp>
-
-using boost::posix_time::seconds;
 
 namespace p2pnet {
 namespace dht {
@@ -41,37 +44,54 @@ class DHTService : boost::noncopyable {
 protected:
 	/* Kademlia definition constants */
 	const uint16_t alpha, k, B;
-	const seconds tExpire, tRefresh, tReplicate, tRepublish;
+	const std::chrono::seconds tExpire, tRefresh, tReplicate, tRepublish;
+
+	struct Search {
+		enum RPC_Status {
+			READY = 0,
+			SENT_REQUEST
+		};
+
+		std::shared_ptr<const crypto::Hash> searching_hash;
+		DHTNode* closest_node;
+		std::map<DHTNode*, RPC_Status> shortlist;
+
+		protocol::DHTPart::DHTMessageType dht_action_type;
+	};
+	std::map<std::shared_ptr<const crypto::Hash>, Search> searches;
 
 	/* K-buckets themselves */
-	std::vector<std::deque<DHTNode*>> k_buckets;
+	KBucket k_buckets;
+
+	// Other constants
+	const std::string system_ns = "system";
 
 	/**
 	 * Protected constructor, as we don't suppose to create DHTService objects.
 	 * Its parameters are Kademlia definition constants.
-	 * @param alpha - measure of parallelism, number of asynchronous network calls
-	 * @param k - number of nodes in bucket
-	 * @param B - bits in NodeID (aka crypto::Hash)
-	 * @param tExpire - the time after which a key/value pair expires; this is a time-to-live (TTL) from the original publication date
-	 * @param tRefresh - after which an otherwise unaccessed bucket must be refreshed
-	 * @param tReplicate - the interval between Kademlia replication events, when a node is required to publish its entire database
-	 * @param tRepublish - the time after which the original publisher must republish a key/value pair
+	 * @param alpha measure of parallelism, number of asynchronous network calls
+	 * @param k number of nodes in bucket
+	 * @param B bits in NodeID (aka crypto::Hash)
+	 * @param tExpire the time after which a key/value pair expires; this is a time-to-live (TTL) from the original publication date
+	 * @param tRefresh after which an otherwise unaccessed bucket must be refreshed
+	 * @param tReplicate the interval between Kademlia replication events, when a node is required to publish its entire database
+	 * @param tRepublish the time after which the original publisher must republish a key/value pair
 	 */
 	DHTService(
 			uint16_t alpha = 3,
 			uint16_t k = 20,
 			uint16_t B = 224,
-			seconds tExpire = 86400,
-			seconds tRefresh = 3600,
-			seconds tReplicate = 3600,
-			seconds tRepublish = 86410	// See note in http://xlattice.sourceforge.net/components/protocol/kademlia/specs.html#constants
+			std::chrono::seconds tExpire = std::chrono::seconds(86400),
+			std::chrono::seconds tRefresh = std::chrono::seconds(3600),
+			std::chrono::seconds tReplicate = std::chrono::seconds(3600),
+			std::chrono::seconds tRepublish = std::chrono::seconds(86410)	// See note in http://xlattice.sourceforge.net/components/protocol/kademlia/specs.html#constants
 			);
 
 	virtual crypto::Hash getMyHash() = 0;
-	virtual std::list<DHTNode*> getClosestTo(const crypto::Hash& hash, int16_t count, bool exchangeable_only);
+	virtual std::list<DHTNode*> getClosestTo(const crypto::Hash& hash, int16_t count);
 
-	virtual boost::optional<DHTNode*> getNodeByHash(const crypto::Hash& hash);
-
+	virtual void findAny(const crypto::Hash& find_hash, const crypto::Hash& dest_hash, protocol::DHTPart::DHTMessageType action);
+	virtual void findAnyIterative(const crypto::Hash& find_hash, protocol::DHTPart::DHTMessageType action);
 public:
 	virtual ~DHTService();
 
@@ -81,7 +101,7 @@ public:
 
 	/* Primitive actions */
 	virtual void findNode(const crypto::Hash& find_hash, const crypto::Hash& dest_hash);
-	virtual void findValue(const crypto::Hash& find_value, const crypto::Hash& dest_hash);
+	virtual void findValue(const crypto::Hash& find_hash, const crypto::Hash& dest_hash);
 	virtual void storeValue(const std::string& value, const crypto::Hash& dest_hash);
 	virtual void pingNode(const crypto::Hash& dest_hash);
 
@@ -89,6 +109,9 @@ public:
 	virtual void findNodeIterative(const crypto::Hash& find_hash);
 	virtual void findValueIterative(const crypto::Hash& find_hash);
 	virtual void storeValueIterative(const std::string& value);
+
+	/* Callbacks */
+	virtual void foundNode(std::string serialized_contact) = 0;
 };
 
 } /* namespace dht */

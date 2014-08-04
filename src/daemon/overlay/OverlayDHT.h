@@ -16,36 +16,32 @@
 
 #include "../dht/DHTService.h"
 #include "../../common/Loggable.h"
+#include <boost/signals2.hpp>
 
 namespace p2pnet {
 namespace overlay {
 
 class OverlaySocket;
-class OverlayConnection;
+class OverlayNode;
 
 class OverlayDHT : public dht::DHTService, Loggable {
 	OverlaySocket* parent_socket_ptr;
-	std::array<std::set<OverlayConnection*>, crypto::HASH_LENGTH> k_buckets;
+
+	boost::signals2::connection key_renewal;
 public:
-	OverlayDHT();
 	OverlayDHT(OverlaySocket* socket_ptr);
 	virtual ~OverlayDHT();
 
 	void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part);
 
 	crypto::Hash getMyHash();
-	std::vector<crypto::Hash> getNNodesFromBucket(unsigned short bucket);
-	boost::optional<std::string> getLocalNodeInfo(const crypto::Hash& hash);
-	void putLocalNodeInfo(const crypto::Hash& hash, std::string node_info);
 
-	void registerInKBucket(OverlayConnection* peer, unsigned short distance);
-	void registerInKBucket(OverlayConnection* peer, const crypto::Hash& my_hash);
-	void registerInKBucket(OverlayConnection* peer);
-	void removeFromKBucket(OverlayConnection* peer, unsigned short distance);
-	void removeFromKBucket(OverlayConnection* peer, const crypto::Hash& my_hash);
-	void removeFromKBucket(OverlayConnection* peer);
+	void registerInKBucket(OverlayNode* node);
+	void removeFromKBucket(OverlayNode* node);
 
-	void recomputeAll();
+	void rebuild();
+
+	void foundNode(std::string serialized_contact);
 };
 
 } /* namespace overlay */

@@ -26,22 +26,14 @@ message DHTPart {
 		DELETE = 4;	// Will implement later.
 
 		// REPLY
-		FIND_NODE_REPLY = 5;
-		FIND_VALUE_REPLY = 6;
+		FIND_NODE_REPLY = 10;	// It must be answered to FIND_VALUE if no values found on answering node.
+		FIND_VALUE_REPLY = 11;	// This is used if it is carrying actual value.
 	}
 
-	required string ns = 1;
+	optional string ns = 1 [default = "system"];
 	optional bytes hash = 2;
 
 	required DHTMessageType message_type = 3;
 	/* FIND_NODE_REPLY */
-	message NodeWithInfo {
-		optional bytes hash = 1;
-		optional bytes node_info = 2;
-	}
-	repeated NodeWithInfo nodes_list = 4;
-}
-
-extend OverlayMessage.Payload {
-	optional DHTPart dht_part = 16;
+	repeated bytes serialized_contact_list = 4;
 }

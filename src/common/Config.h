@@ -52,7 +52,8 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 	void initDefaults() {
 		config_t& config = internal_config_defaults;
 
-		//config.put("policies.permissions.outgoing_only", false);	// Drops ConnectionRequest and disables UDPLPD.
+		// Policies
+		config.put("policies.outgoing_only", false);	// TODO:Drops ConnectionRequest and disables UDPLPD.
 
 		// API
 		// -- Unix Domain Sockets API

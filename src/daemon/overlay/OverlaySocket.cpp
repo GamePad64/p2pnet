@@ -18,68 +18,40 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlaySocket::OverlaySocket() : m_connections(), key_provider(this), dht_service(this) {}
+OverlaySocket::OverlaySocket() : key_provider(this), dht_service(this) {}
 
 OverlaySocket::~OverlaySocket() {}
 
-OverlayConnection* OverlaySocket::getConnection(const overlay::TH& th) {
-	auto it_peer = m_connections.find(th);
-
-	if(it_peer != m_connections.end()){
-		return it_peer->second;
-	}
-
-	auto conn_ptr = new OverlayConnection(th);
-	m_connections.insert(std::make_pair(th, conn_ptr));
-
-	return conn_ptr;
-}
-
 void OverlaySocket::send(const TH& dest,
 		const protocol::OverlayMessage_Payload& message_payload, Priority prio) {
-	getConnection(dest)->send(message_payload, prio);
+	getNodeDB()->getNode(dest)->getConnection()->send(message_payload, prio);
 }
 
 void OverlaySocket::process(std::string data, const transport::TransportSocketEndpoint& from) {
 	protocol::OverlayMessage overlay_message;
 	protocol::ConnectionRequestMessage request_message;
+
+	if(banned_peer_list.find(from) != banned_peer_list.end){
+		log() << "<- Message from banned" << from.toReadableString() << std::endl;
+		return;
+	}
+
 	if(overlay_message.ParseFromString(data)){
 		overlay::TH packet_src_th(overlay::TH::fromBinaryString(overlay_message.header().src_th()));
 
 		log() << "<- OverlayMessage: TH:" << overlay::TH::fromBinaryString(overlay_message.header().src_th()).toBase58() << std::endl;
 
-		getConnection(packet_src_th)->process(overlay_message, from);
-	}else if(request_message.ParseFromString(data)){
+		getNodeDB()->getNode(packet_src_th)->getConnection()->process(overlay_message, from);
+	}else if(!getValue<bool>("policies.outgoing_only") && request_message.ParseFromString(data)){
 		overlay::TH packet_src_th(overlay::TH::fromBinaryString(request_message.src_th()));
 
 		log() << "<- Connection Request: TH:" << overlay::TH::fromBinaryString(request_message.src_th()).toBase58() << std::endl;
 
-		getConnection(packet_src_th)->process(request_message, from);
-	}	// else drop
-}
-
-void OverlaySocket::removePeer(const overlay::TH& th) {
-	m_connections.erase(th);
-}
-
-void OverlaySocket::movePeer(const overlay::TH& from, const overlay::TH& to) {
-	m_connections[to] = m_connections[from];
-}
-
-void OverlaySocket::notifyKeysUpdated(std::pair<crypto::PrivateKeyDSA, TH> previous_keys, std::pair<crypto::PrivateKeyDSA, TH> new_keys){
-	for(auto connection : m_connections){
-		connection.second->performRemoteKeyRotation(previous_keys);
+		getNodeDB()->getNode(packet_src_th)->updateEndpoint(from);
+		if(!(getNodeDB()->getNode(packet_src_th)->hasConnection())){
+			getNodeDB()->getNode(packet_src_th)->getConnection()->connect();
+		}
 	}
-
-	dht_service.recomputeAll();
-}
-
-OverlayKeyProvider* OverlaySocket::getKeyProvider() {
-	return &key_provider;
-}
-
-OverlayDHT* OverlaySocket::getDHT() {
-	return &dht_service;
 }
 
 } /* namespace overlay */

@@ -11,16 +11,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "DHTNode.h"
+#ifndef TIME_H_
+#define TIME_H_
 
-namespace p2pnet {
-namespace dht {
+#include <boost/date_time.hpp>
 
-DHTNode::DHTNode() {}
-DHTNode::~DHTNode() {}
+inline std::chrono::system_clock::time_point fromISOTime(const std::string& iso_time){
+	return boost::date_time::parse_iso_time<std::chrono::system_clock::time_point>(iso_time, 'T');
+}
 
-DHTNode::Reliability DHTNode::getReliability() const {return Reliability::GOOD;}
+inline std::string toISOTime(std::chrono::system_clock::time_point point){
+	return boost::posix_time::to_iso_string();
+}
 
-
-} /* namespace dht */
-} /* namespace p2pnet */
+#endif /* TIME_H_ */

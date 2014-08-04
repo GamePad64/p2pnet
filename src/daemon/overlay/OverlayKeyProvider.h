@@ -23,6 +23,9 @@
 #include "../../common/Loggable.h"
 
 #include <boost/asio.hpp>
+#include <boost/asio/system_timer.hpp>
+#include <boost/signals2.hpp>
+
 #include <thread>
 #include <deque>
 
@@ -38,20 +41,21 @@ class OverlayKeyProvider : ConfigClient, public Loggable {
 
 	unsigned int max_history_size;
 
-	boost::asio::deadline_timer timer;
+	boost::asio::system_timer timer;
 
-	boost::posix_time::ptime expiration_time;
-	boost::posix_time::ptime lose_time;
+	std::chrono::system_clock::time_point expiration_time;
+	std::chrono::system_clock::time_point lose_time;
 
-	boost::posix_time::seconds expiration_interval;
-	boost::posix_time::seconds lose_interval;
+	std::chrono::seconds expiration_interval;
+	std::chrono::seconds lose_interval;
 
 	std::thread generator_thread;
 	std::mutex key_mutex;
 
 	void renewKeys();
 	void loopGenerate();
-	void generatedCallback(std::pair<crypto::PrivateKeyDSA, TH> old_keys, std::pair<crypto::PrivateKeyDSA, TH> new_keys);
+
+	boost::signals2::signal<void()> rotation_signal;
 public:
 	OverlayKeyProvider(OverlaySocket* parent);
 	virtual ~OverlayKeyProvider();
@@ -67,12 +71,13 @@ public:
 	boost::optional<crypto::PrivateKeyDSA> getPrivateKey(overlay::TH th);
 	boost::optional<crypto::PrivateKeyDSA> getPrivateKey(std::string binary_th);
 
+	boost::optional<overlay::TH> getPreviousTH();
 	boost::optional<crypto::PrivateKeyDSA> getPreviousPrivateKey();
 
-	boost::posix_time::ptime getExpirationTime();
-	std::string getExpirationISOTime();
-	boost::posix_time::ptime getLoseTime();
-	std::string getLoseISOTime();
+	std::chrono::system_clock::time_point getExpirationTime();
+	std::chrono::system_clock::time_point getLoseTime();
+
+	decltype(rotation_signal)& getRotationSignal();
 };
 
 } /* namespace databases */

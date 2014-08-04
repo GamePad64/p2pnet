@@ -15,22 +15,31 @@
 #define OVERLAYCONNECTION_H_
 
 #include "TH.h"
+#include "PayloadTypes.h"
+
 #include "../transport/TransportConnection.h"
 #include "../../common/crypto/ECDH.h"
 #include "../../common/crypto/AES.h"
 #include "../../common/crypto/PublicKeyDSA.h"
 #include "../protobuf/Protocol.pb.h"
+#include "../protobuf/Handshake.pb.h"
 #include "../../common/Config.h"
 #include "../dht/DHTService.h"
 
 #include <deque>
 #include <unordered_map>
 
+using std::chrono::system_clock;
+
 namespace p2pnet {
+using namespace protocol;
 namespace overlay {
 
-class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnection>, public ConfigClient, public dht::DHTClient {
+class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnection>, public ConfigClient {
 	friend class OverlaySocket;
+
+	OverlayNode* node_ptr;
+
 	// Types
 	enum class State {
 		CLOSED = 0,
@@ -43,26 +52,16 @@ class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnecti
 		LOST = 255
 	} state = State::CLOSED;
 	enum class Stage {
-		PUBKEY = protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_PUBKEY,
-		PUBKEY_ACK = protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_PUBKEY_ACK,
-		ECDH = protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_ECDH,
-		ECDH_ACK = protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_ECDH_ACK,
-		AES = protocol::OverlayMessage_Payload_ConnectionPart_ConnectionStage_AES,
+		PUBKEY = Handshake_Stage_PUBKEY,
+		PUBKEY_ACK = Handshake_Stage_PUBKEY_ACK,
+		ECDH = Handshake_Stage_ECDH,
+		ECDH_ACK = Handshake_Stage_ECDH_ACK,
 	};
 	typedef OverlaySocket::Priority Priority;
 
 	// Variables
-	TH remote_th;
-
-	crypto::PublicKeyDSA remote_public_key;
 	crypto::ECDH session_ecdh_key;
 	crypto::AES session_aes_key;
-
-	boost::posix_time::ptime remote_key_expiration_time;
-	boost::posix_time::ptime remote_key_lose_time;
-	boost::asio::deadline_timer remote_key_lose_timer;
-
-	std::deque<transport::TransportSocketEndpoint> transport_endpoints;
 
 	uint32_t seq_counter = 0;
 
@@ -71,13 +70,13 @@ class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnecti
 	 * They can be suspended because all TransportSockets are inactive.
 	 * They will be sent after discovery new route to TH.
 	 */
-	std::deque<protocol::OverlayMessage> suspended_messages;
+	std::deque<OverlayMessage> suspended_messages;
 	/**
 	 * This variable holds messages, that were suspended inside send() function
 	 * They can be suspended because AES encryption is not set up yet.
 	 * They will be sent after handshake.
 	 */
-	std::deque<std::pair<protocol::OverlayMessage_Payload, Priority>> suspended_payloads;
+	std::deque<std::pair<OverlayMessage_Payload, Priority>> suspended_payloads;
 	/**
 	 * This variable holds messages, that have been sent lately. Useful for resending messages.
 	 */
@@ -100,17 +99,9 @@ class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnecti
 	boost::posix_time::seconds key_rotation_spam_limit;
 
 	// Private Getters
-	OverlayKeyProvider* getKeyProvider();
-
-	// Private Setters
-	void updateExpirationTime(boost::posix_time::ptime expiration_time);
-	void updateLoseTime(boost::posix_time::ptime lost_time);
-	/* These functions use time in ISO 8601 format like YYYYMMDDThhmmss. */
-	void updateExpirationTime(const std::string& iso_time);
-	void updateLoseTime(const std::string& iso_time);
+	OverlayKeyProvider* getKeyProvider(){return OverlaySocket::getInstance()->getKeyProvider();}
 
 	// Actions
-	bool performLocalKeyRotation(const protocol::OverlayMessage& recv_message);
 	void performRemoteKeyRotation(std::pair<crypto::PrivateKeyDSA, TH> previous_keys);
 
 	void setState(const State& state_to_set);
@@ -120,50 +111,46 @@ class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnecti
 	 * This function is about connectivity, and "send" is about encryption.
 	 * @param data
 	 */
-	void sendMessage(protocol::OverlayMessage send_message);
+	void sendMessage(OverlayMessage send_message);
 
 	// Generators
-	protocol::OverlayMessage generateReplySkel(const protocol::OverlayMessage& recv_message);
-	protocol::OverlayMessage_Payload_ConnectionPart generateConnectionPart(Stage for_stage);
-	protocol::OverlayMessage_Payload_KeyRotationPart generateKeyRotationPart(const crypto::PrivateKeyDSA& our_hist_key);	//TODO: This can be cached really good
+	OverlayMessage genMessageSkel(boost::optional<TH> src = localTH(),
+			boost::optional<TH> dest = remoteTH(),
+			boost::optional<Priority> prio = Priority::RELIABLE);
+	OverlayMessage genMessageSkel(const OverlayMessage_Header& reply_to);
+
+	Handshake_PubkeyStage genPubkeyStage(Handshake::Stage for_stage, boost::optional<const crypto::PrivateKeyDSA&> our_hist_key = boost::none);
+	Handshake_ECDHStage genECDHStage();
+
+	OverlayMessage& addPayload(const std::string& serialized_payload, PayloadType type, OverlayMessage& message);
 
 	// Processors
-	void processConnectionPart(const protocol::OverlayMessage& recv_message,
-			const protocol::OverlayMessage_Payload& decrypted_payload = protocol::OverlayMessage_Payload::default_instance());
-	void processConnectionPartPUBKEY(const protocol::OverlayMessage& recv_message);
-	void processConnectionPartECDH(const protocol::OverlayMessage& recv_message);
-	void processConnectionPartAES(const protocol::OverlayMessage& recv_message,
-			const protocol::OverlayMessage_Payload& decrypted_payload);
+	std::map<PayloadType, std::function<void(const OverlayMessage_Header&, std::string)>> processors;
 
-	std::string encryptPayload(const protocol::OverlayMessage_Payload& payload);
+	void processHandshake(const OverlayMessage_Header& header, std::string serialized_payload);
+
+	void processPubkeyStage(const OverlayMessage_Header& header, Handshake handshake_payload);
+	void processECDHStage(const OverlayMessage_Header& header, Handshake handshake_payload);
 public:
-	OverlayConnection(const TH& th);
+	OverlayConnection(OverlayNode* node);
 	virtual ~OverlayConnection();
 
 	bool connected() const;
 
-	void send(const protocol::OverlayMessage_Payload& send_payload, Priority prio);
-	void process(const protocol::OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from);
-	void process(const protocol::ConnectionRequestMessage& recv_message, const transport::TransportSocketEndpoint& from);
+	void send(const OverlayMessage_Payload& send_payload, Priority prio);
+	void process(const OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from);
 
 	void connect();
 	void disconnect();
 
 	// Public getters
-	TH localTH();
-	const TH& remoteTH();
+	TH localTH(){return getKeyProvider()->getTH();}
+	TH remoteTH(){return node_ptr->getHash();}
 
-	crypto::PublicKeyDSA localPublicKey();
-	crypto::PrivateKeyDSA localPrivateKey();
+	crypto::PublicKeyDSA localPublicKey(){return getKeyProvider()->getPublicKey();}
+	crypto::PrivateKeyDSA localPrivateKey(){return getKeyProvider()->getPrivateKey();}
 
-	const crypto::PublicKeyDSA& remotePublicKey();
-
-	decltype(transport_endpoints) getTransportEndpoints(){return transport_endpoints;};
-
-	// Public setters
-	void updateEndpoint(const transport::TransportSocketEndpoint& endpoint, bool verified = false);
-
-	void foundNode(const crypto::Hash& coords, std::string node_info);
+	crypto::PublicKeyDSA remotePublicKey(){return node_ptr->getPublicKey();}
 };
 
 } /* namespace overlay */

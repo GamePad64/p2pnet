@@ -14,6 +14,11 @@
 #ifndef KBUCKET_H_
 #define KBUCKET_H_
 
+#include "DHTNode.h"
+
+#include <list>
+#include <memory>
+
 namespace p2pnet {
 namespace dht {
 
@@ -64,6 +69,7 @@ public:
 	/**
 	 * KBucket public constructor. It constructs new KBucket, using node_hash as its own node's hash.
 	 * @param node_hash Own node's hash.
+	 * @param k K parameter, number of nodes in each KBucket binary tree leaf.
 	 */
 	KBucket(const crypto::Hash& node_hash, uint16_t k);
 	virtual ~KBucket();	// Unique_ptr's will delete nested k-buckets recursively!
@@ -71,6 +77,8 @@ public:
 	void addNode(DHTNode* node, bool force = false);
 	void removeNode(DHTNode* node);
 	std::list<DHTNode*> getClosest(const crypto::Hash& hash, int n = 0);
+
+	void rebuild(const crypto::Hash& node_hash, const std::set<DHTNode*>& node_list);
 
 	/**
 	 * Counts elements in this KBucket. This function walks around all children KBuckets.

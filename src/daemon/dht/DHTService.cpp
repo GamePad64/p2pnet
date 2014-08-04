@@ -11,143 +11,129 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/*
+ * This is an implementation of Kademlia DHT, found here:
+ * http://xlattice.sourceforge.net/components/protocol/kademlia/specs.html
+ */
+
 #include "DHTService.h"
 #include <algorithm>
+#include <cmath>
 
 namespace p2pnet {
 namespace dht {
 
-/* DHTClient */
-DHTClient::DHTClient(DHTService* parent_service) {
-	service_ptr = parent_service;
-	service_ptr->registerClient(this);
-}
+/* Constructors/Destructors */
+DHTService::DHTService(uint16_t alpha,
+		uint16_t k,
+		uint16_t B,
+		std::chrono::seconds tExpire,
+		std::chrono::seconds tRefresh,
+		std::chrono::seconds tReplicate,
+		std::chrono::seconds tRepublish) :
+		alpha(alpha), k(k), B(B), tExpire(tExpire), tRefresh(tRefresh), tReplicate(tReplicate), tRepublish(tRepublish),
+		k_buckets(getMyHash(), k) {}
 
-DHTClient::~DHTClient() {
-	service_ptr->unregisterClient(this);
-}
-
-void DHTClient::findNode(const crypto::Hash& coords){
-	service_ptr->findNode(coords, this);
-}
-
-/* DHTService */
-DHTService::DHTService() {}
 DHTService::~DHTService() {}
 
-std::list<crypto::Hash> DHTService::getClosestTo(const crypto::Hash& hash,
-			unsigned short max_from_bucket,
-			unsigned short max_nodes_total){
-	auto hash_dist = getMyHash().computeDistance(hash);
-
-	std::list<crypto::Hash> closest_peers;
-
-	for(int offset = 0;
-			((offset+hash_dist <= crypto::HASH_LENGTH) || (offset-hash_dist > 0)) && closest_peers.size() < max_nodes_total;
-			offset++){
-		int signed_offset = offset;
-		do {
-			if(hash_dist+signed_offset > 0 && hash_dist+signed_offset <= crypto::HASH_LENGTH){
-				auto NPeersFromBucket = getNNodesFromBucket(hash_dist+signed_offset);
-				for(auto it = NPeersFromBucket.begin();
-						(it != NPeersFromBucket.end() || it != NPeersFromBucket.begin()+max_from_bucket) && closest_peers.size() < max_nodes_total;
-						it++){
-					closest_peers.push_back(*it);	// Or send find_node here
-				}
-			}
-			signed_offset = -signed_offset;
-		} while(signed_offset < 0);
-	}
-
-	return closest_peers;
+std::list<DHTNode*> DHTService::getClosestTo(const crypto::Hash& hash, int16_t count) {
+	return getClosestTo(hash, count);
 }
 
-void DHTService::findNode(const crypto::Hash& hash, DHTClient* client){
-	node_queries.insert(std::make_pair(hash, client));
-
-	auto maybe_node_info = getLocalNodeInfo(hash);
-	if(maybe_node_info)
-		foundNode(hash, *maybe_node_info);
-
-	auto closest_peers = getClosestTo(hash, MAX_FROM_BUCKET, MAX_NODES_TOTAL);
-
+void DHTService::findAny(const crypto::Hash& find_hash, const crypto::Hash& dest_hash, protocol::DHTPart::DHTMessageType action) {
 	protocol::DHTPart dht_part;
-	dht_part.set_ns("system");
-	dht_part.set_hash(hash.toBinaryString());
-	dht_part.set_message_type(dht_part.FIND_NODE);
+	dht_part.set_message_type(action);
+	dht_part.set_hash(find_hash.toBinaryString());
 
-	for(auto& it : closest_peers){
-		send(it, dht_part);	// Actually, sending find_node requests to closest nodes.
+	send(dest_hash, dht_part);
+}
+
+void DHTService::findAnyIterative(const crypto::Hash& find_hash, protocol::DHTPart::DHTMessageType action) {
+	auto hash_shared_ptr = std::make_shared<const crypto::Hash>(find_hash);
+	auto& this_search = searches[hash_shared_ptr];
+	this_search.searching_hash = hash_shared_ptr;
+
+	for(auto node : k_buckets.getClosest(find_hash, alpha)){
+		this_search.shortlist[node] = Search::READY;
+
+		if(this_search.closest_node){
+			auto closest_distance = this_search.closest_node->getHash() ^ find_hash;
+			if(node->getHash() ^ find_hash < closest_distance){
+				this_search.closest_node = node;
+			}
+		}else{
+			this_search.closest_node = node;
+		}
+	}
+
+	for(auto node : this_search.shortlist){
+		if(node.second == Search::READY){
+			findAny(*(this_search.searching_hash), node.first->getHash(), action);
+		}
 	}
 }
 
-void DHTService::foundNode(const crypto::Hash& hash, std::string node_info){
-	putLocalNodeInfo(hash, node_info);
-	auto query_range = node_queries.equal_range(hash);
-
-	auto it = query_range.first;
-	do {
-		it->second->foundNode(hash, node_info);
-		node_queries.erase(it++);
-	} while(it != query_range.second);
-}
-
+/* Send/Process */
 void DHTService::process(const crypto::Hash& from, const protocol::DHTPart& dht_part){
-	if(dht_part.message_type() == dht_part.FIND_NODE){
+	if(dht_part.message_type() == dht_part.FIND_NODE || dht_part.message_type() == dht_part.FIND_VALUE){
 		crypto::Hash query_hash;
 		query_hash.setAsBinaryString(dht_part.hash());
 
-		protocol::DHTPart new_dht_part;
-		new_dht_part.set_ns("system");
-		new_dht_part.set_hash(dht_part.hash());
-		new_dht_part.set_message_type(dht_part.FIND_NODE_REPLY);
+		protocol::DHTPart reply;
+		reply.set_ns(system_ns);
+		reply.set_hash(dht_part.hash());
 
-		auto closest_peers = getClosestTo(query_hash, MAX_FROM_BUCKET, MAX_NODES_TOTAL);
-		for(auto& it : closest_peers){
-			auto node_item_ptr = new_dht_part.add_nodes_list();
-			node_item_ptr->set_hash(it.toBinaryString());
-			node_item_ptr->set_node_info(*(getLocalNodeInfo(it)));
+		bool found_value = false;
+		if(dht_part.message_type() == dht_part.FIND_NODE){
+			reply.set_message_type(dht_part.FIND_NODE_REPLY);
+		}else if(dht_part.message_type() == dht_part.FIND_VALUE){
+			reply.set_message_type(dht_part.FIND_VALUE_REPLY);
+
+			//TODO
 		}
 
-		send(from, new_dht_part);
+		if(!found_value){
+			auto kClosest = getClosestTo(query_hash, k);
+
+			for(auto node : kClosest){
+				auto node_item_ptr = reply.add_serialized_contact_list(node->getSerializedContact());
+			}
+		}
+
+		send(from, reply);
 	} else if(dht_part.message_type() == dht_part.FIND_NODE_REPLY){
-		for(auto it : dht_part.nodes_list()){
-			crypto::Hash listed_hash;
-			listed_hash.setAsBinaryString(it.hash());
-			foundNode(listed_hash, it.node_info());
+		for(auto contact : dht_part.serialized_contact_list()){
+			foundNode(contact);
 		}
+	} else if(dht_part.message_type() == dht_part.FIND_VALUE_REPLY){
+		//TODO
 	}
 }
 
-/* Client management */
-void DHTService::registerClient(DHTClient* client_ptr) {
-	clients.insert(client_ptr);
+void DHTService::findNode(const crypto::Hash& find_hash, const crypto::Hash& dest_hash) {
+	findAny(find_hash, dest_hash, protocol::DHTPart::FIND_NODE);
 }
-void DHTService::unregisterClient(DHTClient* client_ptr) {
-	clients.erase(client_ptr);
-	auto values_it = posted_values.begin();
-	do {
-		if(values_it->second.client_ptr == client_ptr)
-			posted_values.erase(values_it++);
-		else
-			values_it++;
-	} while(values_it != posted_values.end());
 
-	auto value_queries_it = value_queries.begin();
-	do {
-		if(value_queries_it->second == client_ptr)
-			value_queries.erase(value_queries_it++);
-		else
-			value_queries_it++;
-	} while(value_queries_it != value_queries.end());
+void DHTService::findValue(const crypto::Hash& find_hash, const crypto::Hash& dest_hash) {
+	findAny(find_hash, dest_hash, protocol::DHTPart::FIND_VALUE);
+}
 
-	auto node_queries_it = node_queries.begin();
-	do {
-		if(node_queries_it->second == client_ptr)
-			node_queries.erase(node_queries_it++);
-		else
-			node_queries_it++;
-	} while(node_queries_it != node_queries.end());
+void DHTService::storeValue(const std::string& value, const crypto::Hash& dest_hash) {
+}
+
+void DHTService::pingNode(const crypto::Hash& dest_hash) {
+}
+
+void DHTService::findNodeIterative(const crypto::Hash& find_hash) {
+	findAnyIterative(find_hash, protocol::DHTPart::FIND_NODE);
+}
+
+void DHTService::findValueIterative(const crypto::Hash& find_hash) {
+	findAnyIterative(find_hash, protocol::DHTPart::FIND_VALUE);
+}
+
+void DHTService::storeValueIterative(const std::string& value) {
 }
 
 } /* namespace dht */

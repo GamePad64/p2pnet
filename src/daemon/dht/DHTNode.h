@@ -14,9 +14,9 @@
 #ifndef DHTNODE_H_
 #define DHTNODE_H_
 
-#include <boost/date_time.hpp>
+#include "../../common/crypto/Hash.h"
 
-using boost::posix_time::seconds;
+#include <chrono>
 
 namespace p2pnet {
 namespace dht {
@@ -41,16 +41,17 @@ public:
 		BAD
 	};	/// From BEP-0005 ( http://www.bittorrent.org/beps/bep_0005.html )
 
-	virtual ~DHTNode(){};
-	virtual crypto::Hash getHash() const;
+	virtual ~DHTNode();
+	virtual crypto::Hash getHash() const = 0;
 
-	virtual std::string getSerializedContact() const;
-	virtual void putSerializedContact(const std::string& serialized_contact);
-	virtual seconds getUptime() const;
+	virtual std::string getSerializedContact() const = 0;
+	virtual void putSerializedContact(const std::string& serialized_contact) = 0;
 
-	virtual Reliability getReliability() const;
+	virtual std::chrono::seconds getLastActivityAge() const = 0;
 
-	virtual bool isExchangeable() const;
+	virtual Reliability getReliability() const = 0;
+
+	virtual bool isExchangeable() const = 0;
 };
 
 } /* namespace dht */
