@@ -31,9 +31,11 @@ DHTService::DHTService(uint16_t alpha,
 		std::chrono::seconds tExpire,
 		std::chrono::seconds tRefresh,
 		std::chrono::seconds tReplicate,
-		std::chrono::seconds tRepublish) :
-		alpha(alpha), k(k), B(B), tExpire(tExpire), tRefresh(tRefresh), tReplicate(tReplicate), tRepublish(tRepublish),
-		k_buckets(getMyHash(), k) {}
+		std::chrono::seconds tRepublish,
+		crypto::Hash my_hash) :
+		alpha(alpha), k(k), B(B), tExpire(tExpire), tRefresh(tRefresh), tReplicate(tReplicate), tRepublish(tRepublish) {
+	k_buckets = std::unique_ptr<KBucket>(new KBucket(my_hash, k));
+}
 
 DHTService::~DHTService() {}
 

@@ -23,7 +23,7 @@ KBucket::KBucket(const crypto::Hash& node_hash, uint16_t k) : index(0), splittab
 KBucket::KBucket(int index, bool splittable, std::shared_ptr<const crypto::Hash> node_hash_ptr, uint16_t k) :
 		index(index),
 		splittable(splittable),
-		node_hash_ptr(node_hash_ptr) {}
+        node_hash_ptr(node_hash_ptr), k(k) {}
 
 KBucket::~KBucket() {}
 
@@ -127,7 +127,7 @@ std::list<DHTNode*> KBucket::getClosest(const crypto::Hash& hash, int n) {
 		return result_list;
 	}else{
 		auto first = determineBucket(hash);
-		auto second = (split_buckets.first == first ? split_buckets.second : split_buckets.first);
+        auto& second = (split_buckets.first.get() == first ? split_buckets.second : split_buckets.first);
 
 		result_list = first->getClosest(hash, n);
 

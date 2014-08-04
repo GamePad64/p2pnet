@@ -61,7 +61,7 @@ protected:
 	std::map<std::shared_ptr<const crypto::Hash>, Search> searches;
 
 	/* K-buckets themselves */
-	KBucket k_buckets;
+	std::unique_ptr<KBucket> k_buckets;
 
 	// Other constants
 	const std::string system_ns = "system";
@@ -84,7 +84,8 @@ protected:
 			std::chrono::seconds tExpire = std::chrono::seconds(86400),
 			std::chrono::seconds tRefresh = std::chrono::seconds(3600),
 			std::chrono::seconds tReplicate = std::chrono::seconds(3600),
-			std::chrono::seconds tRepublish = std::chrono::seconds(86410)	// See note in http://xlattice.sourceforge.net/components/protocol/kademlia/specs.html#constants
+			std::chrono::seconds tRepublish = std::chrono::seconds(86410),	// See note in http://xlattice.sourceforge.net/components/protocol/kademlia/specs.html#constants
+			crypto::Hash my_hash
 			);
 
 	virtual crypto::Hash getMyHash() = 0;
