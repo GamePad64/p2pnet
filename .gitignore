@@ -15,14 +15,8 @@
 # Compiled Protocol Buffers files
 *.pb.*
 
-/D_*
-/R_*
-/T_*
-
-/contrib
 /docs
 /docs_internal
-/libtest
 
 .SyncID
 .SyncIgnore
