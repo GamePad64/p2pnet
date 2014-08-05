@@ -21,7 +21,7 @@
 #include "DHTNode.h"
 
 #include "../../common/crypto/Hash.h"
-#include "../protobuf/DHT.pb.h"
+#include "DHT.pb.h"
 
 #include <boost/noncopyable.hpp>
 #include <boost/optional.hpp>

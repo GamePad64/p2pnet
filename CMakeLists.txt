@@ -6,6 +6,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 ### Common files preparation
 file(GLOB_RECURSE COMMON_SRCS "src/common/*")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # Protobuf Generator
 find_package(Protobuf REQUIRED)

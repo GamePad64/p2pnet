@@ -15,7 +15,7 @@
 #define P2PSESSION_H_
 
 #include "../common/api/api_handlers.h"
-#include "../common/api/APIMessage.pb.h"
+#include "APIMessage.pb.h"
 
 #include <boost/asio.hpp>
 

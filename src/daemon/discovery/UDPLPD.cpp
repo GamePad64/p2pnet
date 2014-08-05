@@ -15,7 +15,7 @@
 #include "UDPLPD.h"
 #include "../AsioIOService.h"
 #include "../transport/udp/UDPTransportInterface.h"
-#include "../protobuf/Protocol.pb.h"
+#include "Protocol.pb.h"
 #include "../../common/Version.h"
 #include "../errors/MessageReject.h"
 

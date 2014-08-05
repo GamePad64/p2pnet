@@ -14,7 +14,7 @@
 #ifndef P2PDAEMON_H_
 #define P2PDAEMON_H_
 
-#include "../common/api/APIMessage.pb.h"
+#include "APIMessage.pb.h"
 #include "../common/api/api_handlers.h"
 #include "../p2pnet.h"
 

@@ -13,7 +13,7 @@
  */
 
 #include "DiscoveryService.h"
-#include "../protobuf/Protocol.pb.h"
+#include "Protocol.pb.h"
 #include "../transport/TransportConnection.h"
 #include "../transport/TransportSocket.h"
 

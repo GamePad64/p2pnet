@@ -17,7 +17,7 @@
 
 #include <string>
 #include <memory>
-#include "../protobuf/EndpointFormat.pb.h"
+#include "EndpointFormat.pb.h"
 #include "TransportInterfaceEndpoint.h"
 
 namespace p2pnet {

@@ -13,16 +13,16 @@
  */
 
 #include "UDPTransportInterfaceEndpoint.h"
-#include "../../protobuf/IPInterfaceEndpoint.pb.h"
+#include "IPInterfaceEndpoint.pb.h"
 #include <sstream>
 #include <algorithm>
 
 namespace p2pnet {
 namespace transport {
 
-UDPTransportInterfaceEndpoint::UDPTransportInterfaceEndpoint(){};
-UDPTransportInterfaceEndpoint::UDPTransportInterfaceEndpoint(udp::endpoint rendpoint) : asio_endpoint(rendpoint){};
-UDPTransportInterfaceEndpoint::~UDPTransportInterfaceEndpoint(){};
+UDPTransportInterfaceEndpoint::UDPTransportInterfaceEndpoint(){}
+UDPTransportInterfaceEndpoint::UDPTransportInterfaceEndpoint(udp::endpoint rendpoint) : asio_endpoint(rendpoint){}
+UDPTransportInterfaceEndpoint::~UDPTransportInterfaceEndpoint(){}
 
 TransportInterfaceEndpoint& UDPTransportInterfaceEndpoint::operator =(const TransportInterfaceEndpoint& rvalue){
 	auto pTIE = dynamic_cast<const UDPTransportInterfaceEndpoint&>(rvalue);
@@ -32,37 +32,37 @@ TransportInterfaceEndpoint& UDPTransportInterfaceEndpoint::operator =(const Tran
 
 udp::endpoint UDPTransportInterfaceEndpoint::getEndpoint(){
 	return this->asio_endpoint;
-};
+}
 
 void UDPTransportInterfaceEndpoint::setEndpoint(const udp::endpoint& endpoint){
 	this->asio_endpoint = endpoint;
-};
+}
 
 bool UDPTransportInterfaceEndpoint::isIPv4(){
 	return this->asio_endpoint.address().is_v4();
-};
+}
 
 bool UDPTransportInterfaceEndpoint::isIPv6(){
 	return this->asio_endpoint.address().is_v6();
-};
+}
 
 std::string UDPTransportInterfaceEndpoint::getIP() const {
 	return this->asio_endpoint.address().to_string();
-};
+}
 void UDPTransportInterfaceEndpoint::setIP(const std::string& ip){
 	this->asio_endpoint.address(address::from_string(ip.substr(0,ip.find('%'))));
-};
+}
 
 UDPTransportInterfaceEndpoint::port_t UDPTransportInterfaceEndpoint::getPort() const {
 	return this->asio_endpoint.port();
-};
+}
 void UDPTransportInterfaceEndpoint::setPort(UDPTransportInterfaceEndpoint::port_t port){
 	this->asio_endpoint.port(port);
-};
+}
 UDPTransportInterfaceEndpoint::UDPTransportInterfaceEndpoint(std::string ip, UDPTransportInterfaceEndpoint::port_t port){
 	this->setIP(ip);
 	this->setPort(port);
-};
+}
 
 void UDPTransportInterfaceEndpoint::fromProtobuf(proto::TransportSocketEndpoint_s tse_s){
 	setIP(tse_s.GetExtension(proto::ip));

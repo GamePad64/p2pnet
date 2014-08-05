@@ -15,8 +15,8 @@
 #ifndef TRANSPORTINTERFACEENDPOINT_H_
 #define TRANSPORTINTERFACEENDPOINT_H_
 
-#include "../protobuf/EndpointFormat.pb.h"
-#include "../protobuf/Protocol.pb.h"
+#include "EndpointFormat.pb.h"
+#include "Protocol.pb.h"
 #include <memory>
 
 namespace p2pnet {

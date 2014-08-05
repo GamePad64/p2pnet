@@ -16,7 +16,7 @@
 #define UDPLPD_H_
 
 #include "DiscoveryService.h"
-#include "../protobuf/Protocol.pb.h"
+#include "Protocol.pb.h"
 #include <boost/asio.hpp>
 #include <string>
 

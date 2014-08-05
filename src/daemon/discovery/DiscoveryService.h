@@ -18,7 +18,7 @@
 #include "../../common/Config.h"
 #include "../../common/Loggable.h"
 #include "../transport/TransportSocketEndpoint.h"
-#include "../protobuf/Protocol.pb.h"
+#include "Protocol.pb.h"
 
 namespace p2pnet {
 namespace discovery {
