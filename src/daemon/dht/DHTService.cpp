@@ -31,10 +31,8 @@ DHTService::DHTService(uint16_t alpha,
 		std::chrono::seconds tExpire,
 		std::chrono::seconds tRefresh,
 		std::chrono::seconds tReplicate,
-		std::chrono::seconds tRepublish,
-		crypto::Hash my_hash) :
+		std::chrono::seconds tRepublish) :
 		alpha(alpha), k(k), B(B), tExpire(tExpire), tRefresh(tRefresh), tReplicate(tReplicate), tRepublish(tRepublish) {
-	k_buckets = std::unique_ptr<KBucket>(new KBucket(my_hash, k));
 }
 
 DHTService::~DHTService() {}
@@ -56,7 +54,7 @@ void DHTService::findAnyIterative(const crypto::Hash& find_hash, protocol::DHTPa
 	auto& this_search = searches[hash_shared_ptr];
 	this_search.searching_hash = hash_shared_ptr;
 
-	for(auto node : k_buckets.getClosest(find_hash, alpha)){
+	for(auto node : k_buckets->getClosest(find_hash, alpha)){
 		this_search.shortlist[node] = Search::READY;
 
 		if(this_search.closest_node){
@@ -99,7 +97,7 @@ void DHTService::process(const crypto::Hash& from, const protocol::DHTPart& dht_
 			auto kClosest = getClosestTo(query_hash, k);
 
 			for(auto node : kClosest){
-				auto node_item_ptr = reply.add_serialized_contact_list(node->getSerializedContact());
+				reply.add_serialized_contact_list(node->getSerializedContact());
 			}
 		}
 

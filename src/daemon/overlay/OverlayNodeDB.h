@@ -15,6 +15,7 @@
 #define OVERLAYNODEDB_H_
 
 #include "OverlayNode.h"
+#include "../../common/crypto/PublicKeyDSA.h"
 
 #include <map>
 

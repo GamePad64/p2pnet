@@ -92,7 +92,7 @@ Hash Hash::operator^(const Hash& rhash) const {
 	for(size_t i; i < max_size; i++) {
 		result_v[i] = this_v[i] ^ right_v[i];
 	}
-	return result_v;
+	return Hash::fromBinaryVector(result_v);
 }
 
 bool Hash::operator <(const Hash& lhash) const {

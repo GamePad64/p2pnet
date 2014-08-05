@@ -38,7 +38,9 @@ public:
 
 	virtual void setAsBinaryVector(binary_vector_t serialized_vector) = 0;
 	static T fromBinaryVector(binary_vector_t serialized_vector) {
-		return T(serialized_vector);
+		T new_string;
+		new_string.setAsBinaryVector(serialized_vector);
+		return new_string;
 	}
 	virtual binary_vector_t toBinaryVector() const = 0;
 

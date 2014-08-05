@@ -68,6 +68,7 @@ protected:
 
 	/**
 	 * Protected constructor, as we don't suppose to create DHTService objects.
+	 * All child classes MUST create an instance of KBucket by themselves.
 	 * Its parameters are Kademlia definition constants.
 	 * @param alpha measure of parallelism, number of asynchronous network calls
 	 * @param k number of nodes in bucket
@@ -84,8 +85,7 @@ protected:
 			std::chrono::seconds tExpire = std::chrono::seconds(86400),
 			std::chrono::seconds tRefresh = std::chrono::seconds(3600),
 			std::chrono::seconds tReplicate = std::chrono::seconds(3600),
-			std::chrono::seconds tRepublish = std::chrono::seconds(86410),	// See note in http://xlattice.sourceforge.net/components/protocol/kademlia/specs.html#constants
-			crypto::Hash my_hash
+			std::chrono::seconds tRepublish = std::chrono::seconds(86410)	// See note in http://xlattice.sourceforge.net/components/protocol/kademlia/specs.html#constants
 			);
 
 	virtual crypto::Hash getMyHash() = 0;

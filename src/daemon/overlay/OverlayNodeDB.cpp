@@ -12,7 +12,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "OverlayNodeDB.h"
-#include <boost/range.hpp>
+#include <boost/range/adaptor/map.hpp>
 
 namespace p2pnet {
 namespace overlay {

@@ -20,6 +20,7 @@ namespace p2pnet {
 namespace overlay {
 
 OverlayDHT::OverlayDHT(OverlaySocket* socket_ptr) : dht::DHTService(), parent_socket_ptr(socket_ptr) {
+	rebuild();
 	key_renewal = parent_socket_ptr->getKeyProvider()->getRotationSignal().connect([this](){this->rebuild();});
 }
 OverlayDHT::~OverlayDHT() {
@@ -50,6 +51,9 @@ void OverlayDHT::rebuild() {
 	auto overlay_node_set = parent_socket_ptr->getNodeDB()->getAllNodes();
 
 	std::set<dht::DHTNode*> dht_node_set(overlay_node_set.begin(), overlay_node_set.end());
+	if(!k_buckets){
+		k_buckets = std::unique_ptr<dht::KBucket>(new dht::KBucket(getMyHash(), k));
+	}
 	k_buckets.rebuild(hash, dht_node_set);
 }
 

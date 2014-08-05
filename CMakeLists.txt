@@ -9,6 +9,12 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # Protobuf Generator
 find_package(Protobuf REQUIRED)
+if(PROTOBUF_FOUND)
+  file(GLOB_RECURSE PROTO_COMMON_LIST "src/common/*.proto")
+  PROTOBUF_GENERATE_CPP(PROTO_COMMON_SOURCES PROTO_COMMON_HEADERS ${PROTO_COMMON_LIST})
+  list(APPEND COMMON_SRCS ${PROTO_COMMON_SOURCES})
+  list(APPEND COMMON_SRCS ${PROTO_COMMON_HEADERS})
+endif()
 
 ### p2pnetd
 file(GLOB_RECURSE DAEMON_SRCS "src/daemon/*")
@@ -25,11 +31,18 @@ add_executable(${P2PNET_EXECUTABLE_NAME} ${DAEMON_ALL_SRCS})
 
 ### libp2pnet
 file(GLOB_RECURSE LIBRARY_SRCS "src/library/*")
-SET(LIBRARY_ALL_SRCS ${COMMON_SRCS} DAEMON_SRCS)
+SET(LIBRARY_ALL_SRCS ${COMMON_SRCS} ${LIBRARY_SRCS})
+list(APPEND LIBRARY_ALL_SRCS "src/p2pnet.cpp")
+list(APPEND LIBRARY_ALL_SRCS "src/p2pnet.h")
 
-SET(P2PNET_LIBRARY_NAME "lib${PROJECT_NAME}")
+SET(P2PNET_LIBRARY_NAME "${PROJECT_NAME}")
+add_library(${P2PNET_LIBRARY_NAME} SHARED ${LIBRARY_ALL_SRCS})
+set_target_properties(${P2PNET_LIBRARY_NAME} PROPERTIES COMPILE_DEFINITIONS "BUILDING_LIBP2PNET")
+set_target_properties(${P2PNET_LIBRARY_NAME} PROPERTIES COMPILE_FLAGS "-fvisibility=hidden -fvisibility-inlines-hidden -ffunction-sections")
 
-### Third-party Libraries
+#============================================================================
+# Third-party Libraries
+#============================================================================
 
 # Boost
 set (Boost_COMPONENTS
