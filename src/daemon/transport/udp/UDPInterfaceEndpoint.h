@@ -11,30 +11,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 
-#include "TransportInterfaceEndpoint.h"
+#include "../ip/IPInterfaceEndpoint.h"
 
 namespace p2pnet {
 namespace transport {
 
-TransportInterfaceEndpoint::TransportInterfaceEndpoint() {}
+class UDPInterfaceEndpoint: public IPInterfaceEndpoint {
+public:
+	UDPInterfaceEndpoint();
+	UDPInterfaceEndpoint(address ip, port_t port);
+	UDPInterfaceEndpoint(const std::string& ip, port_t port);
+	virtual ~UDPInterfaceEndpoint(){};
+};
 
-void TransportInterfaceEndpoint::fromBinaryString(std::string binary_string) {
-	proto::TransportSocketEndpoint_s tse_s;
-	tse_s.ParseFromString(binary_string);
-	fromProtobuf(tse_s);
-}
-
-TransportInterfaceEndpoint& TransportInterfaceEndpoint::operator =(const TransportInterfaceEndpoint& rvalue) {
-	fromProtobuf(rvalue.toProtobuf());
-	return *this;
-}
-
-std::string TransportInterfaceEndpoint::toBinaryString() const {
-	return toProtobuf().SerializeAsString();
-}
-
-TransportInterfaceEndpoint::~TransportInterfaceEndpoint() {}
-
-} /* namespace net */
+} /* namespace transport */
 } /* namespace p2pnet */

@@ -14,27 +14,29 @@
 
 #include "DiscoveryService.h"
 #include "Protocol.pb.h"
-#include "../transport/TransportConnection.h"
-#include "../transport/TransportSocket.h"
+#include "../overlay/OverlayKeyProvider.h"
+#include "../transport/Connection.h"
+#include "../transport/Socket.h"
 
 namespace p2pnet {
 namespace discovery {
 
-DiscoveryService::DiscoveryService() {}
+DiscoveryService::DiscoveryService(std::shared_ptr<transport::Socket> socket) : socket(socket) {}
 DiscoveryService::~DiscoveryService() {}
 
 protocol::ConnectionRequestMessage DiscoveryService::generateConnectionRequest() {
 	auto pks = overlay::OverlaySocket::getInstance()->getKeyProvider();
 
 	protocol::ConnectionRequestMessage message;
-	message.set_src_th(pks->getTH().toBinaryString());
+	message.set_src_th(pks->getKeyInfo()->th.toBinaryString());
 	return message;
 }
 
-void DiscoveryService::handshake(transport::TransportSocketEndpoint endpoint) {
-	auto transport_socket = transport::TransportSocket::getInstance();
-
-	transport_socket->send(endpoint, generateConnectionRequest().SerializeAsString());
+void DiscoveryService::handshake(transport::SocketEndpoint endpoint) {
+	if(socket->getConnection(endpoint) == nullptr){
+		socket->connect(endpoint, )
+		transport_socket->send(endpoint, generateConnectionRequest().SerializeAsString());
+	}
 }
 
 } /* namespace discovery */

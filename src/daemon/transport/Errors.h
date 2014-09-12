@@ -11,18 +11,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 
-syntax = "proto2";
+// Error codes. "Any resemblance to real used error codes is purely coincidental", lol.
 
-import "EndpointFormat.proto";
-package p2pnet.transport.proto;
+namespace p2pnet {
+namespace transport {
 
-extend TransportSocketEndpoint_s {
-	/*
-	 * Okay, this will be in next releases. This is needed for Wi-Fi mesh network.
-	 */
-	optional bytes wifi_mac = 21;
-	/*
-	 * Well, not necessarily MAC. It maybe BSSID.
-	 */
-}
+const int timed_out = 110;
+const int connection_reset = 104;
+const int no_such_interface = 180; //
+
+} /* namespace transport */
+} /* namespace p2pnet */

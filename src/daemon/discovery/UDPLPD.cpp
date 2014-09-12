@@ -14,7 +14,6 @@
 
 #include "UDPLPD.h"
 #include "../AsioIOService.h"
-#include "../transport/udp/UDPTransportInterface.h"
 #include "Protocol.pb.h"
 #include "../../common/Version.h"
 #include "../errors/MessageReject.h"
@@ -45,7 +44,7 @@ void UDPLPD::waitBeforeSend() {
 	m_timer.async_wait(boost::bind(&UDPLPD::send, this));
 }
 
-void UDPLPD::processReceived(char* recv_buffer,
+void UDPLPD::processReceived(std::array<char, MAX_UDP_PACKET_SIZE>& recv_buffer,
 		size_t recv_bytes,
 		std::shared_ptr<ip::udp::endpoint> mcast_endpoint_ptr) {
 
@@ -53,7 +52,7 @@ void UDPLPD::processReceived(char* recv_buffer,
 	protocol::UDPDiscoveryMessage message;
 
 	try {
-		bool parsed_well = message.ParseFromString(std::string(recv_buffer, recv_bytes));
+		bool parsed_well = message.ParseFromString(std::string(recv_buffer.data(), recv_bytes));
 
 		if(!parsed_well){
 			throw(new errors::MessageReject(errors::MessageReject::Reason::PARSE_ERROR));
@@ -67,16 +66,14 @@ void UDPLPD::processReceived(char* recv_buffer,
 		/*
 		 * Summary: We received a message and we can create TransportSocketEndpoint from it
 		 */
-		auto interface_endpoint = std::make_shared<transport::UDPTransportInterfaceEndpoint>(dest_endpoint);
-		transport::TransportSocketEndpoint socket_endpoint(interface_endpoint);
+		auto interface_endpoint = std::make_shared<transport::IPInterfaceEndpoint>(dest_endpoint);
+		transport::SocketEndpoint socket_endpoint(interface_endpoint);
 		// Well, trying to handshake it.
 		handshake(socket_endpoint);
 	} catch(errors::MessageReject *e) {
 		log(ERROR) << e->what();
 		delete e;
 	}
-
-	delete[] recv_buffer;
 
 	// We received message, continue receiving others
 	receive();
@@ -95,9 +92,8 @@ void UDPLPD::send() {
 }
 
 void UDPLPD::receive() {
-	char* udp_buffer = new char[MAX_UDP_PACKET_SIZE];
 	auto endpoint = std::make_shared<ip::udp::endpoint>(bind_endpoint);
-	m_lpd_socket.async_receive_from(boost::asio::buffer(udp_buffer, MAX_UDP_PACKET_SIZE), *endpoint,
+	m_lpd_socket.async_receive_from(boost::asio::buffer(udp_buffer.data(), MAX_UDP_PACKET_SIZE), *endpoint,
 			std::bind(&UDPLPD::processReceived, this, udp_buffer, std::placeholders::_2, endpoint));
 }
 

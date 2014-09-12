@@ -13,7 +13,7 @@
  */
 #include "BootstrapDiscovery.h"
 #include "../errors/NoInterface.h"
-#include "../transport/TransportSocket.h"
+#include "../transport/Socket.h"
 
 #include <iostream>
 #include <fstream>
@@ -31,9 +31,9 @@ void BootstrapDiscovery::run(){
 	std::string peer_readable_tse;
 
 	while(getline(bootstrapfile, peer_readable_tse)){
-		transport::TransportSocketEndpoint tse;
+		transport::SocketEndpoint tse;
 		try {
-			tse.fromReadableString(peer_readable_tse);
+			tse.fromString(peer_readable_tse);
 			handshake(tse);
 		} catch(errors::NoInterface* e){
 			log() << e->what() << std::endl;

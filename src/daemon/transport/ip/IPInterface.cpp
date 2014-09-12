@@ -11,22 +11,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "IPInterface.h"
 
-syntax = "proto2";
-package p2pnet.transport.proto;
+namespace p2pnet {
+namespace transport {
 
-message TransportSocketEndpoint_s {
-	/*
-	 *  Well, this needs to be standardized somehow.
-	 *  Default: 0 (invalid id!)
-	 */
-	optional uint32 interface_id = 1 [default = 0];
-	// Yes, int64 timestamp.
-	optional int64 last_usage = 2;
+IPInterface::IPInterface() {
+	// TODO Auto-generated constructor stub
 
-	extensions 16 to max;
 }
 
-message TransportSocketEndpointList {
-	repeated TransportSocketEndpoint_s tse_s = 1;
+IPInterface::~IPInterface() {
+	// TODO Auto-generated destructor stub
 }
+
+} /* namespace transport */
+} /* namespace p2pnet */

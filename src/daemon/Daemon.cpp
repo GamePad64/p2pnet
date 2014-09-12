@@ -12,19 +12,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "transport/udp/UDPTransportInterface.h"
+#include "transport/udp/UDPInterface.h"
 #include "Daemon.h"
 
 namespace p2pnet {
 
 Daemon::Daemon() {
 	config_manager = ConfigManager::getInstance();
-	m_transport_socket = transport::TransportSocket::getInstance();
 	m_overlay_socket = overlay::OverlaySocket::getInstance();
 }
 Daemon::~Daemon() {
 	m_overlay_socket->clear();
-	m_transport_socket->clear();
 	config_manager->clear();
 }
 
@@ -43,19 +41,17 @@ void Daemon::initAPI() {
 
 void Daemon::initTransportSocket() {
 	// Creating TransportSocket
-	m_transport_socket = transport::TransportSocket::getInstance();
+    m_transport_socket = std::make_shared<transport::Socket>();
 
 	// Creating interfaces
 	if(config_manager->getValue<bool>("transport.udp.enabled")){
 		try {
-			auto m_udp_interface = std::make_shared<transport::UDPTransportInterface>();
+			auto m_udp_interface = std::make_shared<transport::UDPInterface>();
 			m_transport_socket->registerInterface(m_udp_interface);
 		} catch (boost::system::system_error& e) {
 			log() << "Unable to initialize UDP socket. Exception caught: " << e.what() << std::endl;
 		}
 	}
-
-	m_transport_socket->receive();
 }
 
 void Daemon::initDiscoveryServices() {

@@ -21,7 +21,7 @@
 
 #include "api/APIManager.h"
 
-#include "transport/TransportSocket.h"
+#include "transport/Socket.h"
 #include "overlay/OverlaySocket.h"
 
 #include "discovery/BootstrapDiscovery.h"
@@ -37,8 +37,8 @@ class Daemon : public Loggable {
 public:
 	ConfigManager* config_manager;
 
-	transport::TransportSocket* m_transport_socket;
-	overlay::OverlaySocket* m_overlay_socket;
+	std::shared_ptr<transport::Socket> m_transport_socket;
+	overlay::Socket* m_overlay_socket;
 
 	std::unique_ptr<discovery::BootstrapDiscovery> discovery_bootstrap;
 	std::unique_ptr<discovery::UDPLPDv4> discovery_udpv4;

@@ -11,16 +11,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 
-syntax = "proto2";
+#include <memory>
 
-import "EndpointFormat.proto";
-package p2pnet.transport.proto;
+namespace p2pnet {
+namespace transport {
 
-extend TransportSocketEndpoint_s {
-	optional bytes ip = 16;
-	optional uint32 port = 17;
-//	optional bool udp = 18 [default = true];
-//	optional bool tcp = 19 [default = true];
-//	optional bool sctp = 20 [default = true];
-}
+class InterfaceEndpoint {
+	const std::string prefix;
+public:
+	InterfaceEndpoint(const std::string& prefix);
+	virtual ~InterfaceEndpoint();
+
+	virtual std::shared_ptr<InterfaceEndpoint> clone() = 0;
+	std::string getPrefix() const {return prefix;}
+
+	/*
+	 * Readable strings.
+	 */
+	virtual std::string toString() const = 0;
+	virtual void fromString(const std::string& string) = 0;
+};
+
+} /* namespace net */
+} /* namespace p2pnet */

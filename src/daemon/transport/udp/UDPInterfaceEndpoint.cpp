@@ -11,29 +11,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef DISCOVERYSERVICE_H_
-#define DISCOVERYSERVICE_H_
-
-#include "../../common/Config.h"
-#include "../../common/Loggable.h"
-#include "../transport/SocketEndpoint.h"
-#include "Protocol.pb.h"
+#include "UDPInterfaceEndpoint.h"
 
 namespace p2pnet {
-namespace discovery {
+namespace transport {
 
-class DiscoveryService : public ConfigClient, public Loggable {
-	protocol::ConnectionRequestMessage generateConnectionRequest();
+UDPInterfaceEndpoint::UDPInterfaceEndpoint() : IPInterfaceEndpoint("UDP") {}
+UDPInterfaceEndpoint::UDPInterfaceEndpoint(address ip, port_t port) : IPInterfaceEndpoint(ip, port, "UDP") {}
+UDPInterfaceEndpoint::UDPInterfaceEndpoint(const std::string& ip, port_t port) : IPInterfaceEndpoint(ip, port, "UDP") {}
 
-	std::shared_ptr<transport::Socket> socket;
-public:
-	DiscoveryService(std::shared_ptr<transport::Socket> socket);
-	virtual ~DiscoveryService();
-
-	void handshake(transport::SocketEndpoint endpoint);
-};
-
-} /* namespace discovery */
+} /* namespace transport */
 } /* namespace p2pnet */
-#endif /* DISCOVERYSERVICE_H_ */

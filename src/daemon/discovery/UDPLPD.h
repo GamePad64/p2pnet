@@ -11,12 +11,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef UDPLPD_H_
-#define UDPLPD_H_
+#pragma once
 
 #include "DiscoveryService.h"
 #include "Protocol.pb.h"
+#include "../transport/udp/UDPInterface.h"
 #include <boost/asio.hpp>
 #include <string>
 
@@ -26,13 +25,15 @@ namespace p2pnet {
 namespace discovery {
 
 class UDPLPD: public DiscoveryService {
+	std::array<char, MAX_UDP_PACKET_SIZE> udp_buffer;
+
 	void waitBeforeSend();
 
 	/**
 	 * This function is invoked on receiving packets. It must perform necessary checks for packet integrity.
 	 * Its arguments are from asio::socket, as it works as callback.
 	 */
-	void processReceived(char* recv_buffer,
+	void processReceived(std::array<char, MAX_UDP_PACKET_SIZE>& recv_buffer,
 			size_t recv_bytes,
 			std::shared_ptr<ip::udp::endpoint> mcast_endpoint_ptr);
 
@@ -65,9 +66,7 @@ public:
 
 	void startSendLoop();
 	void startReceiveLoop();
-
 };
 
 } /* namespace discovery */
 } /* namespace p2pnet */
-#endif /* UDPLPD_H_ */

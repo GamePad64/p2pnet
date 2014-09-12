@@ -50,8 +50,6 @@ public:
 	virtual std::chrono::seconds getLastActivityAge() const = 0;
 
 	virtual Reliability getReliability() const = 0;
-
-	virtual bool isExchangeable() const = 0;
 };
 
 } /* namespace dht */

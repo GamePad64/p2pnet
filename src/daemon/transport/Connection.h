@@ -11,29 +11,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 
-#ifndef DISCOVERYSERVICE_H_
-#define DISCOVERYSERVICE_H_
-
-#include "../../common/Config.h"
+#include "SocketEndpoint.h"
+#include "Socket.h"
 #include "../../common/Loggable.h"
-#include "../transport/SocketEndpoint.h"
-#include "Protocol.pb.h"
 
 namespace p2pnet {
-namespace discovery {
+namespace transport {
 
-class DiscoveryService : public ConfigClient, public Loggable {
-	protocol::ConnectionRequestMessage generateConnectionRequest();
-
-	std::shared_ptr<transport::Socket> socket;
+class Connection : public std::enable_shared_from_this<Connection>, protected Loggable {
+	std::weak_ptr<Interface> parent_interface;
+protected:
+	Connection() = delete;
+	Connection(std::shared_ptr<Interface> parent_interface);
 public:
-	DiscoveryService(std::shared_ptr<transport::Socket> socket);
-	virtual ~DiscoveryService();
+	virtual ~Connection(){};
 
-	void handshake(transport::SocketEndpoint endpoint);
+	virtual SocketEndpoint getEndpoint() = 0;
+	std::shared_ptr<Interface> getParent(){return parent_interface.lock();}
+
+	virtual void connect(Socket::ConnectCallback callback) = 0;
+	virtual void send(const std::string& data, Socket::SendCallback callback) = 0;
+	virtual bool connected() const = 0;
+
+	virtual void onConnect();
+	virtual void onDisconnect();
 };
 
-} /* namespace discovery */
+} /* namespace net */
 } /* namespace p2pnet */
-#endif /* DISCOVERYSERVICE_H_ */

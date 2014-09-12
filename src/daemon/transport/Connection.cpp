@@ -11,19 +11,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "TransportConnection.h"
+#include "Connection.h"
+#include "Interface.h"
 
 namespace p2pnet {
 namespace transport {
 
-TransportConnection::TransportConnection(TransportSocketEndpoint endpoint) : m_endpoint(endpoint) {
-	log() << "New Transport Connection initiated with " << m_endpoint.toReadableString() << std::endl;
-}
-TransportConnection::~TransportConnection() {}
+Connection::Connection(std::shared_ptr<Interface> parent_interface) : parent_interface(parent_interface) {}
 
-void TransportConnection::process(std::string data) {
-	overlay::OverlaySocket::getInstance()->process(data, m_endpoint);
+void Connection::onConnect(){
+	parent_interface.lock()->getParent()->registerConnection(shared_from_this());
+}
+void Connection::onDisconnect(){
+	parent_interface.lock()->getParent()->unregisterConnection(shared_from_this());
 }
 
-} /* namespace net */
+} /* namespace transport */
 } /* namespace p2pnet */
