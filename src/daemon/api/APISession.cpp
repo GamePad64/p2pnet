@@ -19,7 +19,7 @@
 #include "../p2p/Socket.h"
 
 #include "../../common/crypto/PrivateKeyDSA.h"
-#include "../../common/api/APIMessage.pb.h"
+#include "APIMessage.pb.h"
 
 namespace p2pnet {
 namespace api {

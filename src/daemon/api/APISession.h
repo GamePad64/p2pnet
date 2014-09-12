@@ -14,7 +14,7 @@
 #ifndef APISESSION_H_
 #define APISESSION_H_
 
-#include "../../common/api/APIMessage.pb.h"
+#include "APIMessage.pb.h"
 
 #include "../../common/Loggable.h"
 #include "../../common/crypto/PrivateKeyDSA.h"
