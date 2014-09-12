@@ -31,15 +31,6 @@
 
 namespace p2pnet {
 
-// ConfigClient
-ConfigClient::ConfigClient() {
-	ConfigManager::getInstance()->registerClient(this);
-}
-
-ConfigClient::~ConfigClient() {
-	ConfigManager::getInstance()->unregisterClient(this);
-}
-
 // ConfigManager
 ConfigManager::ConfigManager() {
 	initDefaults();
@@ -50,7 +41,7 @@ ConfigManager::ConfigManager() {
 	write_json(config_directory+"defaults.json", getDefaults());
 }
 
-ConfigManager::~ConfigManager() {this->saveToFile();}
+ConfigManager::~ConfigManager() {}
 
 const config_t& ConfigManager::getDefaults() const {
 	return internal_config_defaults;
@@ -130,20 +121,6 @@ void ConfigManager::loadFromFile() {
 	config_io_mutex.unlock();
 }
 
-void ConfigManager::saveToFile() {
-	boost::filesystem::create_directories(config_directory);
-	write_json(config_directory+config_file, internal_config);
-	log() << "Configuration file saved" << std::endl;
-}
-
-void ConfigManager::registerClient(ConfigClient* client) {
-	config_clients.insert(client);
-}
-
-void ConfigManager::unregisterClient(ConfigClient* client) {
-	config_clients.erase(client);
-}
-
 std::string ConfigManager::getDirectory(){
 	return config_directory;
 }
@@ -157,12 +134,6 @@ ConfigManager::permissions_t ConfigManager::getPermissions(){
 #elif defined __unix__	// Linux, we just check for root.
 	return (getuid() == 0) ? SYSTEM : USER;
 #endif
-}
-
-void ConfigManager::configChanged() {
-	for(auto client : config_clients){
-		client->configChanged();
-	}
 }
 
 } /* namespace p2pnet */

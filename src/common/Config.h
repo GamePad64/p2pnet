@@ -28,17 +28,12 @@ typedef boost::property_tree::ptree config_t;
 class ConfigManager;
 
 class ConfigClient {
-	friend class ConfigManager;
 protected:
-	ConfigClient();
-	virtual ~ConfigClient();
-
-	virtual void configChanged(){};	// It is permitted not to handle this, but it is not good though.
+	ConfigClient(){};
+	virtual ~ConfigClient(){};
 
 	template<class T>
 	T getValue(std::string path) const;
-	template<class T>
-	void setValue(std::string path, T value);
 };
 
 class ConfigManager : public Loggable, public Singleton<ConfigManager> {
@@ -53,13 +48,13 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 		config_t& config = internal_config_defaults;
 
 		// Policies
-		config.put("policies.outgoing_only", false);	// TODO:Drops ConnectionRequest and disables UDPLPD.
+		config.put("policies.outgoing_only", false);	// TODO:Drops all incoming transport::Connection, disables UDPLPD and ignores ConnectionRequests.
 
 		// API
 		// -- Unix Domain Sockets API
 		config.put("api.unix.enabled", true);
 		config.put("api.unix.user_sock_name", "unix_api.sock");
-		config.put("api.unix.disable_user_sock", false);	// Sort of security measure, doesn't allow to deduce ~/.p2pnet/
+		config.put("api.unix.disable_user_sock", false);	// Sort of security feature, doesn't allow to deduce ~/.p2pnet/
 		config.put("api.unix.system_sock_path", "/var/run/p2pnet/unix_api.sock");
 
 		// Transport
@@ -67,6 +62,10 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 		config.put("transport.udp.enabled", true);
 		config.put("transport.udp.local_ip", "0::0");
 		config.put("transport.udp.port", 2185);
+		config.put("transport.udp.mtu", 1438);
+		config.put("transport.udp.keepalive_timer", 3);
+		config.put("transport.udp.inactivity_timeout", 30);
+		config.put("transport.udp.outgoing_only", false);
 
 		// Overlay
 		config.put("overlay.connection.processed_queue_size", 100);
@@ -108,7 +107,6 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 
 	void resetToDefaults();
 	void loadFromFile();
-	void saveToFile();
 public:
 	ConfigManager();
 	virtual ~ConfigManager();
@@ -128,18 +126,11 @@ public:
 
 	template<class T>
 	T getValue(std::string path) const;
-	template<class T>
-	void setValue(std::string path, T value);
 };
 
 template< class T >
 inline T ConfigClient::getValue(std::string path) const {
 	return ConfigManager::getInstance()->getValue<T>(path);
-}
-
-template< class T >
-inline void ConfigClient::setValue(std::string path, T value){
-	return ConfigManager::getInstance()->setValue(path, value);
 }
 
 template< class T >
@@ -149,11 +140,6 @@ inline T ConfigManager::getValue(std::string path) const {
 	}catch(boost::property_tree::ptree_bad_path&){
 		return getDefaults().get<T>(path);
 	}
-}
-
-template< class T >
-inline void ConfigManager::setValue(std::string path, T value) {
-	return internal_config.put(path, value);
 }
 
 } /* namespace p2pnet */
