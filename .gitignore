@@ -15,9 +15,9 @@
 # Compiled Protocol Buffers files
 *.pb.*
 
-/docs
-/docs_internal
+# BitTorrent Sync files
+.sync/
 
-.SyncID
-.SyncIgnore
-/.SyncArchive
+# IDE settings
+.project
+.idea/
