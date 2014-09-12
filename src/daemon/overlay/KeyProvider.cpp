@@ -12,7 +12,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "OverlayKeyProvider.h"
+#include "KeyProvider.h"
 #include "OverlaySocket.h"
 #include "../../common/crypto/Hash.h"
 #include "../AsioIOService.h"
@@ -27,7 +27,7 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlayKeyProvider::OverlayKeyProvider(OverlaySocket* parent) :
+KeyProvider::KeyProvider(Socket* parent) :
 		max_history_size(getValue<unsigned int>("overlay.key_provider.history_size") + 1), //Yes, +1 means newly generated key.
 		timer(AsioIOService::getIOService()),
 		expiration_interval(getValue<unsigned int>("overlay.key_provider.renew_interval")),
@@ -42,86 +42,65 @@ OverlayKeyProvider::OverlayKeyProvider(OverlaySocket* parent) :
 	loopGenerate();
 	generator_thread.join();
 }
-OverlayKeyProvider::~OverlayKeyProvider() {
+KeyProvider::~KeyProvider() {
 	timer.cancel();
 	if(generator_thread.joinable()){
 		generator_thread.join();
 	}
 }
 
-void OverlayKeyProvider::renewKeys() {
-	auto new_private_key = crypto::PrivateKeyDSA::generateNewKey();
-	auto new_transport_hash = crypto::Hash(new_private_key);
-	auto history_entry = std::make_pair(new_private_key, new_transport_hash);
+void KeyProvider::renewKeys() {
+	auto now = std::chrono::system_clock::now();
+
+	KeyInfo new_info;
+	new_info.expiration_time = now+expiration_interval;
+	new_info.lose_time = now+lose_interval;
+	new_info.private_key = crypto::PrivateKeyDSA::generateNewKey();
+	new_info.public_key = new_info.private_key.derivePublicKey();
+	new_info.th = crypto::Hash(new_info.private_key);
 
 	if(!history.empty()){
 		// Notify OverlaySocket about key rotation, so it could notify connections, recompute DHT K-buckets, do stuff...
 		AsioIOService::getIOService().dispatch([&](){
-			rotation_signal();}
+			rotation_signal(history.front(), new_info);}
 		);
 	}
 
-	history.push_front(history_entry);
+	history.push_front(new_info);
 	if(history.size() > max_history_size){
 		history.pop_back();
 	}
 
-	log() << "New keys generated. TH: " << history.front().second.toBase58() << std::endl;
+	timer.expires_at(new_info.expiration_time);
+	timer.async_wait(boost::bind(&KeyProvider::loopGenerate, this));
+
+	log() << "New keys generated. TH: " << history.front().th.toBase58() << std::endl;
 }
 
-void OverlayKeyProvider::loopGenerate(){
+void KeyProvider::loopGenerate(){
 	if(generator_thread.joinable()){
 		generator_thread.join();
 	}
 
-	auto now = std::chrono::system_clock::now();
-
-	expiration_time = now+expiration_interval;
-	lose_time = now+lose_interval;
-
-	generator_thread = std::thread(&OverlayKeyProvider::renewKeys, this);
-
-	timer.expires_at(expiration_time);
-	timer.async_wait(boost::bind(&OverlayKeyProvider::loopGenerate, this));
+	generator_thread = std::thread(&KeyProvider::renewKeys, this);
 }
 
-overlay::TH OverlayKeyProvider::getTH() {
-	//std::lock_guard<std::mutex> lock(key_mutex);
-	return history.front().second;
-}
-
-crypto::PublicKeyDSA OverlayKeyProvider::getPublicKey() {
-	//std::lock_guard<std::mutex> lock(key_mutex);
-	return history.front().first.derivePublicKey();
-}
-
-crypto::PrivateKeyDSA OverlayKeyProvider::getPrivateKey() {
-	//std::lock_guard<std::mutex> lock(key_mutex);
-	return history.front().first;
-}
-
-boost::optional<crypto::PrivateKeyDSA> OverlayKeyProvider::getPrivateKey(overlay::TH th){
-	//std::lock_guard<std::mutex> lock(key_mutex);
-	auto it = std::find_if(history.begin(), history.end(),
-			[&] (const std::pair<crypto::PrivateKeyDSA, overlay::TH> id_pair) {
-		return id_pair.second == th;
-	});
-	if(it == history.end()){
+boost::optional<KeyInfo> KeyProvider::getKeyInfo(unsigned int offset) const {
+	try {
+		return history.at(offset);
+	}catch(const std::out_of_range&) {	// This is really normal case
 		return boost::none;
-	}else{
-		return it->first;
 	}
 }
 
-boost::optional<crypto::PrivateKeyDSA> OverlayKeyProvider::getPrivateKey(std::string binary_th){
-	return getPrivateKey(TH::fromBinaryString(binary_th));
-}
-
-std::chrono::system_clock::time_point OverlayKeyProvider::getExpirationTime(){
-	return expiration_time;
-}
-std::chrono::system_clock::time_point OverlayKeyProvider::getLoseTime(){
-	return lose_time;
+boost::optional<KeyInfo> KeyProvider::getKeyInfo(const TH& recent_th) const {
+	//std::lock_guard<std::mutex> lock(key_mutex);
+	auto it = std::find_if(history.begin(), history.end(), [&](const KeyInfo& id_pair) {return id_pair.th == recent_th;});
+	if(it == history.end()){
+		return boost::none;
+	}else{
+		return *it;
+	}
 }
 
 } /* namespace databases */

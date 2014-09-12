@@ -11,23 +11,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef PAYLOADTYPES_H_
-#define PAYLOADTYPES_H_
+#ifndef OVERLAYDHT_H_
+#define OVERLAYDHT_H_
+
+#include "../dht/DHTService.h"
+#include "../../common/Loggable.h"
+#include <boost/signals2.hpp>
 
 namespace p2pnet {
 namespace overlay {
 
-enum class PayloadType {
-	UNKNOWN = 255,
+class Socket;
+class Node;
 
-	ENCRYPTED = 0,
-	MULTI = 1,
-	HANDSHAKE = 2,
+class DHT : public dht::DHTService, Loggable {
+	Socket* parent_socket_ptr;
 
-	DHT = 3
+	boost::signals2::connection key_renewal;
+public:
+	DHT(Socket* socket_ptr);
+	virtual ~DHT();
+
+	void send(const crypto::Hash& dest, const protocol::DHTPart& dht_part);
+
+	crypto::Hash getMyHash();
+
+	void registerInKBucket(Node* node);
+	void removeFromKBucket(Node* node);
+
+	void rebuild();
+
+	void foundNode(std::string serialized_contact);
 };
 
-}
-}
+} /* namespace overlay */
+} /* namespace p2pnet */
 
-#endif /* PAYLOADTYPES_H_ */
+#endif /* OVERLAYDHT_H_ */

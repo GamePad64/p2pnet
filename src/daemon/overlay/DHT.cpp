@@ -19,34 +19,35 @@
 namespace p2pnet {
 namespace overlay {
 
-OverlayDHT::OverlayDHT(OverlaySocket* socket_ptr) : dht::DHTService(), parent_socket_ptr(socket_ptr) {
+DHT::DHT(Socket* socket_ptr) : dht::DHTService(), parent_socket_ptr(socket_ptr) {
 	rebuild();
-	key_renewal = parent_socket_ptr->getKeyProvider()->getRotationSignal().connect([this](){this->rebuild();});
+	key_renewal = parent_socket_ptr->getKeyProvider()->getRotationSignal().connect([this](KeyInfo, KeyInfo){this->rebuild();});
 }
-OverlayDHT::~OverlayDHT() {
+DHT::~DHT() {
 	key_renewal.disconnect();
 }
 
-void OverlayDHT::send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) {
+void DHT::send(const crypto::Hash& dest, const protocol::DHTPart& dht_part) {
 	protocol::OverlayMessage_Payload payload;
-	payload.MutableExtension(protocol::dht_part)->CopyFrom(dht_part);
-	parent_socket_ptr->send(dest, payload, OverlaySocket::Priority::REALTIME);
+	payload.set_type((uint32_t)PayloadType::DHT);
+	payload.add_content(dht_part.SerializeAsString());
+	parent_socket_ptr->send(dest, payload, Socket::Priority::REALTIME);
 }
 
-crypto::Hash OverlayDHT::getMyHash(){
-	return OverlaySocket::getInstance()->getKeyProvider()->getTH();
+crypto::Hash DHT::getMyHash(){
+	return Socket::getInstance()->getKeyProvider()->getKeyInfo()->th;
 }
 
 /* K-bucket mgmt */
-void OverlayDHT::registerInKBucket(OverlayNode* node){
-	k_buckets.addNode(node, true);
+void DHT::registerInKBucket(Node* node){
+	k_buckets->addNode(node, true);
 }
 
-void OverlayDHT::removeFromKBucket(OverlayNode* node) {
-	k_buckets.removeNode(node);
+void DHT::removeFromKBucket(Node* node) {
+	k_buckets->removeNode(node);
 }
 
-void OverlayDHT::rebuild() {
+void DHT::rebuild() {
 	auto hash = getMyHash();
 	auto overlay_node_set = parent_socket_ptr->getNodeDB()->getAllNodes();
 
@@ -54,11 +55,11 @@ void OverlayDHT::rebuild() {
 	if(!k_buckets){
 		k_buckets = std::unique_ptr<dht::KBucket>(new dht::KBucket(getMyHash(), k));
 	}
-	k_buckets.rebuild(hash, dht_node_set);
+	k_buckets->rebuild(hash, dht_node_set);
 }
 
-void OverlayDHT::foundNode(std::string serialized_contact) {
-	OverlayNode node(serialized_contact);
+void DHT::foundNode(std::string serialized_contact) {
+	Node node(serialized_contact);
 	(*(parent_socket_ptr->getNodeDB()->getNode(node.getHash()))) = node;
 }
 

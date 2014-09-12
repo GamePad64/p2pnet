@@ -12,13 +12,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PERSONALKEYSTORAGE_H_
-#define PERSONALKEYSTORAGE_H_
+#pragma once
 
 #include "../../common/crypto/PublicKeyDSA.h"
 #include "../../common/crypto/PrivateKeyDSA.h"
 #include "TH.h"
-#include "../../common/Singleton.h"
 #include "../../common/Config.h"
 #include "../../common/Loggable.h"
 
@@ -32,19 +30,24 @@
 namespace p2pnet {
 namespace overlay {
 
-class OverlaySocket;
-
-class OverlayKeyProvider : ConfigClient, public Loggable {
-	OverlaySocket* parent;
-
-	std::deque<std::pair<crypto::PrivateKeyDSA, TH>> history;
-
-	unsigned int max_history_size;
-
-	boost::asio::system_timer timer;
+struct KeyInfo {
+	crypto::PrivateKeyDSA private_key;
+	crypto::PublicKeyDSA public_key;
+	TH th;
 
 	std::chrono::system_clock::time_point expiration_time;
 	std::chrono::system_clock::time_point lose_time;
+};
+
+class Socket;
+class KeyProvider : ConfigClient, public Loggable {
+private:
+	Socket* parent;
+
+	std::deque<KeyInfo> history;
+	unsigned int max_history_size;
+
+	boost::asio::system_timer timer;
 
 	std::chrono::seconds expiration_interval;
 	std::chrono::seconds lose_interval;
@@ -55,31 +58,21 @@ class OverlayKeyProvider : ConfigClient, public Loggable {
 	void renewKeys();
 	void loopGenerate();
 
-	boost::signals2::signal<void()> rotation_signal;
+	boost::signals2::signal<void(KeyInfo, KeyInfo)> rotation_signal;
 public:
-	OverlayKeyProvider(OverlaySocket* parent);
-	virtual ~OverlayKeyProvider();
+	KeyProvider(Socket* parent);
+	virtual ~KeyProvider();
 
 	/**
-	 * This function returns own transport hash from cache. If there is no such hash, then regenerate keys and hashes.
-	 * @return My transport hash
+	 * Gets KeyInfo structure for key, pointed by offset.
+	 * @param offset Specifies, which key from history we need to get. 0 - current, 1 - previous. Current key is guaranteed to exist, others are not.
+	 * @return
 	 */
-	overlay::TH getTH();
-
-	crypto::PublicKeyDSA getPublicKey();
-	crypto::PrivateKeyDSA getPrivateKey();
-	boost::optional<crypto::PrivateKeyDSA> getPrivateKey(overlay::TH th);
-	boost::optional<crypto::PrivateKeyDSA> getPrivateKey(std::string binary_th);
-
-	boost::optional<overlay::TH> getPreviousTH();
-	boost::optional<crypto::PrivateKeyDSA> getPreviousPrivateKey();
-
-	std::chrono::system_clock::time_point getExpirationTime();
-	std::chrono::system_clock::time_point getLoseTime();
+	boost::optional<KeyInfo> getKeyInfo(unsigned int offset = 0) const;
+	boost::optional<KeyInfo> getKeyInfo(const TH& recent_th) const;
 
 	decltype(rotation_signal)& getRotationSignal();
 };
 
 } /* namespace databases */
 } /* namespace p2pnet */
-#endif /* PERSONALKEYSTORAGE_H_ */

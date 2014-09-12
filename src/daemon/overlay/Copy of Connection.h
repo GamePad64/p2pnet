@@ -21,11 +21,12 @@
 #include "../../common/crypto/ECDH.h"
 #include "../../common/crypto/AES.h"
 #include "../../common/crypto/PublicKeyDSA.h"
-#include "../protobuf/Protocol.pb.h"
-#include "../protobuf/Handshake.pb.h"
+#include "Protocol.pb.h"
+#include "Handshake.pb.h"
 #include "../../common/Config.h"
 #include "../dht/DHTService.h"
 
+#include <boost/optional.hpp>
 #include <deque>
 #include <unordered_map>
 
@@ -35,10 +36,11 @@ namespace p2pnet {
 using namespace protocol;
 namespace overlay {
 
-class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnection>, public ConfigClient {
-	friend class OverlaySocket;
+class Connection : Loggable, std::enable_shared_from_this<Connection>, public ConfigClient {
+	friend class Socket;
 
-	OverlayNode* node_ptr;
+	std::shared_ptr<Node> node_ptr;
+	Socket* socket_ptr;
 
 	// Types
 	enum class State {
@@ -46,8 +48,7 @@ class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnecti
 		PUBKEY_SENT = 1,
 		PUBKEY_RECEIVED = 2,
 		ECDH_SENT = 3,
-		ECDH_RECEIVED = 4,
-		ESTABLISHED = 5,
+		ESTABLISHED = 4,
 
 		LOST = 255
 	} state = State::CLOSED;
@@ -57,7 +58,7 @@ class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnecti
 		ECDH = Handshake_Stage_ECDH,
 		ECDH_ACK = Handshake_Stage_ECDH_ACK,
 	};
-	typedef OverlaySocket::Priority Priority;
+	typedef Socket::Priority Priority;
 
 	// Variables
 	crypto::ECDH session_ecdh_key;
@@ -98,9 +99,6 @@ class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnecti
 	boost::asio::deadline_timer key_rotation_spam_timer;
 	boost::posix_time::seconds key_rotation_spam_limit;
 
-	// Private Getters
-	OverlayKeyProvider* getKeyProvider(){return OverlaySocket::getInstance()->getKeyProvider();}
-
 	// Actions
 	void performRemoteKeyRotation(std::pair<crypto::PrivateKeyDSA, TH> previous_keys);
 
@@ -114,10 +112,8 @@ class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnecti
 	void sendMessage(OverlayMessage send_message);
 
 	// Generators
-	OverlayMessage genMessageSkel(boost::optional<TH> src = localTH(),
-			boost::optional<TH> dest = remoteTH(),
-			boost::optional<Priority> prio = Priority::RELIABLE);
-	OverlayMessage genMessageSkel(const OverlayMessage_Header& reply_to);
+	OverlayMessage genMessageSkel(const TH& src, const TH& dest, Priority prio = Priority::RELIABLE);
+	OverlayMessage genMessageSkel(const OverlayMessage_Header& reply_to, Priority prio = Priority::RELIABLE);
 
 	Handshake_PubkeyStage genPubkeyStage(Handshake::Stage for_stage, boost::optional<const crypto::PrivateKeyDSA&> our_hist_key = boost::none);
 	Handshake_ECDHStage genECDHStage();
@@ -132,25 +128,27 @@ class OverlayConnection : Loggable, std::enable_shared_from_this<OverlayConnecti
 	void processPubkeyStage(const OverlayMessage_Header& header, Handshake handshake_payload);
 	void processECDHStage(const OverlayMessage_Header& header, Handshake handshake_payload);
 public:
-	OverlayConnection(OverlayNode* node);
-	virtual ~OverlayConnection();
+	Connection(Socket* parent_socket, std::shared_ptr<Node> node);
+	virtual ~Connection();
 
 	bool connected() const;
 
 	void send(const OverlayMessage_Payload& send_payload, Priority prio);
-	void process(const OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from);
+	void process(const OverlayMessage& recv_message, const transport::SocketEndpoint& from);
 
 	void connect();
 	void disconnect();
 
 	// Public getters
-	TH localTH(){return getKeyProvider()->getTH();}
+	KeyInfo getLocalKeyInfo(){return *(socket_ptr->getKeyProvider()->getKeyInfo());}
+
+	TH localTH(){return socket_ptr->getKeyProvider()->getKeyInfo()->th;}
 	TH remoteTH(){return node_ptr->getHash();}
 
-	crypto::PublicKeyDSA localPublicKey(){return getKeyProvider()->getPublicKey();}
-	crypto::PrivateKeyDSA localPrivateKey(){return getKeyProvider()->getPrivateKey();}
+	crypto::PublicKeyDSA localPublicKey(){return socket_ptr->getKeyProvider()->getKeyInfo()->public_key;}
+	crypto::PrivateKeyDSA localPrivateKey(){return socket_ptr->getKeyProvider()->getKeyInfo()->private_key;}
 
-	crypto::PublicKeyDSA remotePublicKey(){return node_ptr->getPublicKey();}
+	crypto::PublicKeyDSA remotePublicKey(){return node_ptr->getKeyInfo().public_key;}
 };
 
 } /* namespace overlay */

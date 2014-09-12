@@ -11,20 +11,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef PAYLOADTYPES_H_
+#define PAYLOADTYPES_H_
 
-syntax = "proto2";
+#include "Protocol.pb.h"
 
-package p2pnet.overlay;
+namespace p2pnet {
+namespace overlay {
 
-message OverlayNode_s {
-	optional bytes node_th = 1;
-	optional bytes public_key = 2;
+enum class PayloadType {
+	UNKNOWN = 255,
 
-	optional int64 expires = 5;	// time_t time point
-	optional int64 lost = 6;	// Same here
+	ENCRYPTED = 0,
+	MULTIPART = 1,
+	HANDSHAKE = 2,
 
-	repeated string endpoints = 7;
+	DHT = 3
+};
 
-	//optional bool local = 16 [default = false];
-	//optional bool dht = 17 [default = false];
+enum class PayloadPriority {
+	REALTIME = protocol::OverlayMessage_Header_MessagePriority_REALTIME,
+	RELIABLE = protocol::OverlayMessage_Header_MessagePriority_RELIABLE
+};
+
 }
+}
+
+#endif /* PAYLOADTYPES_H_ */

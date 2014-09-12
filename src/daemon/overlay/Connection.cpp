@@ -17,22 +17,25 @@
 #include "../AsioIOService.h"
 #include <algorithm>
 #include <functional>
+
 #include <boost/date_time.hpp>
+#include <boost/optional.hpp>
 
 namespace p2pnet {
 namespace overlay {
 
-OverlayConnection::OverlayConnection(OverlayNode* node) : key_rotation_spam_timer(AsioIOService::getIOService()),
-		key_rotation_spam_limit(getValue<long>("overlay.connection.key_rotation_spam_limit")) {
+Connection::Connection(Socket* parent_socket, std::shared_ptr<OverlayNode> node) :
+		key_rotation_spam_timer(AsioIOService::getIOService()),
+		key_rotation_spam_limit(getValue<long>("overlay.connection.key_rotation_spam_limit")), socket_ptr(parent_socket) {
 	node_ptr = node;
 	log() << "New Overlay Connection initiated with TH:" << remoteTH().toBase58() << std::endl;
 }
 
-OverlayConnection::~OverlayConnection() {
+Connection::~Connection() {
 	disconnect();
 }
 
-void OverlayConnection::performRemoteKeyRotation(std::pair<crypto::PrivateKeyDSA, TH> previous_keys){
+void Connection::performRemoteKeyRotation(std::pair<crypto::PrivateKeyDSA, TH> previous_keys){
 	if(state == State::ESTABLISHED){
 		OverlayMessage message = genMessageSkel(previous_keys.second, remoteTH(), Priority::RELIABLE);
 		Handshake handshake;
@@ -44,13 +47,13 @@ void OverlayConnection::performRemoteKeyRotation(std::pair<crypto::PrivateKeyDSA
 	}
 }
 
-void OverlayConnection::setState(const State& state_to_set){
+void Connection::setState(const State& state_to_set){
 	state = state_to_set;
 
 	if(state_to_set == State::ESTABLISHED){
-		node_ptr->registerDHT();
+		socket_ptr->getDHT()->registerInKBucket(node_ptr.get());
 	}else if(state_to_set == State::CLOSED){
-		node_ptr->unregisterDHT();
+		socket_ptr->getDHT()->removeFromKBucket(node_ptr.get());
 	}
 
 	if(state_to_set == State::ESTABLISHED && !suspended_payloads.empty()){
@@ -60,7 +63,8 @@ void OverlayConnection::setState(const State& state_to_set){
 	}
 }
 
-void OverlayConnection::sendMessage(OverlayMessage send_message) {
+void Connection::sendMessage(OverlayMessage send_message) {
+
 
 	/*
 	if(localTH().toBinaryString() != send_message.header().src_th()){
@@ -116,47 +120,28 @@ void OverlayConnection::sendMessage(OverlayMessage send_message) {
 	}*/
 }
 
-OverlayMessage OverlayConnection::genMessageSkel(boost::optional<TH> src,
-		boost::optional<TH> dest,
-		boost::optional<Priority> prio){
+OverlayMessage Connection::genMessageSkel(const TH& src, const TH& dest, Priority prio){
 	OverlayMessage new_message;
 
-	new_message.mutable_header()->set_src_th(src->toBinaryString());
-	new_message.mutable_header()->set_dest_th(dest->toBinaryString());
-	new_message.mutable_header()->set_prio((OverlayMessage::Header::MessagePriority)*prio);
+	new_message.mutable_header()->set_src_th(src.toBinaryString());
+	new_message.mutable_header()->set_dest_th(dest.toBinaryString());
+	new_message.mutable_header()->set_prio((OverlayMessage::Header::MessagePriority)prio);
 
 	return new_message;
 }
 
-OverlayMessage OverlayConnection::genMessageSkel(const OverlayMessage_Header& reply_to){
-	boost::optional<TH> src, dest;
-	boost::optional<Priority> prio;
-
-	if(reply_to.has_dest_th()){
-		src = TH::fromBinaryString(reply_to.dest_th());
-	}else{src = boost::none;}
-
-	if(reply_to.has_src_th()){
-		dest = TH::fromBinaryString(reply_to.src_th());
-	}else{dest = boost::none;}
-
-	if(reply_to.has_prio()){
-		prio = (Priority)reply_to.prio();
-	}else{prio = boost::none;}
-
-	return genMessageSkel(src, dest, prio);
+OverlayMessage Connection::genMessageSkel(const OverlayMessage_Header& reply_to, Priority prio){
+	return genMessageSkel(TH::fromBinaryString(reply_to.dest_th()), TH::fromBinaryString(reply_to.src_th()), prio);
 }
 
-
-
-Handshake_PubkeyStage OverlayConnection::genPubkeyStage(Handshake::Stage for_stage, boost::optional<const crypto::PrivateKeyDSA&> our_hist_key){
+Handshake_PubkeyStage Connection::genPubkeyStage(Handshake::Stage for_stage, boost::optional<const crypto::PrivateKeyDSA&> our_hist_key){
 	Handshake_PubkeyStage stage;
 
 	std::string new_key_s = localPublicKey().toBinaryString();
 	stage.mutable_signed_content()->set_new_ecdsa_key(new_key_s);
 
-	stage.mutable_signed_content()->set_expiration_time(system_clock::to_time_t(getKeyProvider()->getExpirationTime()));
-	stage.mutable_signed_content()->set_lose_time(system_clock::to_time_t(getKeyProvider()->getLoseTime()));
+	stage.mutable_signed_content()->set_expiration_time(system_clock::to_time_t(getLocalKeyInfo().expiration_time));
+	stage.mutable_signed_content()->set_lose_time(system_clock::to_time_t(getLocalKeyInfo().lose_time));
 
 	if(for_stage == Handshake::PUBKEY_ROTATION){
 		std::string old_key_s = our_hist_key->derivePublicKey().toBinaryString();
@@ -171,7 +156,7 @@ Handshake_PubkeyStage OverlayConnection::genPubkeyStage(Handshake::Stage for_sta
 	return stage;
 }
 
-Handshake_ECDHStage OverlayConnection::genECDHStage(){
+Handshake_ECDHStage Connection::genECDHStage(){
 	Handshake_ECDHStage stage;
 
 	if(!session_ecdh_key.isPresent())
@@ -185,7 +170,7 @@ Handshake_ECDHStage OverlayConnection::genECDHStage(){
 	return stage;
 }
 
-void OverlayConnection::processHandshake(const OverlayMessage_Header& header, std::string serialized_payload) {
+void Connection::processHandshake(const OverlayMessage_Header& header, std::string serialized_payload) {
 	Handshake handshake;
 	handshake.ParseFromString(serialized_payload);
 
@@ -203,7 +188,7 @@ void OverlayConnection::processHandshake(const OverlayMessage_Header& header, st
 	}
 }
 
-void OverlayConnection::processPubkeyStage(const OverlayMessage_Header& header, Handshake handshake_payload){
+void Connection::processPubkeyStage(const OverlayMessage_Header& header, Handshake handshake_payload){
 	auto new_ecdsa_key = crypto::PublicKeyDSA::fromBinaryString(handshake_payload.pubkey().signed_content().new_ecdsa_key());
 
 	if(crypto::Hash(new_ecdsa_key) == remoteTH()){
@@ -232,15 +217,17 @@ void OverlayConnection::processPubkeyStage(const OverlayMessage_Header& header, 
 				new_handshake_payload.mutable_pubkey()->CopyFrom(genPubkeyStage(Handshake_Stage_PUBKEY_ACK));
 				break;
 			case Handshake_Stage_PUBKEY_ACK:
-				new_handshake_payload.mutable_pubkey()->CopyFrom(genPubkeyStage(Handshake_Stage_PUBKEY_ACK));
+				new_handshake_payload.mutable_pubkey()->CopyFrom(genECDHStage());
 				break;
 			default:
+				;
 		}
 		addPayload(new_handshake_payload.SerializeAsString(), PayloadType::HANDSHAKE, reply);
+		sendMessage(reply);
 	}
 }
 
-void OverlayConnection::processECDHStage(const OverlayMessage_Header& header, Handshake handshake_payload){
+void Connection::processECDHStage(const OverlayMessage_Header& header, Handshake handshake_payload){
 	if(!session_ecdh_key.isPresent())
 		session_ecdh_key = crypto::ECDH::generateNewKey();
 
@@ -266,17 +253,18 @@ void OverlayConnection::processECDHStage(const OverlayMessage_Header& header, Ha
 	log() << "AES encrypted connection with TH:" << remoteTH().toBase58() << " established" << std::endl;
 }
 
-bool OverlayConnection::connected() const {
+bool Connection::connected() const {
 	return state == State::ESTABLISHED;
 }
 
-void OverlayConnection::send(const OverlayMessage_Payload& send_payload, Priority prio) {
+void Connection::send(const OverlayMessage_Payload& send_payload, Priority prio) {
 	if(state == State::ESTABLISHED){
-		OverlayMessage message;
-		message.mutable_header()->set_src_th(localTH().toBinaryString());
-		message.mutable_header()->set_dest_th(remoteTH().toBinaryString());
-		message.mutable_header()->set_prio((OverlayMessage_Header_MessagePriority)prio);
-		message.set_encrypted_payload(encryptPayload(send_payload));
+		OverlayMessage message = genMessageSkel(localTH(), remoteTH(), prio);
+
+//		message.mutable_header()->set_src_th(localTH().toBinaryString());
+//		message.mutable_header()->set_dest_th(remoteTH().toBinaryString());
+//		message.mutable_header()->set_prio((OverlayMessage_Header_MessagePriority)prio);
+//		message.set_encrypted_payload(encryptPayload(send_payload));
 		sendMessage(message);
 	}else{
 		if(prio == Priority::RELIABLE){
@@ -290,7 +278,7 @@ void OverlayConnection::send(const OverlayMessage_Payload& send_payload, Priorit
 	}
 }
 
-void OverlayConnection::process(const OverlayMessage& recv_message, const transport::TransportSocketEndpoint& from) {
+void Connection::process(const OverlayMessage& recv_message, const transport::SocketEndpoint& from) {
 	node_ptr->updateEndpoint(from);
 
 	std::shared_ptr<crypto::PrivateKeyDSA> our_historic_ecdsa_privkey;
@@ -315,7 +303,7 @@ void OverlayConnection::process(const OverlayMessage& recv_message, const transp
 				node_ptr->updateEndpoint(from, true);
 				processHandshake(recv_message, decrypted_payload);
 				// DHT
-				OverlaySocket::getInstance()->getDHT()->process(src_th, recv_message.payload().GetExtension(dht_part));
+				Socket::getInstance()->getDHT()->process(src_th, recv_message.payload().GetExtension(dht_part));
 			}else{
 				// TODO: Reconnect
 			}
@@ -338,7 +326,7 @@ void OverlayConnection::process(const OverlayMessage& recv_message, const transp
 	}
 }
 
-void OverlayConnection::connect() {
+void Connection::connect() {
 	OverlayMessage message;
 	message.mutable_header()->set_src_th(localTH().toBinaryString());
 	message.mutable_header()->set_dest_th(remoteTH().toBinaryString());
@@ -347,8 +335,8 @@ void OverlayConnection::connect() {
 	sendMessage(message);
 }
 
-void OverlayConnection::disconnect() {
-	state = State::CLOSED;
+void Connection::disconnect() {
+	setState(State::CLOSED);
 }
 
 } /* namespace overlay */

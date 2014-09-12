@@ -15,9 +15,9 @@
 #define OVERLAYNODE_H_
 
 #include "../dht/DHTNode.h"
-#include "../transport/TransportSocketEndpoint.h"
+#include "../transport/SocketEndpoint.h"
 
-#include "../../common/crypto/PublicKeyDSA.h"
+#include "KeyProvider.h"
 #include "TH.h"
 
 #include <boost/asio.hpp>
@@ -28,33 +28,26 @@ namespace overlay {
 
 using std::chrono::system_clock;
 
-class OverlayConnection;
-class OverlayNode : public dht::DHTNode {
-	OverlayConnection* connection;
-
+class Node : public dht::DHTNode, public std::enable_shared_from_this<Node> {
 	std::chrono::system_clock::time_point last_activity;
-	std::chrono::system_clock::time_point key_expiration_time;
-	std::chrono::system_clock::time_point key_lose_time;
-	boost::asio::deadline_timer key_lose_timer;
 
-	crypto::PublicKeyDSA public_key;
-	TH th;
+	KeyInfo node_keyinfo;
 
-	std::deque<transport::TransportSocketEndpoint> transport_endpoints;
+	std::deque<transport::SocketEndpoint> transport_endpoints;
 public:
-	OverlayNode(const crypto::Hash& node_th);
-	OverlayNode(const std::string& serialized_contact);
-	virtual ~OverlayNode();
+	Node(const crypto::Hash& node_th);
+	Node(const std::string& serialized_contact);
+	virtual ~Node();
 
 	// Cryptographic/Identity functions
 	virtual crypto::Hash getHash() const;
 
-	crypto::PublicKeyDSA getPublicKey() const;
+	// KeyInfo manipulation
+	KeyInfo getKeyInfo() const;
 	void setPublicKey(const crypto::PublicKeyDSA& public_key);
 
-	// Connection functions
-	OverlayConnection* getConnection();
-	bool hasConnection() const;
+	void updateExpirationTime(system_clock::time_point expiry_time);
+	void updateLoseTime(system_clock::time_point lost_time);
 
 	// Serialization functions
 	virtual std::string getSerializedContact() const;
@@ -65,24 +58,10 @@ public:
 	void bumpLastActivity();
 
 	virtual Reliability getReliability() const;
-	virtual bool isExchangeable() const;
 
 	// TransportEndpoint functions
-	decltype(transport_endpoints) getTransportEndpoints(){return transport_endpoints;};
-	void updateEndpoint(const transport::TransportSocketEndpoint& endpoint, bool verified = false);
-
-	// Timing functions
-	void updateExpirationTime(system_clock::time_point expiry_time);
-	void updateLoseTime(system_clock::time_point lost_time);
-
-	system_clock::time_point getExpirationTime();
-	system_clock::time_point getLoseTime();
-
-	// DHT functions
-	void registerDHT();
-	void unregisterDHT();
-
-	OverlayNode& operator=(const OverlayNode& other);
+	decltype(transport_endpoints) getTransportEndpoints() const {return transport_endpoints;}
+	void updateEndpoint(const transport::SocketEndpoint& endpoint, bool verified = false);
 };
 
 } /* namespace overlay */

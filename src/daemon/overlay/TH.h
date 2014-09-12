@@ -20,7 +20,7 @@
 namespace p2pnet {
 namespace overlay {
 
-typedef crypto::Hash TH;
+using TH = crypto::Hash;
 
 } /* namespace overlay */
 } /* namespace p2pnet */

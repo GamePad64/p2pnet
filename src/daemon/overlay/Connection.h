@@ -11,34 +11,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef OVERLAYNODEDB_H_
-#define OVERLAYNODEDB_H_
+#ifndef OVERLAYCONNECTION_H_
+#define OVERLAYCONNECTION_H_
 
-#include "OverlayNode.h"
-#include "../../common/crypto/PublicKeyDSA.h"
-
-#include <map>
+using std::chrono::system_clock;
 
 namespace p2pnet {
+using namespace protocol;
 namespace overlay {
 
-class OverlayNodeDB {
-	friend class OverlayNode;	// As OverlayNode will call moveNode
-
-	std::map<crypto::Hash, OverlayNode*> nodes;
-
-	void moveNode(const TH& from, const TH& to);
+class Connection : public std::enable_shared_from_this<Connection>, protected Loggable {
+	std::weak_ptr<Socket> parent_socket;
+protected:
+	Connection() = delete;
+	Connection(std::shared_ptr<Interface> parent_interface);
 public:
-	OverlayNodeDB();
-	virtual ~OverlayNodeDB();
+	virtual ~Connection(){};
 
-	std::set<OverlayNode*> getAllNodes();
-	OverlayNode* getNode(const overlay::TH& th);
+	virtual SocketEndpoint getEndpoint() = 0;
+	std::shared_ptr<Socket> getParent(){return parent_socket.lock();}
 
-	void notifyKeysUpdated(std::pair<crypto::PrivateKeyDSA, TH> previous_keys, std::pair<crypto::PrivateKeyDSA, TH> new_keys);
+	void connect(Socket::ConnectCallback callback) = 0;
+	void send(const std::string& data, Socket::SendCallback callback) = 0;
+	bool connected();
+
+	virtual void onConnect();
+	virtual void onDisconnect();
 };
 
 } /* namespace overlay */
 } /* namespace p2pnet */
 
-#endif /* OVERLAYNODEDB_H_ */
+#endif /* OVERLAYCONNECTION_H_ */
