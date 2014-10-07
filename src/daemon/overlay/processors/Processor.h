@@ -13,14 +13,28 @@
  */
 #pragma once
 
-// Error codes. "Any resemblance to real used error codes is purely coincidental", lol.
+#include "OverlayProtocol.pb.h"
+#include <memory>
 
 namespace p2pnet {
-namespace transport {
+using namespace protocol;
+namespace overlay {
+namespace processors {
 
-const int timed_out = 110;
-const int connection_reset = 104;
-const int no_such_interface = 180; //
+class Connection;
+class Processor {
+	friend class Socket;
+	std::weak_ptr<Socket> parent;
+protected:
+	std::shared_ptr<Socket> getParent(){return parent.lock();};
+public:
+	Processor(std::weak_ptr<Socket> parent){this->parent(parent);}
+	virtual ~Processor();
 
-} /* namespace transport */
+	virtual bool isEncryptionMandatory() const {return true;};	// Encryption is mandatory by default
+	virtual void process(std::shared_ptr<Connection> connection, const OverlayMessage_Header& header, const OverlayMessage_Payload& payload) = 0;
+};
+
+} /* namespace processors */
+} /* namespace overlay */
 } /* namespace p2pnet */

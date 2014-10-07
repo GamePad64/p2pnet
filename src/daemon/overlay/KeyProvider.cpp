@@ -13,7 +13,7 @@
  */
 
 #include "KeyProvider.h"
-#include "OverlaySocket.h"
+#include "Socket.h"
 #include "../../common/crypto/Hash.h"
 #include "../AsioIOService.h"
 
@@ -26,6 +26,21 @@
 
 namespace p2pnet {
 namespace overlay {
+
+void KeyInfo::fromProtobuf(const protocol::Handshake_SignedHandshake_KeyInfo& key_info_s){
+	public_key.setAsBinaryString(key_info_s.ecdsa_key());
+	th = TH(public_key);
+	expiration_time = std::chrono::system_clock::from_time_t(key_info_s.expiration_time());
+	lose_time = std::chrono::system_clock::from_time_t(key_info_s.lose_time());
+}
+
+protocol::Handshake_SignedHandshake_KeyInfo KeyInfo::toProtobuf() const{
+	protocol::Handshake_SignedHandshake_KeyInfo key_info_protobuf;
+	key_info_protobuf.set_ecdsa_key(public_key.toBinaryString());
+	key_info_protobuf.set_expiration_time((int64_t)std::chrono::system_clock::to_time_t(expiration_time));
+	key_info_protobuf.set_lose_time((int64_t)std::chrono::system_clock::to_time_t(lose_time));
+	return key_info_protobuf;
+}
 
 KeyProvider::KeyProvider(Socket* parent) :
 		max_history_size(getValue<unsigned int>("overlay.key_provider.history_size") + 1), //Yes, +1 means newly generated key.

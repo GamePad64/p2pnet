@@ -46,8 +46,7 @@ public:
 	KeyInfo getKeyInfo() const;
 	void setPublicKey(const crypto::PublicKeyDSA& public_key);
 
-	void updateExpirationTime(system_clock::time_point expiry_time);
-	void updateLoseTime(system_clock::time_point lost_time);
+
 
 	// Serialization functions
 	virtual std::string getSerializedContact() const;
@@ -62,6 +61,8 @@ public:
 	// TransportEndpoint functions
 	decltype(transport_endpoints) getTransportEndpoints() const {return transport_endpoints;}
 	void updateEndpoint(const transport::SocketEndpoint& endpoint, bool verified = false);
+	void updateExpirationTime(system_clock::time_point expiry_time);
+	void updateLoseTime(system_clock::time_point lost_time);
 };
 
 } /* namespace overlay */

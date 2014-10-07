@@ -18,34 +18,30 @@ package p2pnet.protocol;
 message OverlayMessage {
 	message Header {
 		required bytes src_th = 1;
-		required bytes dest_th = 2;
+		optional bytes dest_th = 2;
 
-		enum MessagePriority {
-			REALTIME = 0;	// This is like UDP.
-			RELIABLE = 1;	// This is like SCTP (RFC 4960), but only with delivery control.
-		}
+		//enum MessagePriority {
+		//	REALTIME = 0;	// This is like UDP.
+		//	RELIABLE = 1;	// This is like SCTP (RFC 4960), but only with delivery control.
+		//}
 
-		optional MessagePriority prio = 3 [default = RELIABLE];
-		optional uint32 seq_num = 4;
-		repeated uint32 ack_num = 5 [packed = true];
+		//optional MessagePriority prio = 3 [default = RELIABLE];
+		//optional uint32 seq_num = 4;
+		//repeated uint32 ack_num = 5 [packed = true];
 	}
 	required Header header = 1;
 
 	message Payload {
 		required uint32 type = 1;
-		repeated bytes content = 2;
+		required bytes content = 2;
 	}
-	required Payload payload = 2;
-}
+	message MultiPayload {
+		repeated Payload payload = 1;
+	}
+	message Body {
+		optional MultiPayload open_multipayload = 1;
+		optional bytes encrypted_multipayload = 2;
+	}
 
-/*
- * This message type is used in Local Peer Discovery through UDP.
- */
-message UDPDiscoveryMessage {
-	required uint32 port = 1;
-	optional uint32 version = 2;
-}
-
-message ConnectionRequestMessage {
-	required bytes src_th = 1;
+	required Body body = 2;
 }

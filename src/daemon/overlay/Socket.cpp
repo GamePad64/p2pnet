@@ -13,40 +13,117 @@
  */
 #include "Socket.h"
 #include "Connection.h"
-#include "Protocol.pb.h"
+#include "OverlayProtocol.pb.h"
+#include "PayloadParams.h"
+#include "processors/Handshake.h"
 
 namespace p2pnet {
 namespace overlay {
 
-Socket::Socket() : key_provider(this), dht_service(this) {}
+Socket::Socket() : key_provider(this), dht_service(this) {
+	handshake_processor = std::make_shared<processors::Handshake>(shared_from_this());
+	registerProcessor(PayloadType::HANDSHAKE, handshake_processor);
+}
 
 Socket::~Socket() {}
 
-void Socket::send(const TH& dest,
-		const protocol::OverlayMessage_Payload& message_payload, Priority prio) {
-	getNodeDB()->getConnection(dest)->send(message_payload, prio);
+void Socket::process(int error, std::shared_ptr<transport::Connection> origin, std::string data) {
+	protocol::OverlayMessage message;
+
+	/*
+	 * Parsing message into components
+	 */
+	if(!message.ParseFromString(data)){return;}
+
+	TH src_th(TH::fromBinaryString(message.header().src_th()));
+	TH dest_th = message.header().has_dest_th() ? TH::fromBinaryString(message.header().src_th()) : TH();
+
+	log() << "<- OverlayMessage: TH:" << src_th.toBase58() << std::endl;
+
+	/*
+	 * Processing message
+	 */
+	if(dest_th == getKeyProvider()->getKeyInfo()->th){	// Processing message by ourselves as regular message.
+		processSelf(origin, message.header(), message.body());
+	}else if(dest_th){	// Not processing message by ourselves as we just relay this.
+		processRelay(origin, message.header(), message.body());
+	}else{	// Processing message by ourselves as connection request.
+		processRequest(origin, message.header(), message.body());
+	}
 }
 
-void Socket::process(std::string data, const transport::SocketEndpoint& from) {
-	protocol::OverlayMessage overlay_message;
-	protocol::ConnectionRequestMessage request_message;
+void Socket::processSelf(std::shared_ptr<transport::Connection> origin,
+		const OverlayMessage_Header& header,
+		const OverlayMessage_Body& body) {
+	TH src_th(TH::fromBinaryString(header.src_th()));
+	auto conn_it = connections.find(src_th);
+	std::shared_ptr<Connection> conn_ptr;
 
-	if(overlay_message.ParseFromString(data)){
-		overlay::TH packet_src_th(overlay::TH::fromBinaryString(overlay_message.header().src_th()));
+	if(conn_it == connections.end()){
+		conn_ptr = std::make_shared<Connection>(shared_from_this(), src_th);
+		connections.insert(std::make_pair(src_th, conn_ptr));
+	}else{
+		conn_ptr = conn_it->second;
+	}
 
-		log() << "<- OverlayMessage: TH:" << overlay::TH::fromBinaryString(overlay_message.header().src_th()).toBase58() << std::endl;
+	conn_it->second->process(origin, header, body);
+}
 
-		getNodeDB()->getConnection(packet_src_th)->process(overlay_message, from);
-	}else if(!getValue<bool>("policies.outgoing_only") && request_message.ParseFromString(data)){
-		overlay::TH packet_src_th(overlay::TH::fromBinaryString(request_message.src_th()));
+void Socket::processRelay(std::shared_ptr<transport::Connection> origin,
+		const OverlayMessage_Header& header,
+		const OverlayMessage_Body& body) {
+}
 
-		log() << "<- Connection Request: TH:" << overlay::TH::fromBinaryString(request_message.src_th()).toBase58() << std::endl;
+void Socket::processRequest(std::shared_ptr<transport::Connection> origin,
+		const OverlayMessage_Header& header,
+		const OverlayMessage_Body& body) {
+	if(!getValue<bool>("policies.outgoing_only")){
+		// Connect
+	}	// else Drop.
+}
 
-		getNodeDB()->getNode(packet_src_th)->updateEndpoint(from);
-		if(!(getNodeDB()->getNode(packet_src_th)->hasConnection())){
-			getNodeDB()->getNode(packet_src_th)->getConnection()->connect();
+void Socket::registerConnection(std::shared_ptr<Connection> connection) {	// TODO
+	getDHT()->registerInKBucket(connection);
+}
+
+void Socket::unregisterConnection(std::shared_ptr<Connection> connection) {	// TODO
+	getDHT()->removeFromKBucket(connection);
+}
+
+void Socket::connect(const TH& dest, ConnectCallback callback) {
+	auto it = connections.find(dest);
+	auto connection_ptr = (it != connections.end()) ? (*it).second : std::make_shared<Connection>(shared_from_this(), dest);
+	connection_ptr->connect(callback);
+}
+
+void Socket::send(const OverlayMessage& message, SendCallback callback, std::shared_ptr<Connection> connection){
+	// Searching for at least one alive transport::Connection
+	for(auto transport_connection : connection->transport_connections){
+		if(transport_connection->connected()){
+			transport_connection->send(
+					message.SerializeAsString(),
+					std::bind([](int error, std::shared_ptr<transport::Connection> tconn, std::string message, int total, std::shared_ptr<Connection> oconn, SendCallback ocallback){
+						ocallback(error, oconn, message, total);
+					}, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, connection, callback)
+			);
 		}
 	}
+}
+
+void Socket::registerProcessor(PayloadType payload_type,
+		std::shared_ptr<processors::Processor> processor) {
+	processors.insert(std::make_pair(payload_type, processor));
+}
+
+std::list<std::shared_ptr<processors::Processor>> Socket::getProcessors(PayloadType payload_type){
+	auto range = processors.equal_range(payload_type);
+	std::list<std::shared_ptr<processors::Processor>> processor_list;
+
+	for(auto it = range.first; it != range.second; it++){
+		processor_list.push_back(it->second);
+	}
+
+	return processor_list;
 }
 
 } /* namespace overlay */

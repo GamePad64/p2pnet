@@ -36,8 +36,8 @@ public:
 
 	crypto::Hash getMyHash();
 
-	void registerInKBucket(Node* node);
-	void removeFromKBucket(Node* node);
+	void registerInKBucket(std::shared_ptr<Connection> connection);
+	void removeFromKBucket(std::shared_ptr<Connection> connection);
 
 	void rebuild();
 

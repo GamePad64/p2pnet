@@ -14,7 +14,7 @@
 #ifndef PAYLOADTYPES_H_
 #define PAYLOADTYPES_H_
 
-#include "Protocol.pb.h"
+#include "OverlayProtocol.pb.h"
 
 namespace p2pnet {
 namespace overlay {
@@ -22,9 +22,8 @@ namespace overlay {
 enum class PayloadType {
 	UNKNOWN = 255,
 
-	ENCRYPTED = 0,
-	MULTIPART = 1,
-	HANDSHAKE = 2,
+	HANDSHAKE = 1,
+	ONION = 2,
 
 	DHT = 3
 };

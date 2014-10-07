@@ -11,9 +11,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef TH_H_
-#define TH_H_
+#pragma once
 
 #include "../../common/crypto/Hash.h"
 
@@ -24,5 +22,3 @@ using TH = crypto::Hash;
 
 } /* namespace overlay */
 } /* namespace p2pnet */
-
-#endif /* TH_H_ */

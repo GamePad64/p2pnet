@@ -14,7 +14,7 @@
 #pragma once
 
 #include "DiscoveryService.h"
-#include "Protocol.pb.h"
+#include "UDPLPD.pb.h"
 #include "../transport/udp/UDPInterface.h"
 #include <boost/asio.hpp>
 #include <string>

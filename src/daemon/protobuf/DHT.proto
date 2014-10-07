@@ -14,7 +14,6 @@
 
 syntax = "proto2";
 
-import "Protocol.proto";
 package p2pnet.protocol;
 
 message DHTPart {

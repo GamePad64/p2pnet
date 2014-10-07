@@ -18,17 +18,18 @@
 #include "../../common/Config.h"
 #include "../../common/Loggable.h"
 #include "../transport/SocketEndpoint.h"
-#include "Protocol.pb.h"
+#include "OverlayProtocol.pb.h"
 
 namespace p2pnet {
 namespace discovery {
 
 class DiscoveryService : public ConfigClient, public Loggable {
-	protocol::ConnectionRequestMessage generateConnectionRequest();
+	protocol::OverlayMessage generateConnectionRequest();
 
-	std::shared_ptr<transport::Socket> socket;
+	std::shared_ptr<transport::Socket> transport_socket;
+	std::shared_ptr<overlay::Socket> overlay_socket;
 public:
-	DiscoveryService(std::shared_ptr<transport::Socket> socket);
+	DiscoveryService(std::shared_ptr<transport::Socket> transport_socket, std::shared_ptr<overlay::Socket> overlay_socket);
 	virtual ~DiscoveryService();
 
 	void handshake(transport::SocketEndpoint endpoint);

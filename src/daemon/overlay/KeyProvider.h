@@ -20,9 +20,12 @@
 #include "../../common/Config.h"
 #include "../../common/Loggable.h"
 
+#include "Handshake.pb.h"
+
 #include <boost/asio.hpp>
 #include <boost/asio/system_timer.hpp>
 #include <boost/signals2.hpp>
+#include <boost/optional.hpp>
 
 #include <thread>
 #include <deque>
@@ -30,7 +33,10 @@
 namespace p2pnet {
 namespace overlay {
 
-struct KeyInfo {
+class KeyInfo {
+	void fromProtobuf(const protocol::Handshake_SignedHandshake_KeyInfo& key_info_s);
+	protocol::Handshake_SignedHandshake_KeyInfo toProtobuf() const;
+public:
 	crypto::PrivateKeyDSA private_key;
 	crypto::PublicKeyDSA public_key;
 	TH th;

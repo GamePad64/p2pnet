@@ -11,9 +11,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "OverlayDHT.h"
-#include "OverlaySocket.h"
-#include "OverlayConnection.h"
+#include "DHT.h"
+#include "Socket.h"
+#include "Connection.h"
 #include "../transport/TransportSocketEndpoint.h"
 
 namespace p2pnet {
@@ -39,12 +39,12 @@ crypto::Hash DHT::getMyHash(){
 }
 
 /* K-bucket mgmt */
-void DHT::registerInKBucket(Node* node){
-	k_buckets->addNode(node, true);
+void DHT::registerInKBucket(std::shared_ptr<Connection> connection){
+	k_buckets->addNode(connection, true);
 }
 
-void DHT::removeFromKBucket(Node* node) {
-	k_buckets->removeNode(node);
+void DHT::removeFromKBucket(std::shared_ptr<Connection> connection) {
+	k_buckets->removeNode(connection);
 }
 
 void DHT::rebuild() {

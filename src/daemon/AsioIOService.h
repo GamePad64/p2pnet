@@ -12,8 +12,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ASIOIOSERVICE_H_
-#define ASIOIOSERVICE_H_
+#pragma once
 
 #include <boost/asio.hpp>
 
@@ -28,4 +27,3 @@ public:
 };
 
 } /* namespace p2pnet */
-#endif /* ASIOIOSERVICE_H_ */

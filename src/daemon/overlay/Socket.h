@@ -11,30 +11,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef OVERLAYSOCKET_H_
-#define OVERLAYSOCKET_H_
+#pragma once
 
 #include "TH.h"
+#include "PayloadParams.h"
+
 #include "DHT.h"
 #include "KeyProvider.h"
 
+#include "processors/Processor.h"
+#include "OverlayProtocol.pb.h"
+
+#include "../transport/Connection.h"
 #include "../transport/SocketEndpoint.h"
-#include "../../common/Singleton.h"
 #include "../../common/Loggable.h"
 
+#include <memory>
+
 namespace p2pnet {
-namespace overlay {
-
 using namespace protocol;
+namespace overlay {
+namespace processors {
+class Handshake;
+}
 
-class Socket : public Loggable, ConfigClient {
+class Connection;
+class Socket : public Loggable, ConfigClient, public std::enable_shared_from_this<Socket> {
 public:
-	//using SendCallback = std::function<void(int, std::shared_ptr<Connection>, std::string, int)>;	// void(int error_code, SocketEndpoint endpoint, std::string message, int bytes_transferred)
+	using SendCallback = std::function<void(int, std::shared_ptr<Connection>, std::string, int)>;	// void(int error_code, SocketEndpoint endpoint, std::string message, int bytes_transferred)
 	//using ReceiveCallback = std::function<void(int, std::shared_ptr<Connection>, std::string)>;
 	using ConnectCallback = std::function<void(int, std::shared_ptr<Connection>)>;
 	//using DisconnectCallback = std::function<void(int, std::shared_ptr<Connection>)>;
-
-	using processor_t = boost::signals2::signal<void(std::shared_ptr<Connection>, const OverlayMessage_Header&, const OverlayMessage_Payload&)>;
 private:
 	KeyProvider key_provider;
 	DHT dht_service;
@@ -42,8 +49,12 @@ private:
 	std::map<TH, std::shared_ptr<Connection>> connections;
 	std::map<std::chrono::system_clock::time_point, decltype(connections)::iterator> timed_destroy_queue;
 
-	std::map<PayloadType, processor_t> processors;
+	std::shared_ptr<processors::Handshake> handshake_processor;
+	std::multimap<PayloadType, std::shared_ptr<processors::Processor>> processors;
 
+	void processSelf(std::shared_ptr<transport::Connection> origin, const OverlayMessage_Header& header, const OverlayMessage_Body& body);
+	void processRelay(std::shared_ptr<transport::Connection> origin, const OverlayMessage_Header& header, const OverlayMessage_Body& body);
+	void processRequest(std::shared_ptr<transport::Connection> origin, const OverlayMessage_Header& header, const OverlayMessage_Body& body);
 public:
 	Socket();
 	virtual ~Socket();
@@ -52,16 +63,17 @@ public:
 	DHT* getDHT(){return &dht_service;}
 
 	// Well, you see, it is COMPLETELY DIFFERENT from transport::Socket :)
-	std::shared_ptr<Connection> getConnection(const TH& th);	// Nullable. If nullptr, then use connect();
 	void registerConnection(std::shared_ptr<Connection> connection);
 	void unregisterConnection(std::shared_ptr<Connection> connection);
 
-	void connect(const TH& dest, ConnectCallback);
-	void process(int error, std::shared_ptr<Connection> origin, std::string data);	// For invocation with transport::Socket::ReceiveCallback
-	void process(std::shared_ptr<Connection> origin, const OverlayMessage_Header& header, const OverlayMessage_Payload& payload);
+	void connect(const TH& dest, ConnectCallback callback);
+	void process(int error, std::shared_ptr<transport::Connection> origin, std::string data);	// For invocation with transport::Socket::ReceiveCallback
+    void send(const OverlayMessage& message, Socket::SendCallback callback, std::shared_ptr<Connection> connection);
+
+	void registerProcessor(PayloadType payload_type, std::shared_ptr<processors::Processor> processor);
+	std::list<std::shared_ptr<processors::Processor>> getProcessors(PayloadType payload_type);
+	std::shared_ptr<processors::Handshake> getHandshakeProcessor();
 };
 
 } /* namespace overlay */
 } /* namespace p2pnet */
-
-#endif /* OVERLAYSOCKET_H_ */

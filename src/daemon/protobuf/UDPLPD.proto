@@ -13,30 +13,12 @@
  */
 
 syntax = "proto2";
-
 package p2pnet.protocol;
 
-message Handshake {
-	enum Stage {
-		REQUEST = 0; REPLY = 1;
-
-		PUBKEY_ROTATION = 8;
-		CONNECTION_REQUEST = 9;
-	}
-	required Stage stage = 1;
-
-	message SignedHandshake {
-		message KeyInfo {
-			required bytes ecdsa_key = 2;
-
-			required int64 expiration_time = 3;
-			required int64 lose_time = 4;
-		}
-		required KeyInfo key_info = 1;
-		optional bytes ecdh_key = 2;	// Not used in PUBKEY_ROTATION.
-	}
-
-	required SignedHandshake signed_handshake = 2;
-	required bytes new_key_signature = 3;
-	optional bytes old_key_signature = 4;	// For PUBKEY_ROTATION only.
+/*
+ * This message type is used in Local Peer Discovery through UDP.
+ */
+message UDPDiscoveryMessage {
+	required uint32 port = 1;
+	optional uint32 version = 2;
 }

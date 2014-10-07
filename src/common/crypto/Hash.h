@@ -29,7 +29,7 @@ class PublicKeyDSA;
  * Base class for hashing operations.
  * Now it represents Keccak algorithm, which was selected as SHA-3.
  */
-class Hash : public MathString< Hash > {
+class Hash : public MathString<Hash> {
 	friend class MathString;
 private:
 	binary_vector_t hash;

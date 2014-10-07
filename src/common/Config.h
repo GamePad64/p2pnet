@@ -70,6 +70,7 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 		// Overlay
 		config.put("overlay.connection.processed_queue_size", 100);
 		config.put("overlay.connection.key_rotation_spam_limit", 5);
+		config.put("overlay.connection.timeout", 120);
 		config.put("overlay.key_provider.history_size", 10);
 		config.put("overlay.key_provider.renew_interval", 600);
 
@@ -103,17 +104,11 @@ class ConfigManager : public Loggable, public Singleton<ConfigManager> {
 	std::string getDefaultFile();
 	void setFile(std::string filename);
 
-	void configChanged();
-
 	void resetToDefaults();
 	void loadFromFile();
 public:
 	ConfigManager();
 	virtual ~ConfigManager();
-
-	std::set<ConfigClient*> config_clients;
-	void registerClient(ConfigClient* client);
-	void unregisterClient(ConfigClient* client);
 
 	std::string getDirectory();
 	std::string getFile();
