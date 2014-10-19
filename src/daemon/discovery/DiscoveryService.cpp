@@ -12,10 +12,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "DiscoveryService.h"
-#include "../overlay/KeyProvider.h"
-#include "../transport/Connection.h"
 #include "../transport/Socket.h"
+#include "../transport/Connection.h"
+#include "../overlay/Socket.h"
+#include "../overlay/KeyProvider.h"
+
+#include "DiscoveryService.h"
 
 namespace p2pnet {
 namespace discovery {
@@ -33,9 +35,12 @@ protocol::OverlayMessage DiscoveryService::generateConnectionRequest() {
 }
 
 void DiscoveryService::handshake(transport::SocketEndpoint endpoint) {
-	if(socket->getConnection(endpoint) == nullptr){
-		socket->connect(endpoint, )
-		transport_socket->send(endpoint, generateConnectionRequest().SerializeAsString());
+	if(transport_socket->getConnection(endpoint) == nullptr){
+		transport_socket->connect(endpoint, [&, this](int error, std::shared_ptr<transport::Connection> connection){
+			if(!error){
+				connection->send(generateConnectionRequest().SerializeAsString(), [&, this](int error_code, std::shared_ptr<transport::Connection> connection, std::string message, int bytes_transferred){});
+			}
+		});
 	}
 }
 

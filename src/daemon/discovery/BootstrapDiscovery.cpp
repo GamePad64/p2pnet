@@ -12,7 +12,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "BootstrapDiscovery.h"
-#include "../errors/NoInterface.h"
 #include "../transport/Socket.h"
 
 #include <iostream>
@@ -21,7 +20,8 @@
 namespace p2pnet {
 namespace discovery {
 
-BootstrapDiscovery::BootstrapDiscovery() {}
+BootstrapDiscovery::BootstrapDiscovery(std::shared_ptr<transport::Socket> transport_socket, std::shared_ptr<overlay::Socket> overlay_socket) :
+		DiscoveryService(transport_socket, overlay_socket) {}
 BootstrapDiscovery::~BootstrapDiscovery() {}
 
 void BootstrapDiscovery::run(){
@@ -31,13 +31,12 @@ void BootstrapDiscovery::run(){
 	std::string peer_readable_tse;
 
 	while(getline(bootstrapfile, peer_readable_tse)){
-		transport::SocketEndpoint tse;
+		transport::SocketEndpoint tse(transport_socket.get());
 		try {
 			tse.fromString(peer_readable_tse);
 			handshake(tse);
-		} catch(errors::NoInterface* e){
-			log() << e->what() << std::endl;
-			delete e;
+		} catch(int e){
+			log() << e << std::endl;
 		}
 	}
 }

@@ -16,10 +16,9 @@
 #include "TH.h"
 #include "PayloadParams.h"
 
-#include "DHT.h"
 #include "KeyProvider.h"
 
-#include "processors/Processor.h"
+#include "Processor.h"
 #include "OverlayProtocol.pb.h"
 
 #include "../transport/Connection.h"
@@ -31,9 +30,6 @@
 namespace p2pnet {
 using namespace protocol;
 namespace overlay {
-namespace processors {
-class Handshake;
-}
 
 class Connection;
 class Socket : public Loggable, ConfigClient, public std::enable_shared_from_this<Socket> {
@@ -43,14 +39,14 @@ public:
 	using ConnectCallback = std::function<void(int, std::shared_ptr<Connection>)>;
 	//using DisconnectCallback = std::function<void(int, std::shared_ptr<Connection>)>;
 private:
+	unsigned int maximum_connections;
+
 	KeyProvider key_provider;
-	DHT dht_service;
 
 	std::map<TH, std::shared_ptr<Connection>> connections;
 	std::map<std::chrono::system_clock::time_point, decltype(connections)::iterator> timed_destroy_queue;
 
-	std::shared_ptr<processors::Handshake> handshake_processor;
-	std::multimap<PayloadType, std::shared_ptr<processors::Processor>> processors;
+	std::multimap<PayloadType, std::shared_ptr<Processor>> processors;
 
 	void processSelf(std::shared_ptr<transport::Connection> origin, const OverlayMessage_Header& header, const OverlayMessage_Body& body);
 	void processRelay(std::shared_ptr<transport::Connection> origin, const OverlayMessage_Header& header, const OverlayMessage_Body& body);
@@ -60,7 +56,9 @@ public:
 	virtual ~Socket();
 
 	KeyProvider* getKeyProvider(){return &key_provider;}
-	DHT* getDHT(){return &dht_service;}
+
+	void onConnect(std::shared_ptr<Connection> connection);
+	void onDisconnect(std::shared_ptr<Connection> connection);
 
 	// Well, you see, it is COMPLETELY DIFFERENT from transport::Socket :)
 	void registerConnection(std::shared_ptr<Connection> connection);
@@ -70,9 +68,8 @@ public:
 	void process(int error, std::shared_ptr<transport::Connection> origin, std::string data);	// For invocation with transport::Socket::ReceiveCallback
     void send(const OverlayMessage& message, Socket::SendCallback callback, std::shared_ptr<Connection> connection);
 
-	void registerProcessor(PayloadType payload_type, std::shared_ptr<processors::Processor> processor);
-	std::list<std::shared_ptr<processors::Processor>> getProcessors(PayloadType payload_type);
-	std::shared_ptr<processors::Handshake> getHandshakeProcessor();
+	void registerProcessor(PayloadType payload_type, std::shared_ptr<Processor> processor);
+	std::list<std::shared_ptr<Processor>> getProcessors(PayloadType payload_type);
 };
 
 } /* namespace overlay */

@@ -17,7 +17,6 @@
 #include "SocketEndpoint.h"
 #include "Connection.h"
 #include "../../common/Loggable.h"
-#include "../errors/NoInterface.h"
 #include <boost/range/adaptor/map.hpp>
 #include <iostream>
 #include <cstdlib>

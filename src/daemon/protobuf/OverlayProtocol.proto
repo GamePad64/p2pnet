@@ -20,12 +20,12 @@ message OverlayMessage {
 		required bytes src_th = 1;
 		optional bytes dest_th = 2;
 
-		//enum MessagePriority {
-		//	REALTIME = 0;	// This is like UDP.
-		//	RELIABLE = 1;	// This is like SCTP (RFC 4960), but only with delivery control.
-		//}
+		enum MessagePriority {
+			REALTIME = 0;	// This is like UDP.
+			RELIABLE = 1;	// This is like SCTP (RFC 4960), but only with delivery control.
+		}
 
-		//optional MessagePriority prio = 3 [default = RELIABLE];
+		optional MessagePriority prio = 3 [default = RELIABLE];
 		//optional uint32 seq_num = 4;
 		//repeated uint32 ack_num = 5 [packed = true];
 	}

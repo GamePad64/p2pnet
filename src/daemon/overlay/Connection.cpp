@@ -13,7 +13,7 @@
  */
 #include "Connection.h"
 #include "Socket.h"
-#include "../errors/Errors.h"
+#include "../../p2pnet.h"
 #include "../transport/Socket.h"
 #include "../AsioIOService.h"
 
@@ -26,7 +26,7 @@
 namespace p2pnet {
 namespace overlay {
 
-Connection::Connection(std::weak_ptr<Socket> parent_socket, TH th) : parent_socket(parent_socket) {
+Connection::Connection(std::weak_ptr<Socket> parent_socket, TH th) : parent_socket(parent_socket), callback_timer(AsioIOService::getIOService()) {
 	node_info.th = th;
 	log() << "New overlay::Connection initiated with TH:" << th.toBase58() << std::endl;
 }
@@ -45,62 +45,13 @@ void Connection::setState(const State& state_to_set){
 	}
 }
 
-//void Connection::sendMessage(OverlayMessage send_message) {
+void Connection::onConnect(){
 
+}
 
-	/*
-	if(localTH().toBinaryString() != send_message.header().src_th()){
-		auto our_historic_key = getKeyProvider()->getPrivateKey(send_message.header().src_th());
-		if(our_historic_key != boost::none){
-			if(send_message.header().prio() == send_message.header().RELIABLE){
-				if(!send_message.payload().has_key_rotation_part()){
-					send_message.mutable_payload()->mutable_key_rotation_part()->CopyFrom(generateKeyRotationPart(*our_historic_key));
-				}
-			}else if(!send_message.payload().has_key_rotation_part()){
-				if(!key_rotation_spam_lock){
-					key_rotation_spam_timer.expires_from_now(key_rotation_spam_limit);
-					performRemoteKeyRotation(std::make_pair(*our_historic_key, send_message.header().src_th()));
-					key_rotation_spam_lock = true;
-					key_rotation_spam_timer.async_wait([&](const boost::system::error_code& ec) {if (!ec) key_rotation_spam_lock = false;});
-				}
-			}
-		}
-	}
+void Connection::onDisconnect(){
 
-	if(send_message.header().prio() == send_message.header().RELIABLE){
-		send_message.mutable_header()->set_seq_num(seq_counter++);
-		for(auto it = acked_messages.begin(); it != acked_messages.end(); it++){
-			send_message.mutable_header()->mutable_ack_num()->Add(*it);
-		}
-		acked_messages.clear();	//TODO: dunno
-	}
-
-	//
-
-	auto& transport_socket_connections = transport::TransportSocket::getInstance()->m_connections;
-
-	std::shared_ptr<transport::TransportConnection> conn;
-
-	// Searching for at least one "living" TransportConnection
-	for(auto& conn_it : node_ptr->getTransportEndpoints()){
-		auto sock_it = transport_socket_connections.find(conn_it);
-		if(sock_it->second->connected()){
-			conn = sock_it->second;
-			break;
-		}
-	}
-
-	if(conn){
-		conn->send(send_message.SerializeAsString());
-		log() << "-> OverlayMessage: TH:" << remoteTH().toBase58() << std::endl;
-	}else{
-		// If there are no connections alive, we store messages to "suspended".
-		// And, when they will be sent after some connections arrive.
-		suspended_messages.push_front(send_message);
-		// Then we will try to find additional nodes
-		OverlaySocket::getInstance()->getDHT()->findNodeIterative(remoteTH());
-	}*/
-//}
+}
 
 OverlayMessage Connection::genMessageSkel(const TH& from, const TH& to){
 	OverlayMessage new_message;
@@ -119,7 +70,7 @@ void Connection::send(const OverlayMessage& message, Socket::SendCallback callba
 	parent_socket.lock()->send(message, callback, shared_from_this());
 }
 
-void Connection::send(const OverlayMessage_Payload& payload, Socket::SendCallback callback, bool encrypted, bool force_non_connected) {
+void Connection::send(const OverlayMessage_Payload& payload, Socket::SendCallback callback, PayloadPriority prio, bool encrypted, bool force_non_connected) {
 	OverlayMessage message = genMessageSkel();	// Construct message
 	OverlayMessage_MultiPayload multipayload;
 	multipayload.add_payload()->CopyFrom(payload);
@@ -131,7 +82,7 @@ void Connection::send(const OverlayMessage_Payload& payload, Socket::SendCallbac
 		message.mutable_body()->mutable_open_multipayload()->CopyFrom(multipayload);
 		send(message, callback);
 	}else{
-		AsioIOService::getIOService().post(std::bind(callback, not_connected, shared_from_this(), "", 0));
+		AsioIOService::getIOService().post(std::bind(callback, (int)P2PError::not_connected, shared_from_this(), "", 0));
 	}
 }
 
@@ -154,7 +105,7 @@ void Connection::process(std::shared_ptr<transport::Connection> origin, const Ov
 			OverlayMessage_MultiPayload encrypted_multipayload;
 			encrypted_multipayload.ParseFromString(session_aes_key.decrypt(body.encrypted_multipayload()));
 
-			for(auto payload : encrypted_multipayload){
+			for(auto payload : encrypted_multipayload.payload()){
 				payloads.push_back(std::make_pair(payload, true));
 			}
 		}
@@ -166,66 +117,52 @@ void Connection::process(std::shared_ptr<transport::Connection> origin, const Ov
 					processor->process(shared_from_this(), header, payload_pair.first);
 				}
 			}
+
+			if((PayloadType)payload_pair.first.type() == PayloadType::HANDSHAKE){
+				Handshake handshake_content;
+				handshake_content.ParseFromString(payload_pair.first.content());
+				processHandshake(header, handshake_content);
+			}
 		}
 	}
 }
 
-/*void Connection::process(std::shared_ptr<transport::Connection> origin, const OverlayMessage_Header& header, const OverlayMessage_Body& body) {
+void Connection::processHandshake(const OverlayMessage_Header& header, const Handshake& handshake){
 
-	node_ptr->updateEndpoint(from);
+}
 
-	std::shared_ptr<crypto::PrivateKeyDSA> our_historic_ecdsa_privkey;
-
-	TH src_th = TH::fromBinaryString(recv_message.header().src_th());
-	TH dest_th = TH::fromBinaryString(recv_message.header().dest_th());
-
-	log() << "<- OverlayMessage: TH:" << src_th.toBase58() << std::endl;
-
-	if(getKeyProvider()->getPrivateKey(dest_th) != boost::none){
-		// So, this message is for us.
-		// Key Rotation stage
-		if(recv_message.payload().has_key_rotation_part())
-			if(performLocalKeyRotation(recv_message))
-				node_ptr->updateEndpoint(from, true);
-		// Encryption stage
-		if(recv_message.has_encrypted_payload() && session_aes_key.isPresent()){
-			OverlayMessage_Payload decrypted_payload;
-			auto decrypted_payload_s = session_aes_key.decrypt(recv_message.encrypted_payload());
-			if(decrypted_payload.ParseFromString(decrypted_payload_s)){
-				// Encrypted processing
-				node_ptr->updateEndpoint(from, true);
-				processHandshake(recv_message, decrypted_payload);
-				// DHT
-				Socket::getInstance()->getDHT()->process(src_th, recv_message.payload().GetExtension(dht_part));
-			}else{
-				// TODO: Reconnect
-			}
-		}else{
-			// Open (unencrypted) processing
-			processHandshake(recv_message);
-		}
-		if(recv_message.header().prio() == recv_message.header().RELIABLE){
-			processed_messages.insert(recv_message.header().seq_num());
-			if(processed_messages.size() > getValue<size_t>("overlay.connection.processed_queue_size")){
-				processed_messages.erase(processed_messages.begin());
-			}
-			acked_messages.insert(recv_message.header().seq_num());
-			for(auto& it : recv_message.header().ack_num()){
-				sent_message_buffer.erase(it);
-			}
-		}
-	}else{
-		// This message is completely stale, or it is intended to be retransmitted.
+void Connection::connectTimeout(std::shared_ptr<Connection> connection, Socket::ConnectCallback callback, const boost::system::error_code& ec){
+	if(!ec){
+		callback((int)P2PError::timed_out, connection);
 	}
-}*/
+}
 
 void Connection::connect(Socket::ConnectCallback callback) {
-	OverlayMessage message;
-	message.mutable_header()->set_src_th(localTH().toBinaryString());
-	message.mutable_header()->set_dest_th(remoteTH().toBinaryString());
-	message.mutable_header()->set_prio(message.header().RELIABLE);
-	message.mutable_payload()->mutable_connection_part()->CopyFrom(generateConnectionPart(Stage::PUBKEY));
-	sendMessage(message);
+	if(state == State::ESTABLISHED){
+		callback(0, shared_from_this());
+	}else{
+		auto timeout_time = std::chrono::system_clock::now() + std::chrono::seconds(getValue<unsigned int>("overlay.connection.timeout"));
+		connect_callbacks.push_back(std::make_pair(callback, timeout_time));
+		callback_timer.expires_at(timeout_time);
+		callback_timer.async_wait(std::bind(&Connection::connectTimeout, this, shared_from_this(), callback, std::placeholders::_1));
+
+		if(state == State::FOUND_TRANSPORT){
+			OverlayMessage_Payload handshake_payload;
+			Handshake handshake_content;
+			handshake_content.set_stage(handshake_content.INIT);
+			handshake_content.mutable_signed_handshake()->mutable_key_info()->CopyFrom(localKeyInfo().toProtobuf());
+
+			session_ecdh_key.generateKey();
+			handshake_content.mutable_signed_handshake()->set_ecdh_key(session_ecdh_key.derivePublicKey());
+			handshake_content.set_new_key_signature(localKeyInfo().private_key.sign(handshake_content.signed_handshake().SerializeAsString()));
+
+			handshake_payload.set_type((uint32_t)PayloadType::HANDSHAKE);
+			handshake_payload.set_content(handshake_content.SerializeAsString());
+
+			send(handshake_payload, [](int, std::shared_ptr<Connection>, std::string, int){}, PayloadPriority::RELIABLE, false, true);// check state before. Do not spam. And use dht if no transport
+			setState(State::HANDSHAKE_INIT_SENT);
+		}
+	}
 }
 
 void Connection::disconnect() {
@@ -240,8 +177,13 @@ void Connection::updateTransport(std::shared_ptr<transport::Connection> tconn, b
 
 	if(verified)
 		transport_connections.push_front(tconn);
+
 	else
 		transport_connections.push_back(tconn);
+
+	if(state == State::SEARCHING_TRANSPORT){
+		setState(State::FOUND_TRANSPORT);
+	}
 }
 
 void Connection::updateExpirationTime(std::chrono::system_clock::time_point expiry_time) {

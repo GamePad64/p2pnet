@@ -34,9 +34,10 @@ namespace p2pnet {
 namespace overlay {
 
 class KeyInfo {
+public:
 	void fromProtobuf(const protocol::Handshake_SignedHandshake_KeyInfo& key_info_s);
 	protocol::Handshake_SignedHandshake_KeyInfo toProtobuf() const;
-public:
+
 	crypto::PrivateKeyDSA private_key;
 	crypto::PublicKeyDSA public_key;
 	TH th;

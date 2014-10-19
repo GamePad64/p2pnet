@@ -17,7 +17,7 @@
 namespace p2pnet {
 namespace discovery {
 
-UDPLPDv6::UDPLPDv6() {
+UDPLPDv6::UDPLPDv6(std::shared_ptr<transport::Socket> transport_socket, std::shared_ptr<overlay::Socket> overlay_socket) : UDPLPD(transport_socket, overlay_socket) {
 	readConfig();
 
 	m_lpd_socket.open(ip::udp::v6());

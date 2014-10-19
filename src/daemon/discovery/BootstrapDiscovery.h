@@ -21,7 +21,7 @@ namespace discovery {
 
 class BootstrapDiscovery : public DiscoveryService {
 public:
-	BootstrapDiscovery();
+	BootstrapDiscovery(std::shared_ptr<transport::Socket> transport_socket, std::shared_ptr<overlay::Socket> overlay_socket);
 	virtual ~BootstrapDiscovery();
 
 	void run();

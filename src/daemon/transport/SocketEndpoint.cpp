@@ -16,6 +16,9 @@
 #include "Socket.h"
 #include "SocketEndpoint.h"
 #include "Interface.h"
+
+#include "../../p2pnet.h"
+
 // Standard headers
 #include <memory>
 #include <sstream>
@@ -33,7 +36,11 @@ SocketEndpoint::SocketEndpoint(Socket* parent, const std::shared_ptr<InterfaceEn
 }
 
 void SocketEndpoint::resetEndpoint(std::string name) {
-	interface_endpoint = parent->getInterface(name)->createEndpoint();
+	auto interface_ptr = parent->getInterface(name);
+	if(interface_ptr == nullptr){
+		throw (int)P2PError::no_such_interface;
+	}
+	interface_endpoint = interface_ptr->createEndpoint();
 }
 
 // Operators

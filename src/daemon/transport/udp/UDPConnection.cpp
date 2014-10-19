@@ -13,7 +13,7 @@
  */
 #include "UDPConnection.h"
 #include "UDPInterface.h"
-#include "../Errors.h"
+#include "../../../p2pnet.h"
 
 #include "../../AsioIOService.h"
 
@@ -50,7 +50,7 @@ void UDPConnection::receivedKeepAlive() {
 	conn_receive_timeout.expires_from_now(std::chrono::seconds(udp_interface->getInactivityTimeout()));
 	conn_receive_timeout.async_wait([&, this](const boost::system::error_code& error){
 		if(error != boost::asio::error::operation_aborted){
-			udp_interface->getDisconnectCallback()(timed_out, shared_from_this());
+			udp_interface->getDisconnectCallback()((int)P2PError::timed_out, shared_from_this());
 			m_connected = false;
 			onDisconnect();
 		}
@@ -64,7 +64,7 @@ void UDPConnection::receivedDisconnect(){
 	conn_send_timer.cancel();
 	conn_receive_timeout.cancel();
 
-	udp_interface->getDisconnectCallback()(connection_reset, shared_from_this());
+	udp_interface->getDisconnectCallback()((int)P2PError::connection_reset, shared_from_this());
 	m_connected = false;
 	onDisconnect();
 }
@@ -75,7 +75,7 @@ void UDPConnection::connect(Socket::ConnectCallback callback){
 	conn_receive_timeout.expires_from_now(std::chrono::seconds(udp_interface->getInactivityTimeout()));
 	conn_receive_timeout.async_wait([&](const boost::system::error_code& error){
 		if(error != boost::asio::error::operation_aborted){
-			connecting_callback(timed_out, shared_from_this());
+			connecting_callback((int)P2PError::timed_out, shared_from_this());
 			m_connected = false;
 		}else{
 			connecting_callback(0, shared_from_this());

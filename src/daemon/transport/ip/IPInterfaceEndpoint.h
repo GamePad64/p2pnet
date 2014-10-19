@@ -39,7 +39,7 @@ protected:
 public:
 	virtual ~IPInterfaceEndpoint(){};
 
-	virtual std::shared_ptr<InterfaceEndpoint> clone();
+	virtual std::shared_ptr<InterfaceEndpoint> clone() = 0;
 
 	bool isIPv4() const;
 	bool isIPv6() const;

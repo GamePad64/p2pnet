@@ -21,13 +21,23 @@
 #include "OverlayProtocol.pb.h"
 
 namespace p2pnet {
+
+namespace transport {
+class Socket;
+}
+namespace overlay {
+class Socket;
+}
+
 namespace discovery {
 
 class DiscoveryService : public ConfigClient, public Loggable {
 	protocol::OverlayMessage generateConnectionRequest();
 
+protected:
 	std::shared_ptr<transport::Socket> transport_socket;
 	std::shared_ptr<overlay::Socket> overlay_socket;
+
 public:
 	DiscoveryService(std::shared_ptr<transport::Socket> transport_socket, std::shared_ptr<overlay::Socket> overlay_socket);
 	virtual ~DiscoveryService();

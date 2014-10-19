@@ -29,7 +29,6 @@
 #define LIBP2PNET_DLL_EXPORTED __declspec(dllexport)
 #elif BUILDING_LIBP2PNET
 #define LIBP2PNET_DLL_EXPORTED __attribute__((__visibility__("default")))
-
 #elif defined _MSC_VER
 #define LIBP2PNET_DLL_EXPORTED __declspec(dllimport)
 #else
@@ -55,7 +54,14 @@ P2PError {
 	nonexistent_node = 259,
 	nonexistent_socket = 260,
 
-	nodemanager_db_non_consistent = 261
+	nodemanager_db_non_consistent = 261,
+
+	timed_out = 110,
+	connection_reset = 104,
+	no_such_interface = 180, //
+	no_transport = 181, //
+	not_connected = 107,
+	message_parse_error = 107
 }
 #ifndef __cplusplus
 P2PError

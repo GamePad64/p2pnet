@@ -11,38 +11,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 
-//BIG SHIT! This exception is made using streams, strings, and other memory-allocating stuff.
-//So, now we know, that this is out-of-guideliney stuff.
-#ifndef MESSAGEREJECT_H_
-#define MESSAGEREJECT_H_
-
-#include <string>
+#include "OverlayProtocol.pb.h"
+#include <memory>
 
 namespace p2pnet {
-namespace errors {
+using namespace protocol;
+namespace overlay {
 
-class MessageReject {
+class Connection;
+class Processor {
+	friend class Socket;
+	std::weak_ptr<Socket> parent;
+protected:
+	std::shared_ptr<Socket> getParent(){return parent.lock();};
 public:
-	enum Reason {
-		CUSTOM,
-		CRC_MISMATCH,
-		KEY_INVALID,
-		PARSE_ERROR,
-		ENCRYPTION_NEEDED
-	};
-private:
-	std::string m_comment;
-	Reason m_reason;
-public:
-	MessageReject(Reason reason);
-	MessageReject(std::string custom_reason);
-	MessageReject(Reason reason, std::string comment);
+	Processor(std::weak_ptr<Socket> parent) : parent(parent){}
+	virtual ~Processor();
 
-	std::string what() const;
+	virtual bool isEncryptionMandatory() const {return true;};	// Encryption is mandatory by default
+	virtual void process(std::shared_ptr<Connection> connection, const OverlayMessage_Header& header, const OverlayMessage_Payload& payload) = 0;
 };
 
-} /* namespace errors */
+} /* namespace overlay */
 } /* namespace p2pnet */
-
-#endif /* MESSAGEREJECT_H_ */

@@ -11,6 +11,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef cb2d1228_b0d8_451a_962c_62d4e073ad81
+#define cb2d1228_b0d8_451a_962c_62d4e073ad81
 #pragma once
 
 #include "SocketEndpoint.h"
@@ -49,3 +51,4 @@ public:
 
 } /* namespace net */
 } /* namespace p2pnet */
+#endif

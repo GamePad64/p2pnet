@@ -19,31 +19,15 @@ namespace p2pnet {
 
 Daemon::Daemon() {
 	config_manager = ConfigManager::getInstance();
-	m_overlay_socket = overlay::OverlaySocket::getInstance();
 }
 Daemon::~Daemon() {
-	m_overlay_socket->clear();
 	config_manager->clear();
 }
 
 int Daemon::run() {
-	this->initTransportSocket();
-	this->initDiscoveryServices();
-	this->initAPI();
-
-	AsioIOService::getIOService().run();
-	return 0;
-}
-
-void Daemon::initAPI() {
-	api_manager = std::unique_ptr<api::APIManager>(new api::APIManager());
-}
-
-void Daemon::initTransportSocket() {
-	// Creating TransportSocket
+	// transport::Socket
     m_transport_socket = std::make_shared<transport::Socket>();
 
-	// Creating interfaces
 	if(config_manager->getValue<bool>("transport.udp.enabled")){
 		try {
 			auto m_udp_interface = std::make_shared<transport::UDPInterface>();
@@ -52,17 +36,19 @@ void Daemon::initTransportSocket() {
 			log() << "Unable to initialize UDP socket. Exception caught: " << e.what() << std::endl;
 		}
 	}
-}
 
-void Daemon::initDiscoveryServices() {
+	// overlay::Socket
+	m_overlay_socket = std::make_shared<overlay::Socket>();
+
+	// discovery
 	if(config_manager->getValue<std::string>("discovery.bootstrap.filename") != ""){
-		discovery_bootstrap = std::unique_ptr<discovery::BootstrapDiscovery>(new discovery::BootstrapDiscovery());
+		discovery_bootstrap = std::unique_ptr<discovery::BootstrapDiscovery>(new discovery::BootstrapDiscovery(m_transport_socket, m_overlay_socket));
 		discovery_bootstrap->run();
 	}
 
 	if(config_manager->getValue<bool>("discovery.udpv4.enabled")){
 		try {
-			discovery_udpv4 = std::unique_ptr<discovery::UDPLPDv4>(new discovery::UDPLPDv4());
+			discovery_udpv4 = std::unique_ptr<discovery::UDPLPDv4>(new discovery::UDPLPDv4(m_transport_socket, m_overlay_socket));
 
 			discovery_udpv4->startReceiveLoop();
 			discovery_udpv4->startSendLoop();
@@ -74,7 +60,7 @@ void Daemon::initDiscoveryServices() {
 
 	if(config_manager->getValue<bool>("discovery.udpv6.enabled")){
 		try {
-			discovery_udpv6 = std::unique_ptr<discovery::UDPLPDv6>(new discovery::UDPLPDv6());
+			discovery_udpv6 = std::unique_ptr<discovery::UDPLPDv6>(new discovery::UDPLPDv6(m_transport_socket, m_overlay_socket));
 
 			discovery_udpv6->startReceiveLoop();
 			discovery_udpv6->startSendLoop();
@@ -83,6 +69,13 @@ void Daemon::initDiscoveryServices() {
 						<< std::endl;
 		}
 	}
+
+	// API
+	api_manager = std::unique_ptr<api::APIManager>(new api::APIManager());
+
+	// Start main loop
+	AsioIOService::getIOService().run();
+	return 0;
 }
 
 } /* namespace p2pnet */

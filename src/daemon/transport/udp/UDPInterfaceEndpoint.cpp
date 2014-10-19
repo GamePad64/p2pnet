@@ -17,8 +17,13 @@ namespace p2pnet {
 namespace transport {
 
 UDPInterfaceEndpoint::UDPInterfaceEndpoint() : IPInterfaceEndpoint("UDP") {}
-UDPInterfaceEndpoint::UDPInterfaceEndpoint(address ip, port_t port) : IPInterfaceEndpoint(ip, port, "UDP") {}
+UDPInterfaceEndpoint::UDPInterfaceEndpoint(boost::asio::ip::address ip, port_t port) : IPInterfaceEndpoint(ip, port, "UDP") {}
 UDPInterfaceEndpoint::UDPInterfaceEndpoint(const std::string& ip, port_t port) : IPInterfaceEndpoint(ip, port, "UDP") {}
+
+std::shared_ptr<InterfaceEndpoint> UDPInterfaceEndpoint::clone(){
+	auto new_endpoint = std::make_shared<UDPInterfaceEndpoint>(getAsioIP(), getPort());
+	return new_endpoint;
+}
 
 } /* namespace transport */
 } /* namespace p2pnet */

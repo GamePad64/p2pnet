@@ -54,7 +54,7 @@ protected:
 	ip::udp::endpoint bind_endpoint;
 	ip::udp::endpoint target_endpoint;
 public:
-	UDPLPD();
+	UDPLPD(std::shared_ptr<transport::Socket> transport_socket, std::shared_ptr<overlay::Socket> overlay_socket);
 	virtual ~UDPLPD();
 
 	// Configuration part.

@@ -22,7 +22,7 @@
 #include "api/APIManager.h"
 
 #include "transport/Socket.h"
-#include "overlay/OverlaySocket.h"
+#include "overlay/Socket.h"
 
 #include "discovery/BootstrapDiscovery.h"
 #include "discovery/UDPLPDv4.h"
@@ -32,13 +32,13 @@ namespace p2pnet {
 
 class Daemon : public Loggable {
 	void initAPI();
-	void initTransportSocket();
+	void initOverlaySocket();
 	void initDiscoveryServices();
 public:
 	ConfigManager* config_manager;
 
 	std::shared_ptr<transport::Socket> m_transport_socket;
-	overlay::Socket* m_overlay_socket;
+	std::shared_ptr<overlay::Socket> m_overlay_socket;
 
 	std::unique_ptr<discovery::BootstrapDiscovery> discovery_bootstrap;
 	std::unique_ptr<discovery::UDPLPDv4> discovery_udpv4;

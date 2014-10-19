@@ -23,7 +23,7 @@ namespace discovery {
 
 class UDPLPDv6: public UDPLPD {
 public:
-	UDPLPDv6();
+	UDPLPDv6(std::shared_ptr<transport::Socket> transport_socket, std::shared_ptr<overlay::Socket> overlay_socket);
 	virtual ~UDPLPDv6();
 
 	virtual void readConfig();

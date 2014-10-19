@@ -13,8 +13,6 @@
  */
 #pragma once
 
-#include "processors/Handshake.h"
-
 #include "TH.h"
 #include "PayloadParams.h"
 #include "Socket.h"
@@ -31,23 +29,24 @@
 #include "../../common/Config.h"
 
 
-#include <deque>
-#include <unordered_map>
+#include <list>
+#include <set>
 
 namespace p2pnet {
 using namespace protocol;
 namespace overlay {
 
-class Connection : Loggable, std::enable_shared_from_this<Connection>, public ConfigClient {
+class Connection : Loggable, public std::enable_shared_from_this<Connection>, public ConfigClient {
 	friend class Socket;
-	friend class processors::Handshake;
 	std::weak_ptr<Socket> parent_socket;
 	// Types
 	enum class State {
 		CLOSED = 0,
-		HANDSHAKE_INIT_SENT = 1,
-		HANDSHAKE_REPLY_SENT = 2,
-		ESTABLISHED = 3,
+		SEARCHING_TRANSPORT = 1,
+		FOUND_TRANSPORT = 2,
+		HANDSHAKE_INIT_SENT = 3,
+		HANDSHAKE_REPLY_SENT = 4,
+		ESTABLISHED = 5,
 
 		LOST = 255
 	} state = State::CLOSED;
@@ -61,9 +60,15 @@ class Connection : Loggable, std::enable_shared_from_this<Connection>, public Co
 
 	std::list<std::shared_ptr<transport::Connection>> transport_connections;
 
+	// Connection callbacks and timeouts
+	std::list<std::pair<Socket::ConnectCallback, std::chrono::system_clock::time_point>> connect_callbacks;
+	boost::asio::system_timer callback_timer;
+	void connectTimeout(std::shared_ptr<Connection> connection, Socket::ConnectCallback callback, const boost::system::error_code& ec);
+
 	// Private Getters
 	KeyProvider* getKeyProvider(){return parent_socket.lock()->getKeyProvider();}
-	std::shared_ptr<processors::Handshake> getHandshakeProcessor(){return parent_socket.lock()->getHandshakeProcessor();}
+
+	void processHandshake(const OverlayMessage_Header& header, const Handshake& handshake);
 
 	// Actions
 	void setState(const State& state_to_set);
@@ -76,7 +81,11 @@ public:
 
 	// Senders
 	void send(const OverlayMessage& message, Socket::SendCallback callback);
-	void send(const OverlayMessage_Payload& payload, Socket::SendCallback callback, bool encrypted = true, bool force_non_connected = false);
+	void send(const OverlayMessage_Payload& payload,
+			Socket::SendCallback callback,
+			PayloadPriority prio = PayloadPriority::RELIABLE,
+			bool encrypted = true,
+			bool force_non_connected = false);
 
 	void process(std::shared_ptr<transport::Connection> origin, const OverlayMessage_Header& header, const OverlayMessage_Body& body);
 

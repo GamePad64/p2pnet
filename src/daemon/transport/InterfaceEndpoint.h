@@ -21,8 +21,8 @@ namespace transport {
 class InterfaceEndpoint {
 	const std::string prefix;
 public:
-	InterfaceEndpoint(const std::string& prefix);
-	virtual ~InterfaceEndpoint();
+	InterfaceEndpoint(const std::string& prefix) : prefix(prefix){}
+	virtual ~InterfaceEndpoint(){}
 
 	virtual std::shared_ptr<InterfaceEndpoint> clone() = 0;
 	std::string getPrefix() const {return prefix;}

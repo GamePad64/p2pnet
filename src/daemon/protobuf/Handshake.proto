@@ -18,7 +18,7 @@ package p2pnet.protocol;
 
 message Handshake {
 	enum Stage {
-		REQUEST = 0; REPLY = 1;
+		INIT = 0; REPLY = 1;
 
 		PUBKEY_ROTATION = 8;
 		CONNECTION_REQUEST = 9;

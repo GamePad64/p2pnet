@@ -14,9 +14,8 @@
 
 #include "UDPLPD.h"
 #include "../AsioIOService.h"
-#include "Protocol.pb.h"
 #include "../../common/Version.h"
-#include "../errors/MessageReject.h"
+#include "../../p2pnet.h"
 
 #include <memory>
 #include <functional>
@@ -24,7 +23,8 @@
 namespace p2pnet {
 namespace discovery {
 
-UDPLPD::UDPLPD() :
+UDPLPD::UDPLPD(std::shared_ptr<transport::Socket> transport_socket, std::shared_ptr<overlay::Socket> overlay_socket) :
+		DiscoveryService(transport_socket, overlay_socket),
 		m_timer(AsioIOService::getIOService()),
 		m_lpd_socket(AsioIOService::getIOService()) {
 	m_timer_seconds = 0;
@@ -55,24 +55,22 @@ void UDPLPD::processReceived(std::array<char, MAX_UDP_PACKET_SIZE>& recv_buffer,
 		bool parsed_well = message.ParseFromString(std::string(recv_buffer.data(), recv_bytes));
 
 		if(!parsed_well){
-			throw(new errors::MessageReject(errors::MessageReject::Reason::PARSE_ERROR));
+			throw(std::error_condition((int)P2PError::message_parse_error, P2PErrorCategory));
 		}
 
 		// This endpoint is ready to send handshake messages to
 		ip::udp::endpoint dest_endpoint(mcast_endpoint_ptr->address(), message.port());
-
 		log() << "Local <- " << dest_endpoint << std::endl;
 
 		/*
 		 * Summary: We received a message and we can create TransportSocketEndpoint from it
 		 */
-		auto interface_endpoint = std::make_shared<transport::IPInterfaceEndpoint>(dest_endpoint);
-		transport::SocketEndpoint socket_endpoint(interface_endpoint);
+		auto interface_endpoint = std::make_shared<transport::UDPInterfaceEndpoint>(mcast_endpoint_ptr->address(), message.port());
+		transport::SocketEndpoint socket_endpoint(transport_socket.get(), interface_endpoint);
 		// Well, trying to handshake it.
 		handshake(socket_endpoint);
-	} catch(errors::MessageReject *e) {
-		log(ERROR) << e->what();
-		delete e;
+	} catch(std::error_condition& e) {
+		log(ERROR) << e.message();
 	}
 
 	// We received message, continue receiving others

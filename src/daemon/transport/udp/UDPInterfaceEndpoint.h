@@ -24,6 +24,8 @@ public:
 	UDPInterfaceEndpoint(address ip, port_t port);
 	UDPInterfaceEndpoint(const std::string& ip, port_t port);
 	virtual ~UDPInterfaceEndpoint(){};
+
+	virtual std::shared_ptr<InterfaceEndpoint> clone();
 };
 
 } /* namespace transport */
