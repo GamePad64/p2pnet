@@ -1,15 +1,13 @@
 language: cpp
 compiler:
   - gcc
-  - clang
+# - clang
 install:
   - sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-add-repository -y ppa:boost-latest/ppa
-  - sudo apt-add-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main"
-  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
   -
   - sudo apt-get update
-  - sudo apt-get install clang-3.6 libboost1.54 g++-4.8 gcc-4.8 build-essential libgtest-dev protobuf-compiler libprotobuf-dev
+  - sudo apt-get install clang-3.4 libboost1.54 g++-4.8 gcc-4.8 build-essential libgtest-dev protobuf-compiler libprotobuf-dev
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
   - 
   - wget -O botan-1.11_amd64.deb https://dl.dropboxusercontent.com/u/2310050/p2pnet/botan-1.11_amd64.deb
@@ -17,7 +15,6 @@ install:
 script:
   - cmake .
   - make
-  - make install
 branches:
   only:
     - master
